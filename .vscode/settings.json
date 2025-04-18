@@ -1,0 +1,35 @@
+{
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "always"
+  },
+  "cSpell.words": [
+    "AADI",
+    "analysisdocs",
+    "chartlog",
+    "cmdk",
+    "CODINGAPPROVEDSTATUS",
+    "CODINGREVIEW",
+    "CODINGREVIEWSTATUS",
+    "datatable",
+    "DOCRETRIEVAL",
+    "DRAFTSTATUS",
+    "Dragable",
+    "fullpath",
+    "overscan",
+    "Payor",
+    "PENDINGSTATUS",
+    "PENDINGSTATUSSTATUS",
+    "persistor",
+    "POSTREVIEW",
+    "Presit",
+    "previsit",
+    "PROGRESSNOTESTATUS",
+    "Retrival",
+    "REVIEWSTATUS",
+    "sinm",
+    "Sugg",
+    "USERTYPES",
+    "vidura"
+  ],
+  "typescript.tsdk": "node_modules\\typescript\\lib"
+}

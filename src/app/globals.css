@@ -1,0 +1,277 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('/fonts/Poppins-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('/fonts/Poppins-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+.font-poppins {
+  font-family: 'Poppins', sans-serif;
+}
+
+:root {
+  --background: 96 5% 96%;
+  --foreground: 0 0% 10%;
+  --card: 96 5% 96%;
+  --card-foreground: 0 0% 10%;
+  --popover: 96 5% 96%;
+  --popover-foreground: 0 0% 10%;
+  --primary: 226 62% 55%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 93%;
+  --secondary-foreground: 0 0% 10%;
+  --muted: 0 0% 93%;
+  --muted-foreground: 210 5% 42%;
+  --accent: 39 98% 61%;
+  --sidebar-accent: 39 98% 61%;
+  --accent-foreground: 0 0% 100%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --destructive: 11 97% 81%;
+  --destructive-foreground: 0 0% 10%;
+  --border: 227 18% 75%;
+  --input: 227 18% 75%;
+  --ring: 226 62% 55%;
+  --radius: 0.75rem;
+
+  --chart-1: 215 100% 40%;
+  --chart-2: 30 100% 50%;
+  --chart-3: 120 70% 40%;
+  --chart-4: 195 100% 45%;
+  --chart-5: 270 70% 50%;
+}
+
+
+.dark {
+  --background: 210 19% 13%;
+  --foreground: 60 4% 95%;
+  --card: 210 19% 13%;
+  --card-foreground: 60 4% 95%;
+  --popover: 210 19% 13%;
+  --popover-foreground: 60 4% 95%;
+  --primary: 226 62% 55%;
+  --primary-foreground: 60 4% 95%;
+  --secondary: 210 19% 23%;
+  --secondary-foreground: 60 4% 95%;
+  --muted: 210 19% 23%;
+  --muted-foreground: 210 5% 42%;
+  --accent: 39 98% 61%;
+  --accent-foreground: 210 19% 13%;
+  --destructive: 11 97% 81%;
+  --destructive-foreground: 210 19% 13%;
+  --border: 210 14% 28%;
+  --input: 210 14% 28%;
+  --ring: 226 62% 55%;
+  --radius: 0.75rem;
+  --chart-1: 226 62% 55%;
+  --chart-2: 39 98% 61%;
+  --chart-3: 210 19% 23%;
+  --chart-4: 210 19% 13%;
+  --chart-5: 210 5% 42%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  .animate-smooth {
+    @apply transition-all duration-700
+  }
+
+}
+
+
+
+:root {
+  font-family: Inter, system-ui, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 0.8rem;
+  height: 0.3rem;
+
+}
+
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--scroll));
+  border-radius: 12px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--muted-foreground));
+}
+
+/* Add these styles to your global CSS */
+/* Custom scoped classes for the data table */
+.custom-datatable-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.custom-datatable-container {
+  max-height: calc(100vh - 300px);
+  min-height: 400px;
+  overflow: auto;
+  position: relative;
+}
+
+/* Header styling */
+.custom-datatable-header {
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.custom-datatable-header-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+:root {
+  --scrollbar-thumb: hsl(var(--primary, 220, 90%, 56%));
+  /* Default primary */
+  --scrollbar-track: hsl(var(--background, 0, 0%, 98%));
+  /* Light background */
+  --header-bg: hsl(var(--background, 0, 0%, 100%));
+  /* White header */
+  --border-color: hsl(var(--border, 220, 13%, 91%));
+  /* Light border */
+}
+
+/* Dark theme overrides */
+[data-theme="dark"] {
+  --scrollbar-thumb: hsl(var(--primary, 220, 90%, 56%));
+  /* Default dark primary */
+  --scrollbar-track: hsl(var(--background, 220, 10%, 20%));
+  /* Dark background */
+  --header-bg: hsl(var(--background, 220, 10%, 15%));
+  /* Dark header */
+  --border-color: hsl(var(--border, 220, 13%, 50%));
+  /* Dark border */
+}
+
+/* Ensure scrollbars apply the theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--scrollbar-track);
+}
+
+/* Mobile optimization */
+@media (max-width: 640px) {
+  .custom-datatable-container {
+    -webkit-overflow-scrolling: touch;
+    max-height: calc(100vh - 10px);
+  }
+}
+
+.data-table-custom td,
+.data-table-custom th {
+  padding: 1px 6px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+}
+
+.logo-text {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+.chrome-tab-title {
+  font-size: small !important;
+  text-transform: capitalize;
+  padding-bottom: 20px;
+}
+
+.chrome-tab-favicon {
+  display: none !important;
+}
+
+.chrome-tab-title {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+/* pdf-viewer */
+.rpv-default-layout__container {
+  border: none !important;
+}
+
+.rpv-core__tooltip-body,
+.pdf-viewer-tooltip {
+  display: none !important;
+}
+
+.zoom-button>button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+}
+
+[data-testid="page-navigation"] button,
+[data-testid="zoom"] button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+}
+
+.chrome-tabs {
+  background-color: #c8ddfc !important;
+}
+
+td.p-4.align-middle .truncate {
+  width: 100%;
+  text-align: center;
+}
