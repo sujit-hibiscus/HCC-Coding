@@ -27,7 +27,6 @@ import useToast from "@/hooks/use-toast";
 import { cn, logout } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { useState } from "react";
-import { useApiCall } from "../previsit/ApiCall";
 import NextImage from "../ui/next-image";
 import { ChangePassword } from "./user/change-password";
 
@@ -51,7 +50,6 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
     const { setTheme, resolvedTheme } = useTheme();
     const { resetReduxStore, selector } = useRedux();
     const { userType } = selector(state => state.user);
-    const { getUserApiCall } = useApiCall();
     const [isOpen, setIsOpen] = useState(false);
     const menuItems: MenuItem[] = [
         { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" }
@@ -100,7 +98,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
 
     const addUserClick = () => {
         handleNavigation("/dashboard/add-user", "Add User");
-        getUserApiCall("/dashboard/add-user");
+        // getUserApiCall("/dashboard/add-user");
     };
 
     return (

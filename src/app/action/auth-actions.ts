@@ -13,61 +13,66 @@ export interface LoginResponse {
     message: string
 }
 
+const mockCredentials = {
+    provider: {
+        email: "provider@example.com",
+        password: "provider123",
+        userType: "Provider",
+    },
+    analyst: {
+        email: "aadi.sujit@mailinator.com",
+        password: "test@123",
+        userType: "Analyst",
+    },
+};
+
 export async function loginAction(formData: FormData): Promise<LoginResponse> {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
     try {
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ? `${process.env.NEXT_PUBLIC_BASE_URL}` : `${process.env.NEXT_PUBLIC_BASE_URL}`;
-        const bodyData = {
-            "email": email,
-            "password": password
-        };
-        const response = await fetch(`${baseUrl}/get/login/`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(bodyData),
-            cache: "no-store",
-        });
 
-        const data = await response.json();
-        if (data.status === "Success") {
-            const authToken = data?.access_token;
-            const userType = data?.profile_type === 1 ? "Analyst" : data?.profile_type === 2 ? "Provider" : "";
-
-            const cookieStore = await cookies();
-            cookieStore.set("authToken", authToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
-                maxAge: 3 * 60 * 60,
-                path: "/",
-            });
-            cookieStore.set("userType", userType, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "strict",
-                maxAge: 3 * 60 * 60, // 3 Hours
-                path: "/",
-            });
-
-            TokenManager.setToken(authToken);
-
-            return {
-                success: true,
-                userType: userType,
-                userRoles: data.user_id,
-                token: authToken,
-                message: data.message
-            };
+        let userType = "";
+        if (email === mockCredentials.analyst.email && password === mockCredentials.analyst.password) {
+            userType = mockCredentials.analyst.userType;
+        } else if (email === mockCredentials.provider.email && password === mockCredentials.provider.password) {
+            userType = mockCredentials.provider.userType;
         } else {
             return {
                 success: false,
-                error: "Invalid email or password. Please try again.",
+                error: "Invalid email or password.",
                 token: "",
-                message: data?.message
+                message: "Login failed",
             };
         }
+
+        const authToken = `${userType}-token-123`; // Mock token
+        const cookieStore = await cookies();
+        cookieStore.set("authToken", authToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 3 * 60 * 60,
+            path: "/",
+        });
+        cookieStore.set("userType", userType, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 3 * 60 * 60, // 3 Hours
+            path: "/",
+        });
+
+        TokenManager.setToken(authToken);
+
+        return {
+            success: true,
+            userType: userType,
+            userRoles: [],
+            token: authToken,
+            message: "Login successful"
+        };
+
     } catch (error) {
         console.error("Login error:", error);
         return {

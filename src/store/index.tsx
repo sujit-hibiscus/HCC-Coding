@@ -1,14 +1,7 @@
 import dashboardSlice from "@/store/slices/DashboardSlice";
-import apiSlice from "@/store/slices/api-slice";
-import previsitSlice from "@/store/slices/previsit-slice";
-import providerDetailSlice from "@/store/slices/provider-details-slice";
-import userSlice from "@/store/slices/user-slice";
-import userForm from "@/store/slices/user-form-slice";
-import tableFiltersReducer from "@/store/slices/tableFiltersSlice";
-import pdfFilters from "@/store/slices/pdfFiltersSlice";
-import masterDataSlice from "@/store/slices/masterDataSlice";
-import chatReducer from "@/store/slices/chatSlice";
 import chartsFilterReducer from "@/store/slices/charts-filter-slice";
+import tableFiltersReducer from "@/store/slices/tableFiltersSlice";
+import userSlice from "@/store/slices/user-slice";
 
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { type TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
@@ -20,16 +13,16 @@ const RESET_STORE = "RESET_STORE";
 // Combine all reducers
 const appReducer = combineReducers({
     dashboard: dashboardSlice,
-    api: apiSlice,
-    previsit: previsitSlice,
-    provider: providerDetailSlice,
-    user: userSlice,
     tableFilters: tableFiltersReducer,
-    userForm: userForm,
-    pdfFilters: pdfFilters,
-    master: masterDataSlice,
-    chat: chatReducer,
+    // api: apiSlice,
+    user: userSlice,
     chartsFilter: chartsFilterReducer,
+    // previsit: previsitSlice,
+    // provider: providerDetailSlice,
+    // userForm: userForm,
+    // pdfFilters: pdfFilters,
+    // master: masterDataSlice,
+    // chat: chatReducer,
 });
 
 // Root reducer that listens for the reset action
