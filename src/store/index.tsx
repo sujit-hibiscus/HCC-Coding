@@ -1,17 +1,16 @@
+
 import dashboardSlice from "@/store/slices/DashboardSlice";
 import chartsFilterReducer from "@/store/slices/charts-filter-slice";
-import tableFiltersReducer from "@/store/slices/tableFiltersSlice";
-import userSlice from "@/store/slices/user-slice";
 import pdfFilters from "@/store/slices/pdfFiltersSlice";
+import tableFiltersReducer from "@/store/slices/tableFiltersSlice";
+import userForm from "@/store/slices/user-form-slice";
+import userSlice from "@/store/slices/user-slice";
+import documentManagementReducer from "@/store/slices/documentManagementSlice"
 
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { type TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-import documentsReducer from "./slices/documentsSlice"
-import uiReducer from "./slices/uiSlice"
-import timerReducer from "./slices/timerSlice";
-import userForm from "@/store/slices/user-form-slice";
 
 const RESET_STORE = "RESET_STORE";
 
@@ -21,14 +20,12 @@ const appReducer = combineReducers({
     tableFilters: tableFiltersReducer,
     user: userSlice,
     chartsFilter: chartsFilterReducer,
-    documents: documentsReducer,
-    ui: uiReducer,
-    timer: timerReducer,
+    documentManagement: documentManagementReducer,
     pdfFilters: pdfFilters,
     userForm: userForm,
 });
 
-// Root reducer that listens for the reset action
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const rootReducer = (state: any, action: any) => {
     if (action.type === RESET_STORE) {
@@ -46,9 +43,7 @@ const persistConfig = {
         "tableFilters",
         "user",
         "chartsFilter",
-        "documents",
-        "ui",
-        "timer",
+        "documentManagement",
         "pdfFilters",
         "userForm"
     ],

@@ -1,5 +1,4 @@
-import type { Row, Column } from "@tanstack/react-table";
-import { DraftDataTypes } from "./types/PrevisitTypes";
+import type { Column, Row } from "@tanstack/react-table";
 
 interface ExportOptions {
     filename: string
@@ -15,8 +14,26 @@ export function exportFilteredTableToCSV<TData>(
     const { filename, excludeColumns = [] } = options;
 
     const exportColumns = columns.filter((column) => !excludeColumns.includes(column.id));
-
     const csvContent = [
+        exportColumns
+            .map((column) => `"${column.id}"`)
+            .join(","),
+        ...rows.map((row) =>
+            exportColumns
+                .map((column) => {
+                    const allData = row?.original;
+                    const cellValue =
+                        column.id === "Name"
+                            ? ""
+                            : column.accessorFn
+                                ? column.accessorFn(row.original, row.index)
+                                : row.getValue(column.id);
+                    return `"${cellValue}"`;
+                })
+                .join(","),
+        ),
+    ].join("\n");
+    /* const csvContent = [
         exportColumns
             .map((column) => `"${column.id}"`)
             .join(","),
@@ -34,7 +51,7 @@ export function exportFilteredTableToCSV<TData>(
                 })
                 .join(","),
         ),
-    ].join("\n");
+    ].join("\n"); */
 
 
     // Create and trigger download

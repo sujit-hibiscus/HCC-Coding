@@ -3,19 +3,17 @@
 import { useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import type { RootState } from "@/store"
-import { selectDocument } from "@/store/slices/uiSlice"
+import { selectDocument, pauseReview } from "@/store/slices/documentManagementSlice"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Search, Clock, Calendar } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { pauseReview } from "@/store/slices/documentsSlice"
 
 export default function DocumentList() {
   const dispatch = useDispatch()
-  const { documents } = useSelector((state: RootState) => state.documents)
-  const { selectedDocumentId } = useSelector((state: RootState) => state.ui)
+  const { documents, selectedDocumentId } = useSelector((state: RootState) => state.documentManagement)
   const [searchTerm, setSearchTerm] = useState("")
 
   const filteredDocuments = documents.filter((doc) => doc.name.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -76,10 +74,10 @@ export default function DocumentList() {
               whileHover={{ scale: 1 }}
               transition={{ duration: 0.2 }}
               onClick={() => {
-                dispatch(selectDocument(doc.id))
                 if (selectedDocumentId) {
                   dispatch(pauseReview(selectedDocumentId))
                 }
+                dispatch(selectDocument(doc.id))
               }}
             >
               <Card

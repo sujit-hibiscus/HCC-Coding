@@ -20,7 +20,7 @@ export default function LoginForm() {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const { loginApi, getBasePath, getLoginMasterData } = useApiCall();
+    const { getBasePath, getLoginMasterData } = useApiCall();
     const router = useRouter();
     const { error } = useToast();
     const { dispatch } = useRedux();
@@ -36,6 +36,7 @@ export default function LoginForm() {
                 formData.append("password", password);
 
                 const response = await loginAction(formData);
+
                 if (response?.message && response?.message !== "Login successful") {
                     error({ message: response.message });
                 }
@@ -49,9 +50,9 @@ export default function LoginForm() {
                             email: email
                         })
                     );
-                    setTimeout(() => {
-                        loginApi("Login", response.userType as "Analyst" | "Provider");
-                    });
+                    /* setTimeout(() => {
+                        loginApi("Login", response.userType as "Analyst" | "Auditor" | "Admin");
+                    }); */
                     router.push(getBasePath(response.userType as string));
                     setTimeout(() => {
                         resolve();

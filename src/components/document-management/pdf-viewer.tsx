@@ -1,20 +1,26 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
-import { useDispatch, useSelector } from "react-redux"
-import type { RootState } from "@/store"
 import { Button } from "@/components/ui/button"
-import { Play, Pause, CheckCircle, Clock } from "lucide-react"
-import { startReview, pauseReview, resumeReview, completeReview } from "@/store/slices/documentsSlice"
-import { startTimer, stopTimer, updateElapsedTime } from "@/store/slices/timerSlice"
+import { useRedux } from "@/hooks/use-redux"
+import type { RootState } from "@/store"
+import {
+  completeReview,
+  pauseReview,
+  resumeReview,
+  startReview,
+  startTimer,
+  stopTimer,
+  updateElapsedTime,
+} from "@/store/slices/documentManagementSlice"
+import { AnimatePresence, motion } from "framer-motion"
+import { CheckCircle, Clock, Play } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { useSelector } from "react-redux"
 import PdfUI from "../ui/pdfUI"
-import { AnimatePresence, motion } from 'framer-motion';
 
 export default function PdfViewer() {
-  const dispatch = useDispatch()
-  const { documents } = useSelector((state: RootState) => state.documents)
-  const { selectedDocumentId } = useSelector((state: RootState) => state.ui)
-  const { isRunning } = useSelector((state: RootState) => state.timer)
+  const { dispatch } = useRedux()
+  const { documents, selectedDocumentId, isRunning } = useSelector((state: RootState) => state.documentManagement)
 
   const selectedDocument = documents.find((doc) => doc.id === selectedDocumentId)
 
@@ -114,7 +120,6 @@ export default function PdfViewer() {
             <PdfUI url={pdfUrl} />
           </div>
 
-
           <AnimatePresence>
             {!showControls && selectedDocument.status !== "completed" && (
               <motion.div
@@ -162,9 +167,8 @@ export default function PdfViewer() {
         </div>
       </div>
 
-      {/* Control buttons */}
       <div className="p-1.5 pr-3 border-t">
-        {/*  <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center">
           <div>
             <h3 className="font-medium">{selectedDocument.name}</h3>
             <p className="text-sm text-muted-foreground">Status: {selectedDocument.status.replace("_", " ")}</p>
@@ -173,10 +177,10 @@ export default function PdfViewer() {
           <div className="flex gap-2">
             {showControls && selectedDocument.status !== "completed" ? (
               <>
-                <Button variant="outline" onClick={handlePause}>
+                {/*  <Button variant="outline" onClick={handlePause}>
                   <Pause className="h-4 w-4 mr-2" />
                   On Hold
-                </Button>
+                </Button> */}
                 <Button onClick={handleComplete}>
                   <CheckCircle className="h-4 w-4 mr-2" />
                   Submit
@@ -184,7 +188,7 @@ export default function PdfViewer() {
               </>
             ) : null}
           </div>
-        </div> */}
+        </div>
       </div>
     </div>
   )

@@ -116,7 +116,7 @@ export const UserTableColumns = (
             accessorKey: "profile_type",
             header: ({ column }) => <StatusFilter column={column} title="UserType" statusEnum={USERTYPES} />,
             cell: ({ row }) => {
-                const status: USERTYPES = row.getValue("profile_type") !== "Provider" ? USERTYPES.ANALYST : USERTYPES.PROVIDER;
+                const status: USERTYPES = row.getValue("profile_type")
                 return (
                     <div className="min-w-[4.25rem] max-w-[6rem] whitespace-nowrap">
                         <StatusBadge status={status} />

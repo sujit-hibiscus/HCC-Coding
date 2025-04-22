@@ -15,31 +15,32 @@ interface UserTableProps {
 }
 
 
+// "Analyst" | "Auditor" | "Admin"
 const testUsers: UserTypes[] = [
     {
         id: 1,
-        Fname: "Alice",
-        Lname: "Johnson",
-        email: "alice@example.com",
+        Fname: "Sujit",
+        Lname: "Hibiscus",
+        email: "analyst.sujit@mailinator.com",
         profile_type: "Analyst",
-        password: "Analyst",
+        password: "test@123",
     },
     {
         id: 2,
         Fname: "Bob",
         Lname: "Smith",
-        email: "bob@example.com",
-        profile_type: "Provider",
-        password: "Analyst",
+        email: "auditor.sujit@mailinator.com",
+        profile_type: "Auditor",
+        password: "Auditor",
         // Add other fields as needed
     },
     {
         id: 3,
         Fname: "Charlie",
         Lname: "Brown",
-        email: "charlie@example.com",
-        profile_type: "Provider",
-        password: "Analyst",
+        email: "admin.sujit@mailinator.com",
+        profile_type: "Admin",
+        password: "Admin",
         // Add other fields as needed
     },
 ];

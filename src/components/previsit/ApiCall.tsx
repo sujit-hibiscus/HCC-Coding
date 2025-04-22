@@ -3,8 +3,8 @@
 import useFullPath from "@/hooks/use-fullpath";
 import { useRedux } from "@/hooks/use-redux";
 import useToast from "@/hooks/use-toast";
-import { getAllPendingData } from "@/store/slices/previsit-slice";
-import { getLabDocs, getMemberProgressNotes, getOtherDocs } from "@/store/slices/provider-details-slice";
+
+
 import { getAllUsers } from "@/store/slices/user-slice";
 import { useRef } from "react";
 
@@ -16,7 +16,7 @@ export function useApiCall() {
     const { showPromiseToast, success } = useToast();
 
     const sidebarApiCall = async (id: string) => {
-        console.log("🚀 ~ sidebarApiCall ~ id:", id);
+        console.info("🚀 ~ sidebarApiCall ~ id:", id);
 
     };
     const getUserApiCall = async (target: string) => {
@@ -41,50 +41,21 @@ export function useApiCall() {
 
 
 
-    const memberTabApiCall = async (id: string, chartID: string) => {
-        if (id === "progressNotes") {
-            dispatch(getMemberProgressNotes({ chartId: chartID, memberId: chartID }));
-            /* showPromiseToast({
-                promise: dispatch(getMemberProgressNotes({ chartId: chartID, memberId: chartID })),
-                loading: "Loading progress notes docs...",
-                error: "Failed to load provider details",
-                duration: 4000
-            }); */
-        } else if (id === "other-document") {
-            dispatch(getOtherDocs({ chartId: chartID, memberId: chartID }));
-            /* showPromiseToast({
-                promise: dispatch(getOtherDocs({ chartId: chartID, memberId: chartID })),
-                loading: "Loading other docs...",
-                error: "Failed to load provider details",
-                duration: 4000
-            }); */
-        } else if (id === "labResults") {
-            dispatch(getLabDocs({ chartId: chartID, memberId: chartID }));
-            /* showPromiseToast({
-                promise: dispatch(getLabDocs({ chartId: chartID, memberId: chartID })),
-                loading: "Loading lab result docs...",
-                error: "Failed to load provider details",
-                duration: 4000
-            }); */
-        }
-    };
-
-    const callBulkApi = async (userType: "Analyst" | "Provider") => {
-        console.log("🚀 ~ callBulkApi ~ userType:", userType);
 
 
-    };
-    const loginApi = async (target: "Login" | "Sidebar", userType: "Analyst" | "Provider") => {
-        if (target === "Login") {
-            callBulkApi(userType);
-        } else if (target === "Sidebar") {
-            await dispatch(getAllPendingData());
-        }
+    const loginApi = async (target: "Login" | "Sidebar", userType: "Analyst" | "Auditor" | "Admin") => {
+        /*  if (target === "Login") {
+             callBulkApi(userType);
+         } else if (target === "Sidebar") {
+ 
+         } */
 
     };
 
     const getBasePath = (userType: string) => {
-        return userType === "Provider" ? "/dashboard" : userType === "Analyst" ? "/dashboard" : "";
+        return userType === "Auditor" ? "/dashboard" :
+            userType === "Analyst" ? "/dashboard" :
+                userType === "Admin" ? "/dashboard" : "";
         // return userType === "Provider" ? "/dashboard/previsit/provider-review" : userType === "Analyst" ? "/dashboard/previsit/pending" : ""
     };
 
@@ -94,7 +65,6 @@ export function useApiCall() {
 
     return {
         sidebarApiCall,
-        memberTabApiCall,
         loginApi,
         getBasePath,
         getUserApiCall,

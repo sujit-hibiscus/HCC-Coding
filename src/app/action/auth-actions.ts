@@ -14,15 +14,20 @@ export interface LoginResponse {
 }
 
 const mockCredentials = {
-    provider: {
-        email: "provider@example.com",
-        password: "provider123",
-        userType: "Provider",
-    },
     analyst: {
-        email: "aadi.sujit@mailinator.com",
+        email: "analyst.sujit@mailinator.com",
         password: "test@123",
         userType: "Analyst",
+    },
+    auditor: {
+        email: "auditor.sujit@mailinator.com",
+        password: "test@123",
+        userType: "Auditor",
+    },
+    admin: {
+        email: "admin.sujit@mailinator.com",
+        password: "test@123",
+        userType: "Admin",
     },
 };
 
@@ -35,8 +40,10 @@ export async function loginAction(formData: FormData): Promise<LoginResponse> {
         let userType = "";
         if (email === mockCredentials.analyst.email && password === mockCredentials.analyst.password) {
             userType = mockCredentials.analyst.userType;
-        } else if (email === mockCredentials.provider.email && password === mockCredentials.provider.password) {
-            userType = mockCredentials.provider.userType;
+        } else if (email === mockCredentials.admin.email && password === mockCredentials.admin.password) {
+            userType = mockCredentials.admin.userType;
+        } else if (email === mockCredentials.auditor.email && password === mockCredentials.auditor.password) {
+            userType = mockCredentials.auditor.userType;
         } else {
             return {
                 success: false,
@@ -46,7 +53,7 @@ export async function loginAction(formData: FormData): Promise<LoginResponse> {
             };
         }
 
-        const authToken = `${userType}-token-123`; // Mock token
+        const authToken = `${userType}-token-123`;
         const cookieStore = await cookies();
         cookieStore.set("authToken", authToken, {
             httpOnly: true,
@@ -59,7 +66,7 @@ export async function loginAction(formData: FormData): Promise<LoginResponse> {
             httpOnly: true,
             secure: true,
             sameSite: "strict",
-            maxAge: 3 * 60 * 60, // 3 Hours
+            maxAge: 3 * 60 * 60,
             path: "/",
         });
 

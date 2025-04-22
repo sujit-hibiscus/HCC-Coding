@@ -113,7 +113,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                                         <div className="flex items-center">
                                             <NextImage height={40} width={60} src="/images/ADI-cropped.svg" alt="hom" />
                                             <div className="pl-3">
-                                                {["A", "A", "D", "I"]?.map((item, index) => {
+                                                {["R", "E", "T", "R", "O"]?.map((item, index) => {
                                                     return <span key={index} className="ml-2 text-2xl leading-7 letter-sp text-selectedText tracking-widest font-semibold">{item}</span>;
                                                 })}
                                             </div>
