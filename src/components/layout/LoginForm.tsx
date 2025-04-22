@@ -53,8 +53,8 @@ export default function LoginForm() {
                     /* setTimeout(() => {
                         loginApi("Login", response.userType as "Analyst" | "Auditor" | "Admin");
                     }); */
-                    router.push(getBasePath(response.userType as string));
                     setTimeout(() => {
+                        router.push("/dashboard");
                         resolve();
                         getLoginMasterData();
                     }, 500);
