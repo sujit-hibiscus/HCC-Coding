@@ -1,7 +1,7 @@
 export const HomePageMetaData = {
-    title: "AADI",
+    title: "RETRO",
     description:
-        "AADI is a US-based healthcare product that securely manages patient documents and data. Ensure compliance, streamline workflows, and enhance patient care with our advanced document management system.",
+        "RETRO is a US-based healthcare product that securely manages patient documents and data. Ensure compliance, streamline workflows, and enhance patient care with our advanced document management system.",
     keywords: [
         "healthcare document management",
         "patient data security",
@@ -13,11 +13,11 @@ export const HomePageMetaData = {
         "US healthcare solutions",
     ],
     openGraph: {
-        title: "AADI",
+        title: "RETRO",
         description:
-            "AADI is a secure, HIPAA-compliant healthcare document management system designed for hospitals, clinics, and providers. Easily manage patient records and improve data security.",
+            "RETRO is a secure, HIPAA-compliant healthcare document management system designed for hospitals, clinics, and providers. Easily manage patient records and improve data security.",
         url: "https://adi-sable.vercel.app",
-        siteName: "AADI",
+        siteName: "RETRO",
         images: [
             {
                 url: "https://yourwebsite.com/path-to-your-healthcare-image.jpg",
@@ -31,11 +31,11 @@ export const HomePageMetaData = {
 };
 
 export const DashboardPageMetaData = {
-    title: "Dashboard - AADI",
+    title: "Dashboard - RETRO",
     description:
-        "Access your AADI dashboard to manage patient documents, track healthcare data, and ensure compliance with HIPAA standards. Secure, efficient, and user-friendly.",
+        "Access your RETRO dashboard to manage patient documents, track healthcare data, and ensure compliance with HIPAA standards. Secure, efficient, and user-friendly.",
     keywords: [
-        "AADI dashboard",
+        "RETRO dashboard",
         "healthcare management system",
         "patient data analytics",
         "medical records dashboard",
@@ -44,11 +44,11 @@ export const DashboardPageMetaData = {
         "secure document management",
     ],
     openGraph: {
-        title: "Dashboard - AADI",
+        title: "Dashboard - RETRO",
         description:
-            "Manage healthcare documents and patient data securely with AADI's advanced dashboard. Improve workflow efficiency and ensure data compliance.",
+            "Manage healthcare documents and patient data securely with RETRO's advanced dashboard. Improve workflow efficiency and ensure data compliance.",
         url: "https://adi-sable.vercel.app/dashboard",
-        siteName: "AADI",
+        siteName: "RETRO",
         images: [
             {
                 url: "https://images.unsplash.com/photo-1551076803-c50f24c5d0d2", // Real healthcare dashboard image
@@ -62,15 +62,15 @@ export const DashboardPageMetaData = {
 };
 
 export const ProfileMetaData = {
-    title: "Profile - Profile Details | AADI",
+    title: "Profile - Profile Details | RETRO",
     description:
         "Manage and update your profile details, including personal information, account settings, and security preferences.",
     openGraph: {
-        title: "Profile - User Details | AADI",
+        title: "Profile - User Details | RETRO",
         description:
             "Access and edit your profile information, update security settings, and personalize your account for a seamless experience.",
         url: "https://adi-sable.vercel.app/dashboard/profile",
-        siteName: "AADI",
+        siteName: "RETRO",
         images: [
             {
                 url: "https://images.unsplash.com/photo-1555685812-4b943f1cb0eb",
@@ -85,14 +85,14 @@ export const ProfileMetaData = {
 
 
 export const ChartLogMetaData = {
-    title: "Chart Log - Patient Details | AADI",
+    title: "Chart Log - Patient Details | RETRO",
     description:
         "View detailed patient chart logs, including provider and facility information, member details, and status updates.",
     openGraph: {
-        title: "Chart Log - Patient Details | AADI",
+        title: "Chart Log - Patient Details | RETRO",
         description: "Explore patient chart logs with provider and facility insights, ensuring accurate and efficient healthcare record management.",
         url: "https://adi-sable.vercel.app/dashboard/chart-log",
-        siteName: "AADI",
+        siteName: "RETRO",
         images: [
             {
                 url: "https://images.unsplash.com/photo-1551076803-c50f24c5d0d2",

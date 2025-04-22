@@ -9,11 +9,40 @@ import { getAllUsers } from "@/store/slices/user-slice";
 import { Suspense } from "react";
 import { UserTableColumns } from "./userTableColumns";
 
-
 interface UserTableProps {
     onEdit: (user: UserTypes) => void
     onDelete: (id: string) => void
 }
+
+
+const testUsers: UserTypes[] = [
+    {
+        id: 1,
+        Fname: "Alice",
+        Lname: "Johnson",
+        email: "alice@example.com",
+        profile_type: "Analyst",
+        password: "Analyst",
+    },
+    {
+        id: 2,
+        Fname: "Bob",
+        Lname: "Smith",
+        email: "bob@example.com",
+        profile_type: "Provider",
+        password: "Analyst",
+        // Add other fields as needed
+    },
+    {
+        id: 3,
+        Fname: "Charlie",
+        Lname: "Brown",
+        email: "charlie@example.com",
+        profile_type: "Provider",
+        password: "Analyst",
+        // Add other fields as needed
+    },
+];
 
 
 export function UserTable({ onEdit, onDelete }: UserTableProps) {
@@ -22,15 +51,16 @@ export function UserTable({ onEdit, onDelete }: UserTableProps) {
     const { data: users } = selector((state) => state.user.users);
 
     const { isLoading } = useLoading();
+    const finalData = [...(users ?? []), ...testUsers];
 
     const { search = "" } = selector((state) => state?.dashboard);
-    const filteredData = filterData(users ? users : [], search);
+    const filteredData = filterData(finalData ? finalData : [], search);
     const handleDelete = (chartId: string) => {
         onDelete(chartId);
     };
 
     const handleEdit = (chartId: string) => {
-        const targetEntry = users?.find(item => item?.id == +chartId);
+        const targetEntry = finalData?.find(item => item?.id == +chartId);
         if (targetEntry) {
             onEdit(targetEntry);
         }

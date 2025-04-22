@@ -36,6 +36,7 @@ export interface UserState {
     }
 }
 
+
 // Initial state
 const initialState: UserState = {
     isAuthenticated: false,

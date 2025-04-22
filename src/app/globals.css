@@ -187,7 +187,7 @@ body {
 
 /* Ensure scrollbars apply the theme */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
   height: 8px;
 }
 

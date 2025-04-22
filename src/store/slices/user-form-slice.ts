@@ -6,7 +6,7 @@ interface UserFormState {
     Lname: string
     email: string
     password: string
-    profile_type: "Analyst" | "Provider"
+    profile_type: "Analyst" | "Auditor" | "Admin"
     isEditing: boolean
     editingId?: number
 }

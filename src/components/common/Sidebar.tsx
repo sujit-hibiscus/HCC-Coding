@@ -52,7 +52,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
     const { userType } = selector(state => state.user);
     const [isOpen, setIsOpen] = useState(false);
     const menuItems: MenuItem[] = [
-        { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" }
+        { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
     ];
 
 
@@ -199,29 +199,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                             </TooltipProvider>
                         </SidebarMenuItem>
                     )}
-                    <SidebarMenuItem>
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <SidebarMenuButton className="rounded-sm text-selectedText transition-colors hover:bg-selectedText hover:text-tabBg">
-                                        {userType === "Provider" ? (
-                                            <motion.div whileHover={{ rotate: 15 }} transition={{ type: "spring", stiffness: 300 }}>
-                                                <Contact className="h-[1rem] w-[1rem]" />
-                                            </motion.div>
-                                        ) : (
-                                            <motion.div whileHover={{ rotate: 15 }} transition={{ type: "spring", stiffness: 300 }}>
-                                                <User className="h-[1rem] w-[1rem]" />
-                                            </motion.div>
-                                        )}
-                                        <span>{`${userType} ` + "Login"}</span>
-                                    </SidebarMenuButton>
-                                </TooltipTrigger>
-                                <TooltipContent side="right" align="center" hidden={state !== "collapsed"}>
-                                    {userType}
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    </SidebarMenuItem>
+
                     {!isMobile && (
                         <DropdownMenu>
                             <TooltipProvider>

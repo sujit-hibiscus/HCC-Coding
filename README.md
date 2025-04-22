@@ -1,4 +1,4 @@
-# Project AADI (AI Assisted Document Improvement)
+# Project RETRO-CDI (Retro-cdi)
 
 ## Overview
 

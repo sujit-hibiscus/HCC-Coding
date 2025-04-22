@@ -57,7 +57,7 @@ export const TokenManager = {
     },
 
     useStaticToken: (): string => {
-        return process.env.NEXT_PUBLIC_DEV_TOKEN || "static-token-for-development";
+        return "static-token-for-development";
     },
 };
 
@@ -70,7 +70,7 @@ const getCookie = (name: string): string | null => {
 };
 
 const createFetchClient = () => {
-    const baseURL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000/";
+    const baseURL = "http://localhost:3000/";
     const defaultTimeout = 30000;
 
     const requestInterceptor = (options: ExtendedRequestInit): ExtendedRequestInit => {

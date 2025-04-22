@@ -50,14 +50,14 @@ export async function loginAction(formData: FormData): Promise<LoginResponse> {
         const cookieStore = await cookies();
         cookieStore.set("authToken", authToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
+            secure: true,
             sameSite: "strict",
             maxAge: 3 * 60 * 60,
             path: "/",
         });
         cookieStore.set("userType", userType, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
+            secure: true,
             sameSite: "strict",
             maxAge: 3 * 60 * 60, // 3 Hours
             path: "/",

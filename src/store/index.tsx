@@ -2,11 +2,16 @@ import dashboardSlice from "@/store/slices/DashboardSlice";
 import chartsFilterReducer from "@/store/slices/charts-filter-slice";
 import tableFiltersReducer from "@/store/slices/tableFiltersSlice";
 import userSlice from "@/store/slices/user-slice";
+import pdfFilters from "@/store/slices/pdfFiltersSlice";
 
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { type TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage";
+import documentsReducer from "./slices/documentsSlice"
+import uiReducer from "./slices/uiSlice"
+import timerReducer from "./slices/timerSlice";
+import userForm from "@/store/slices/user-form-slice";
 
 const RESET_STORE = "RESET_STORE";
 
@@ -14,15 +19,13 @@ const RESET_STORE = "RESET_STORE";
 const appReducer = combineReducers({
     dashboard: dashboardSlice,
     tableFilters: tableFiltersReducer,
-    // api: apiSlice,
     user: userSlice,
     chartsFilter: chartsFilterReducer,
-    // previsit: previsitSlice,
-    // provider: providerDetailSlice,
-    // userForm: userForm,
-    // pdfFilters: pdfFilters,
-    // master: masterDataSlice,
-    // chat: chatReducer,
+    documents: documentsReducer,
+    ui: uiReducer,
+    timer: timerReducer,
+    pdfFilters: pdfFilters,
+    userForm: userForm,
 });
 
 // Root reducer that listens for the reset action
@@ -40,16 +43,14 @@ const persistConfig = {
     storage,
     whitelist: [
         "dashboard",
-        "api",
-        "previsit",
-        "provider",
-        "user",
         "tableFilters",
-        "userForm",
+        "user",
+        "chartsFilter",
+        "documents",
+        "ui",
+        "timer",
         "pdfFilters",
-        "master",
-        "chat",
-        "chartsFilter"
+        "userForm"
     ],
 };
 
