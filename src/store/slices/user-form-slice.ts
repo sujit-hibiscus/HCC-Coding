@@ -1,4 +1,4 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
 
 // Define the state interface for the form
 interface UserFormState {
@@ -6,9 +6,16 @@ interface UserFormState {
     Lname: string
     email: string
     password: string
-    profile_type: "Analyst" | "Auditor" | "Admin"
+    profile_type: "Analyst" | "Auditor" | "Admin" | "Super Admin"
     isEditing: boolean
     editingId?: number
+    target?: {
+        dailyChartTarget?: number
+        maxAssignments?: number
+    }
+    formErrors: {
+        [key: string]: string | undefined
+    }
 }
 
 // Initial state
@@ -20,25 +27,67 @@ const initialState: UserFormState = {
     profile_type: "Analyst",
     isEditing: false,
     editingId: undefined,
-};
+    target: {
+        dailyChartTarget: undefined,
+        maxAssignments: undefined,
+    },
+    formErrors: {}
+}
 
 // Create the slice
 const userFormSlice = createSlice({
     name: "userForm",
     initialState,
     reducers: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        updateField: (state, action: PayloadAction<{ field: keyof UserFormState; value: any }>) => {
-            const { field, value } = action.payload;
+        // Update a single field
+        updateField: (state, action: PayloadAction<{ field: keyof Omit<UserFormState, "formErrors" | "target">; value: string }>) => {
+            const { field, value } = action.payload
             if (field in state) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                ; (state as any)[field] = value;
+                // Clear any error for this field when it's updated
+                state.formErrors[field] = undefined
+                    // Update the field value
+                    ; (state as any)[field] = value
             }
         },
 
+        // Update target fields
+        updateTargetField: (
+            state,
+            action: PayloadAction<{ field: "dailyChartTarget" | "maxAssignments"; value: number | undefined }>,
+        ) => {
+            const { field, value } = action.payload
+            if (!state.target) {
+                state.target = {}
+            }
+            // Clear any error for this target field when it's updated
+            state.formErrors[`target.${field}`] = undefined
+            state.target[field] = value
+        },
+
+        // Set form validation errors
+        setFormError: (state, action: PayloadAction<{ field: string; message: string }>) => {
+            const { field, message } = action.payload
+            state.formErrors[field] = message
+        },
+
+        // Clear a specific form error
+        clearFormError: (state, action: PayloadAction<string>) => {
+            const field = action.payload
+            state.formErrors[field] = undefined
+        },
+
+        // Clear all form errors
+        clearAllFormErrors: (state) => {
+            state.formErrors = {}
+        },
+
         // Set the entire form data (useful when editing a user)
-        setFormData: (state, action: PayloadAction<Partial<UserFormState>>) => {
-            return { ...state, ...action.payload };
+        setFormData: (state, action: PayloadAction<Partial<Omit<UserFormState, "formErrors">>>) => {
+            return {
+                ...state,
+                ...action.payload,
+                formErrors: {} // Clear errors when setting new form data
+            }
         },
 
         // Reset the form to initial state
@@ -47,27 +96,36 @@ const userFormSlice = createSlice({
         // Start editing a user
         startEditing: (
             state,
-            action: PayloadAction<{ id: number; userData: Omit<UserFormState, "isEditing" | "editingId"> }>,
+            action: PayloadAction<{ id: number; userData: Omit<UserFormState, "isEditing" | "editingId" | "formErrors"> }>,
         ) => {
-            const { id, userData } = action.payload;
+            const { id, userData } = action.payload
             return {
                 ...state,
                 ...userData,
                 isEditing: true,
                 editingId: id,
-            };
+                formErrors: {} // Clear errors when starting to edit
+            }
         },
 
         // Cancel editing
         cancelEditing: () => {
-            return {
-                ...initialState,
-            };
+            return initialState
         },
     },
-});
+})
 
 // Export actions and reducer
-export const { updateField, setFormData, resetForm, startEditing, cancelEditing } = userFormSlice.actions;
-export default userFormSlice.reducer;
+export const {
+    updateField,
+    updateTargetField,
+    setFormData,
+    resetForm,
+    startEditing,
+    cancelEditing,
+    setFormError,
+    clearFormError,
+    clearAllFormErrors
+} = userFormSlice.actions
 
+export default userFormSlice.reducer

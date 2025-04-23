@@ -42,7 +42,7 @@ const fetchDocumentsApi = async () => {
     return [
         {
             id: "1",
-            name: "Financial Report Q1 2023",
+            name: "Medical Insurance Claim Q1 2024",
             url: "/pdf/medical_report_user_1.pdf",
             status: "pending",
             assignedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
@@ -50,7 +50,7 @@ const fetchDocumentsApi = async () => {
         },
         {
             id: "2",
-            name: "Compliance Audit 2023",
+            name: "Policy Compliance Review 2024",
             url: "/pdf/medical_report_user_2.pdf",
             status: "pending",
             assignedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
@@ -58,7 +58,7 @@ const fetchDocumentsApi = async () => {
         },
         {
             id: "3",
-            name: "Tax Documentation 2023",
+            name: "Insurance Claim Documentation 2024",
             url: "/pdf/medical_report_user_3.pdf",
             status: "pending",
             assignedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
@@ -66,7 +66,7 @@ const fetchDocumentsApi = async () => {
         },
         {
             id: "4",
-            name: "Quarterly Budget Review",
+            name: "Quarterly Premium Analysis",
             url: "/pdf/medical_report_user_1.pdf",
             status: "pending",
             assignedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
@@ -74,7 +74,7 @@ const fetchDocumentsApi = async () => {
         },
         {
             id: "5",
-            name: "Annual Report 2022",
+            name: "Annual Insurance Summary 2023",
             url: "/pdf/medical_report_user_2.pdf",
             status: "pending",
             assignedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago

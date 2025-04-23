@@ -51,6 +51,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
     const { resetReduxStore, selector } = useRedux();
     const { userType } = selector(state => state.user);
     const [isOpen, setIsOpen] = useState(false);
+
     const menuItems: MenuItem[] = [
         { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
     ];
@@ -176,7 +177,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
 
             <SidebarFooter className="border-t-2 border-selectedText">
                 <SidebarMenu>
-                    {userType === "Analyst" && (
+                    {userType?.toLowerCase().includes("admin") && (
                         <SidebarMenuItem>
                             <TooltipProvider>
                                 <Tooltip>

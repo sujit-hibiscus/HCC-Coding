@@ -29,6 +29,11 @@ const mockCredentials = {
         password: "test@123",
         userType: "Admin",
     },
+    superAdmin: {
+        email: "super.admin.sujit@mailinator.com",
+        password: "test@123",
+        userType: "Super Admin",
+    },
 };
 
 export async function loginAction(formData: FormData): Promise<LoginResponse> {
@@ -44,6 +49,8 @@ export async function loginAction(formData: FormData): Promise<LoginResponse> {
             userType = mockCredentials.admin.userType;
         } else if (email === mockCredentials.auditor.email && password === mockCredentials.auditor.password) {
             userType = mockCredentials.auditor.userType;
+        } else if (email === mockCredentials.superAdmin.email && password === mockCredentials.superAdmin.password) {
+            userType = mockCredentials.superAdmin.userType;
         } else {
             return {
                 success: false,

@@ -1,7 +1,9 @@
-import { ThemeProvider } from "@/components/layout/ThemeProvider";
-import ReduxProvider from "@/store/ReduxProvider";
+
+
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
+import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import ReduxProvider from "@/store/ReduxProvider";
 import ScrollToTopButton from "@/components/common/scroll-top-top";
 import ToastProvider from "@/components/common/ToastProvider";
 

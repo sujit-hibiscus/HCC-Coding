@@ -7,6 +7,10 @@ export interface UserTypes {
     email: string
     password: string
     profile_type: ProfileType | number | string
+    target?: {
+        dailyChartTarget?: number
+        maxAssignments?: number
+    }
 }
 
 export enum PrevisitTab {
@@ -18,9 +22,10 @@ export enum PrevisitTab {
 
 
 export enum USERTYPES {
+    SUPERADMIN = "Super Admin",
     ADMIN = "Admin",
     AUDITOR = "Auditor",
-    ANALYST = "Analyst"
+    ANALYST = "Analyst",
 }
 
 export enum CODINGREVIEWSTATUS {

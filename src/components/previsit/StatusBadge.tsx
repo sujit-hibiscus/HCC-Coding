@@ -9,15 +9,19 @@ interface StatusBadgeProps {
 // Use a flexible Record<string, ...> to avoid enum restriction issues
 const statusConfig: Record<string, { color: string; icon: React.ReactNode }> = {
     [USERTYPES.ANALYST]: {
-        color: "bg-orange-100 text-orange-700 hover:bg-orange-100",
+        color: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200",
         icon: "",
     },
     [USERTYPES.ADMIN]: {
-        color: "bg-cyan-100 text-cyan-700 hover:bg-cyan-100",
+        color: "bg-blue-100 text-blue-800 hover:bg-blue-200",
         icon: "",
     },
     [USERTYPES.AUDITOR]: {
-        color: "bg-green-100 text-green-700 hover:bg-green-100",
+        color: "bg-green-100 text-green-800 hover:bg-green-200",
+        icon: "",
+    },
+    [USERTYPES.SUPERADMIN]: {
+        color: "bg-selectedText text-white hover:bg-selectedText/80",
         icon: "",
     },
 };
