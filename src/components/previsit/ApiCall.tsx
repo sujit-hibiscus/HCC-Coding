@@ -27,7 +27,7 @@ export function useApiCall() {
                         const message = typeof result.payload === "object" && "message" in result.payload
                             ? result.payload.message
                             : "";
-                        success({ message });
+                        success({ message: message as string });
                     }
                 }),
                 loading: "Fetching users...",
