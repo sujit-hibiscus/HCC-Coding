@@ -2,9 +2,10 @@
 import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
 import { USERTYPES } from "@/lib/types/ProfileTypes";
+import { DOCUMENT_STATUS } from "@/store/slices/table-document-slice";
 
 interface StatusBadgeProps {
-    status: USERTYPES;
+    status: USERTYPES | DOCUMENT_STATUS;
 }
 
 // Use a flexible Record<string, ...> to avoid enum restriction issues
@@ -24,6 +25,26 @@ const statusConfig: Record<string, { color: string; icon: React.ReactNode }> = {
     [USERTYPES.SUPERADMIN]: {
         color: "bg-selectedText text-white hover:bg-selectedText/80",
         icon: "",
+    },
+    [DOCUMENT_STATUS.PENDING]: {
+        color: "bg-yellow-500 text-white hover:bg-yellow-600",
+        icon: ""
+    },
+    [DOCUMENT_STATUS.ON_HOLD]: {
+        color: "bg-orange-400 text-white hover:bg-orange-500",
+        icon: ""
+    },
+    [DOCUMENT_STATUS.IN_PROGRESS]: {
+        color: "bg-blue-500 text-white hover:bg-blue-600",
+        icon: ""
+    },
+    [DOCUMENT_STATUS.ERROR]: {
+        color: "bg-red-500 text-white hover:bg-red-600",
+        icon: ""
+    },
+    [DOCUMENT_STATUS.COMPLETED]: {
+        color: "bg-green-500 text-white hover:bg-green-600",
+        icon: ""
     },
 };
 

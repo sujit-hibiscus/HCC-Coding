@@ -123,21 +123,21 @@ export default function AssignmentControls({ currentTab, userType, analysts, aud
 
     if (currentTab === ChartTab.Pending) {
         options = analysts
-        placeholder = "Drop down (analysts)"
+        placeholder = "Select analyst"
         buttonText = "Assign"
         selectedValue = selectedAnalyst || ""
         setSelectedValue = (value) => dispatch(setSelectedAnalyst(value))
         clearSelectedValue = () => dispatch(setSelectedAnalyst(""))
     } else if (currentTab === ChartTab.Assigned) {
         options = analysts
-        placeholder = "Drop down (analysts)"
+        placeholder = "Select analyst"
         buttonText = "Change Assignment"
         selectedValue = selectedAnalyst || ""
         setSelectedValue = (value) => dispatch(setSelectedAnalyst(value))
         clearSelectedValue = () => dispatch(setSelectedAnalyst(""))
     } else if (currentTab === ChartTab.Audit) {
         options = auditors
-        placeholder = "Drop down (Auditors)"
+        placeholder = "Select auditor"
         buttonText = "Change Assignment"
         selectedValue = selectedAuditor || ""
         setSelectedValue = (value) => dispatch(setSelectedAuditor(value))
@@ -170,7 +170,7 @@ export default function AssignmentControls({ currentTab, userType, analysts, aud
                             e.stopPropagation()
                             clearSelectedValue()
                         }}
-                        className="absolute right-8 top-1/2 -translate-y-1/2 rounded-full p-1 hover:bg-muted"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full p-1 hover:bg-muted"
                         aria-label="Clear selection"
                     >
                         <X className="h-4 w-4 text-muted-foreground" />
@@ -178,7 +178,7 @@ export default function AssignmentControls({ currentTab, userType, analysts, aud
                 )}
             </div>
             <Button onClick={handleAssign} disabled={!shouldEnableButton} className={shouldEnableButton ? "" : "opacity-70"}>
-                {isAssigning ? "Processing..." : buttonText}
+                {isAssigning ? "Assigning..." : buttonText}
             </Button>
 
         </div>

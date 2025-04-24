@@ -1,5 +1,6 @@
 import { Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Loader } from "@/components/ui/Loader";
 
 
 const DocumentLoading = () => {
@@ -17,8 +18,11 @@ const DocumentLoading = () => {
 };
 export default function ChartsLoader() {
     return (
-        <div className="w-full h-full p-[1.5rem] space-y-[1rem]">
-            loader...
+        <div className="py-8 flex h-[85vh] flex-col items-center justify-center">
+            <Loader variant="table" size="md" text="" className="mb-4" />
+            <div className="w-full max-w-3xl">
+                <Loader variant="skeleton" />
+            </div>
         </div>
     );
 }

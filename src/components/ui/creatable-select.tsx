@@ -69,7 +69,7 @@ export const CreatableSelect = ({ className, isMulti = false, ...props }: Creata
             classNames={{
                 control: (state) =>
                     cn(
-                        "border !border-input-border border-input bg-background !rounded-none px-3 py-1 text-sm ring-offset-background",
+                        "border !border-input-border border-input bg-background !rounded-none py-1 text-sm ring-offset-background",
                         state.isFocused ? "ring-2 ring-ring ring-offset-2" : "",
                         state.isDisabled ? "opacity-50 cursor-not-allowed" : "",
                     ),

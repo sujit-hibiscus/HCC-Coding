@@ -135,16 +135,20 @@ const TabPage: React.FC<LayoutProps> = async ({ params }) => {
 
     return (
         <>
-            {/* <ApiCallcharts tab={tab} /> */}
+            {/* <APICallForCharts tab={tab} /> */}
             {tab === ChartTab.Pending ? (
                 <PendingDocumentsTable />
             ) : tab === ChartTab.Assigned ? (
                 <AssignedDocumentsTable />
             ) : tab === ChartTab.Audit ? (
-                <AuditDocumentsTable />
+                <>
+                    Audit Page
+                    {/* // <AuditDocumentsTable /> */}
+                </>
             ) : (
                 <></>
-            )}
+            )
+            }
         </>
     );
 };

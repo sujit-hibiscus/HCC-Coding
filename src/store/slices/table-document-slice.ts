@@ -191,17 +191,16 @@ export const fetchPendingDocuments = createAsyncThunk<PendingDocument[], void, {
     async (_, { rejectWithValue }) => {
         try {
             // For development, return mock data
-            if (process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_TEST === "true") {
-                return mockPendingDocuments
-            }
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return mockPendingDocuments
 
-            const response = await fetchData<ApiResponse>("/api/documents/pending")
-            if (response.data.status === "Success") {
-                return response.data.data as PendingDocument[]
-            } else {
-                toast.error(response.data.message)
-                return []
-            }
+            /*  const response = await fetchData<ApiResponse>("/api/documents/pending")
+             if (response.data.status === "Success") {
+                 return response.data.data as PendingDocument[]
+             } else {
+                 toast.error(response.data.message)
+                 return []
+             } */
         } catch (error: unknown) {
             if (error instanceof Error) {
                 return rejectWithValue(error.message)
@@ -215,18 +214,16 @@ export const fetchAssignedDocuments = createAsyncThunk<AssignedDocument[], void,
     "documents/fetchAssignedDocuments",
     async (_, { rejectWithValue }) => {
         try {
-            // For development, return mock data
-            if (process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_TEST === "true") {
-                return mockAssignedDocuments
-            }
 
-            const response = await fetchData<ApiResponse>("/api/documents/assigned")
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return mockAssignedDocuments
+            /* const response = await fetchData<ApiResponse>("/api/documents/assigned")
             if (response.data.status === "Success") {
                 return response.data.data as AssignedDocument[]
             } else {
                 toast.error(response.data.message)
                 return []
-            }
+            } */
         } catch (error: unknown) {
             if (error instanceof Error) {
                 return rejectWithValue(error.message)
@@ -240,18 +237,16 @@ export const fetchAuditDocuments = createAsyncThunk<AuditDocument[], void, { rej
     "documents/fetchAuditDocuments",
     async (_, { rejectWithValue }) => {
         try {
-            // For development, return mock data
-            if (process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_TEST === "true") {
-                return mockAuditDocuments
-            }
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return mockAuditDocuments
 
-            const response = await fetchData<ApiResponse>("/api/documents/audit")
+            /* const response = await fetchData<ApiResponse>("/api/documents/audit")
             if (response.data.status === "Success") {
                 return response.data.data as AuditDocument[]
             } else {
                 toast.error(response.data.message)
                 return []
-            }
+            } */
         } catch (error: unknown) {
             if (error instanceof Error) {
                 return rejectWithValue(error.message)

@@ -42,6 +42,7 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
                 checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
                 onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
                 aria-label="Select all"
+                className=""
             />
         ),
         cell: ({ row }) => (
@@ -49,10 +50,12 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => row.toggleSelected(!!value)}
                 aria-label="Select row"
+                className="my-1.5"
             />
         ),
         enableSorting: false,
         enableHiding: false,
+        isDragable: false
 
     },
     {
@@ -61,6 +64,7 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
         cell: ({ row }) => <div className="font-medium">{row.getValue("id")}</div>,
         enableSorting: true,
         enableHiding: false,
+        isDragable: false
     },
     {
         accessorKey: "title",
@@ -95,6 +99,7 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
         header: () => <div className="text-center">Action</div>,
         cell: () => <div className="text-center">Assign</div>,
         enableSorting: false,
+        isDragable: false
     },
 ]
 
@@ -114,10 +119,12 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => row.toggleSelected(!!value)}
                 aria-label="Select row"
+                className="my-1.5"
             />
         ),
         enableSorting: false,
         enableHiding: false,
+        isDragable: false
     },
     {
         accessorKey: "id",
@@ -125,7 +132,7 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
         cell: ({ row }) => <div className="font-medium">{row.getValue("id")}</div>,
         enableSorting: true,
         enableHiding: false,
-        isDragable: true
+        isDragable: false
     },
     {
         accessorKey: "title",
@@ -171,6 +178,10 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
             </div>
         ),
         enableSorting: true,
+        isDragable: false,
+        filterFn: (row, id, value) => {
+            return value.includes(row.getValue(id));
+        },
     },
 ]
 
@@ -190,10 +201,11 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
                 checked={row.getIsSelected()}
                 onCheckedChange={(value) => row.toggleSelected(!!value)}
                 aria-label="Select row"
+                className="my-1.5"
             />
         ),
         enableSorting: false,
-        enableHiding: false,
+        enableHiding: false, isDragable: false
     },
     {
         accessorKey: "id",
@@ -201,7 +213,7 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
         cell: ({ row }) => <div className="font-medium">{row.getValue("id")}</div>,
         enableSorting: true,
         enableHiding: false,
-        isDragable: true
+        isDragable: false
     },
     {
         accessorKey: "title",
@@ -254,5 +266,9 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
             </div>
         ),
         enableSorting: true,
+        isDragable: false,
+        filterFn: (row, id, value) => {
+            return value.includes(row.getValue(id));
+        },
     },
 ]

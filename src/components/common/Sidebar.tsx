@@ -53,7 +53,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     const adminMenuOptions = userType?.toLowerCase().includes("admin") ? [
-        // { icon: Table, label: "Charts", href: "/dashboard/charts/pending" },
+        { icon: Table, label: "Charts", href: "/dashboard/charts/pending" },
     ] : []
 
     const menuItems: MenuItem[] = [
@@ -154,7 +154,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                                                 asChild
                                                 isActive={isActive}
                                                 className={cn(
-                                                    "rounded-sm transition-all duration-200 hover:bg-selectedText text-selectedText hover:text-white",
+                                                    "rounded-none transition-all duration-200 hover:bg-selectedText text-selectedText hover:text-white",
                                                     isActive && "bg-red-500 text-selectedText",
                                                 )}
                                             >

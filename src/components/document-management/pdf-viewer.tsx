@@ -263,8 +263,8 @@ export default function PdfViewer() {
 
       {/* Submission Modal */}
       <AnimatePresence>
-        <Dialog open={showModal} onOpenChange={setShowModal}>
-          <DialogContent className="sm:max-w-[600px]">
+        <Dialog open={showModal} onOpenChange={setShowModal} >
+          <DialogContent className="sm:max-w-[600px] p-3">
             <DialogHeader>
               <DialogTitle>Document Review Submission</DialogTitle>
             </DialogHeader>
@@ -273,7 +273,7 @@ export default function PdfViewer() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.3 }}
-              className="grid gap-6 py-4"
+              className="grid gap-4 py-2"
             >
               <div className="grid gap-2">
                 <Label htmlFor="codes-missed">Codes Missed</Label>
@@ -312,7 +312,7 @@ export default function PdfViewer() {
                 />
               </div>
 
-              <div className="flex justify-end gap-2 mt-4">
+              <div className="flex justify-end gap-2 mt-2">
                 <Button variant="outline" onClick={() => setShowModal(false)}>
                   Cancel
                 </Button>

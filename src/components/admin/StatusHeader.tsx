@@ -1,5 +1,5 @@
 import type { Column } from "@tanstack/react-table";
-import { ChevronDown, FilterIcon } from "lucide-react";
+import { ChevronDown, FilterIcon, X } from "lucide-react";
 import type React from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -89,6 +89,7 @@ export function StatusFilter<TData, TValue>({
                                 onSelect={() => column?.setFilterValue(undefined)}
                                 className="justify-center text-center"
                             >
+                                <X className="mr-2 h-3.5 w-3.5" />
                                 Clear filters
                             </DropdownMenuItem>
                         </>

@@ -7,25 +7,11 @@ import { useRedux } from "@/hooks/use-redux"
 import type { Tab } from "@/lib/types/dashboardTypes"
 import { updateTab } from "@/store/slices/DashboardSlice"
 
+import { ChartTab } from "@/lib/types/chartsTypes"
 import { AnimatePresence, motion } from "framer-motion"
 import { CheckCircle2, Clock, FileEdit } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import AssignmentControls from "@/components/admin/Assignment-controls"
-import { ChartTab } from "@/lib/types/chartsTypes"
-
-// Mock data for analysts and auditors
-const analysts = [
-    { id: "1", name: "John Doe" },
-    { id: "2", name: "Jane Smith" },
-    { id: "3", name: "Michael Johnson" },
-]
-
-const auditors = [
-    { id: "1", name: "Sarah Wilson" },
-    { id: "2", name: "Robert Brown" },
-    { id: "3", name: "Emily Davis" },
-]
 
 const tabVariants = {
     hidden: { opacity: 0, y: 0 },
@@ -113,9 +99,6 @@ export default function ChartLayout({
                     transition={{ duration: 0.2, ease: "easeInOut" }}
                     className="h-full overflow-hidden flex flex-col pt-2 pb-1"
                 >
-                    <div className="flex pb-2 justify-end pr-2">
-                        <AssignmentControls currentTab={currentTab} userType={userType as string} analysts={analysts} auditors={auditors} />
-                    </div>
                     {children}
                 </motion.div>
             </AnimatePresence>
