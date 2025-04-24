@@ -1,14 +1,12 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit"
-import type { UserTypes as User } from "@/lib/types/PrevisitTypes"
+import type { UserTypes as User } from "@/lib/types/chartsTypes"
 
 export interface AppointmentCounts {
-    previsit: {
-        PENDING?: number
-        Draft?: number
-        Review?: number
-        "Provider Review"?: number
+    charts: {
+        Pending?: number
+        Assigned?: number
+        Audit?: number
     }
-    post_visit: Record<string, number> // Flexible for future keys
 }
 
 export type AppointmentStatus = "Success" | "Not Found" | "Error" | "Loading"
@@ -83,7 +81,13 @@ const initialState: UserState = {
     email: "",
     error: null,
     appointmentCounts: {
-        data: null,
+        data: {
+            charts: {
+                Pending: 3,
+                Assigned: 2,
+                Audit: 2
+            }
+        },
         status: "Success",
     },
     users: {

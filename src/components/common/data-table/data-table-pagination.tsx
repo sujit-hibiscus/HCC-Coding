@@ -25,8 +25,8 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
   } = Icons;
 
   const { dispatch, selector } = useRedux();
-  const { previsit = "", target = "" } = useFullPath();
-  const compositeTabKey = `${previsit}${target}`;
+  const { charts = "", target = "" } = useFullPath();
+  const compositeTabKey = `${charts}${target}`;
   const storedData = selector((state) => state.tableFilters[compositeTabKey]);
   const initializedRef = useRef(false);
 

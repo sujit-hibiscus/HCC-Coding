@@ -8,7 +8,7 @@ import { useMemo } from "react";
 
 
 function ChromeTabBar() {
-    const { fullPath = "", previsit, target } = useFullPath();
+    const { fullPath = "", charts, target } = useFullPath();
     const { selector, dispatch } = useRedux();
     const tabs = selector((state) => state.dashboard.tabs);
     const { closeTab, changeTab, } = useTabs();
@@ -16,9 +16,9 @@ function ChromeTabBar() {
         let hasActiveTab = false;
 
         const updatedTabs = tabs?.map(item => {
-            const isActive = (previsit === "dashboard/previsit/")
-                ? (item?.id === "pending" || item.id === "postvisit")
-                : (previsit === " dashboard/postvisit/") ? (item?.id === "follow-up" || item.id === "postvisit") : item.href === fullPath;
+            const isActive = (charts === "dashboard/charts/")
+                ? (item?.id === "pending")
+                : (charts === " dashboard/charts/") ? (item?.id === "follow-up" || item.id === "charts") : item.href === fullPath;
 
 
             if (isActive) hasActiveTab = true;

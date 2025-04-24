@@ -14,7 +14,7 @@ import { setError, setLoading, setUser } from "@/store/slices/user-slice";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ForgotPassword } from "../common/user/forgot-password";
-import { useApiCall } from "../previsit/ApiCall";
+import { useApiCall } from "../common/ApiCall";
 
 export default function LoginForm() {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);

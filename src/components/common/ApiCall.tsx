@@ -56,7 +56,6 @@ export function useApiCall() {
         return userType === "Auditor" ? "/dashboard" :
             userType === "Analyst" ? "/dashboard" :
                 userType === "Admin" ? "/dashboard" : "";
-        // return userType === "Provider" ? "/dashboard/previsit/provider-review" : userType === "Analyst" ? "/dashboard/previsit/pending" : ""
     };
 
     const getLoginMasterData = () => {

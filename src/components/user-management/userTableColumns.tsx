@@ -1,23 +1,22 @@
 "use client"
 
+import { StatusBadge } from "@/components/admin/StatusBadge"
+import { StatusFilter } from "@/components/admin/StatusHeader"
 import { DataTableColumnHeader } from "@/components/common/data-table/data-table-column-header"
-import { StatusFilter } from "@/components/previsit/AppointmentStatusHeaderFilter"
-import { StatusBadge } from "@/components/previsit/StatusBadge"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { type UserTypes, USERTYPES } from "@/lib/types/PrevisitTypes"
+import { type UserTypes, USERTYPES } from "@/lib/types/chartsTypes"
+import { cn } from "@/lib/utils"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Pencil, Trash } from "lucide-react"
-import { motion } from 'framer-motion';
-import { cn } from "@/lib/utils"
 
-interface PrevisitActionHandlers {
+interface ChartsActionHandlers {
     onDelete: (chartId: string) => void
     onEdit: (chartId: string) => void
 }
 
 export const UserTableColumns = (
-    actionHandlers: PrevisitActionHandlers,
+    actionHandlers: ChartsActionHandlers,
 ): (ColumnDef<UserTypes> & { isDragable?: boolean })[] => {
     return [
         {

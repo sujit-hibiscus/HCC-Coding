@@ -25,10 +25,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator"
 import { useRedux } from "@/hooks/use-redux"
 import useToast from "@/hooks/use-toast"
-import type { UserTypes } from "@/lib/types/PrevisitTypes"
+import type { UserTypes } from "@/lib/types/chartsTypes"
 import type { RootState } from "@/store"
 import { cancelEditing, resetForm, startEditing, updateField, updateTargetField } from "@/store/slices/user-form-slice"
 import { deleteUser, getAllUsers, registerUser, updateUser } from "@/store/slices/user-slice"
+import { notFound } from "next/navigation"
 
 type ProfileType = "Analyst" | "Auditor" | "Admin" | "Super Admin"
 
@@ -46,8 +47,15 @@ const userSchema = z.object({
         .optional(),
 })
 
+
 export default function AddUserPage() {
-    const { dispatch, selector } = useRedux()
+    const { dispatch, selector } = useRedux();
+    const { userType } = selector(state => state.user);
+
+    if (!(userType?.toLowerCase().includes('admin'))) {
+        notFound();
+    }
+
     const loading = selector((state: RootState) => state.user.loading)
     const reduxError = selector((state: RootState) => state.user.error)
 

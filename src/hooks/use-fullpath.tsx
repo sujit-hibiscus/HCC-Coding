@@ -22,7 +22,7 @@ const useFullPath = () => {
         fullPath,
         path: pathname,
         params: searchParams,
-        previsit: first,
+        charts: first,
         target,
         getQueryParam
     };

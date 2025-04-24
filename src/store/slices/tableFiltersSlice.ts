@@ -1,5 +1,5 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { ColumnFiltersState, SortingState, VisibilityState, PaginationState } from "@tanstack/react-table";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
+import type { ColumnFiltersState, SortingState, VisibilityState, PaginationState } from "@tanstack/react-table"
 
 export interface TableFilterState {
     columnFilters: ColumnFiltersState
@@ -12,13 +12,39 @@ export interface TableFilterState {
         showCustomInput: boolean
         customPageSize: string
     }
+    selectedRows?: string[]
 }
 
 interface TableFiltersState {
     [tabKey: string]: TableFilterState
 }
 
-const initialState: TableFiltersState = {};
+const initialState: TableFiltersState = {
+    pending: {
+        columnFilters: [],
+        sorting: [],
+        columnVisibility: {},
+        dateRange: [null, null],
+        pagination: { pageIndex: 0, pageSize: 20 },
+        selectedRows: [],
+    },
+    assigned: {
+        columnFilters: [],
+        sorting: [],
+        columnVisibility: {},
+        dateRange: [null, null],
+        pagination: { pageIndex: 0, pageSize: 20 },
+        selectedRows: [],
+    },
+    audit: {
+        columnFilters: [],
+        sorting: [],
+        columnVisibility: {},
+        dateRange: [null, null],
+        pagination: { pageIndex: 0, pageSize: 20 },
+        selectedRows: [],
+    },
+}
 
 const tableFiltersSlice = createSlice({
     name: "tableFilters",
@@ -28,11 +54,20 @@ const tableFiltersSlice = createSlice({
             state,
             action: PayloadAction<{
                 tabKey: string
-                filters: TableFilterState
+                filters: Partial<TableFilterState>
             }>,
         ) => {
-            const { tabKey, filters } = action.payload;
-            state[tabKey] = filters;
+            const { tabKey, filters } = action.payload
+            if (!state[tabKey]) {
+                state[tabKey] = {
+                    columnFilters: [],
+                    sorting: [],
+                    columnVisibility: {},
+                    dateRange: [null, null],
+                    selectedRows: [],
+                }
+            }
+            state[tabKey] = { ...state[tabKey], ...filters }
         },
         setTabPagination: (
             state,
@@ -41,9 +76,9 @@ const tableFiltersSlice = createSlice({
                 pagination: PaginationState
             }>,
         ) => {
-            const { tabKey, pagination } = action.payload;
+            const { tabKey, pagination } = action.payload
             if (state[tabKey]) {
-                state[tabKey].pagination = pagination;
+                state[tabKey].pagination = pagination
             }
         },
         setTabPageCount: (
@@ -53,9 +88,9 @@ const tableFiltersSlice = createSlice({
                 pageCount: number
             }>,
         ) => {
-            const { tabKey, pageCount } = action.payload;
+            const { tabKey, pageCount } = action.payload
             if (state[tabKey]) {
-                state[tabKey].pageCount = pageCount;
+                state[tabKey].pageCount = pageCount
             }
         },
         setTabPaginationUI: (
@@ -68,30 +103,56 @@ const tableFiltersSlice = createSlice({
                 }
             }>,
         ) => {
-            const { tabKey, paginationUI } = action.payload;
+            const { tabKey, paginationUI } = action.payload
             if (state[tabKey]) {
-                state[tabKey].paginationUI = paginationUI;
+                state[tabKey].paginationUI = paginationUI
             }
         },
+        setSelectedRows: (
+            state,
+            action: PayloadAction<{
+                tabKey: string
+                selectedRows: string[]
+            }>,
+        ) => {
+            const { tabKey, selectedRows } = action.payload
+            if (!state[tabKey]) {
+                state[tabKey] = {
+                    columnFilters: [],
+                    sorting: [],
+                    columnVisibility: {},
+                    dateRange: [null, null],
+                    selectedRows: [],
+                }
+            }
+            state[tabKey].selectedRows = selectedRows
+        },
         clearTabFilters: (state, action: PayloadAction<string>) => {
-            const tabKey = action.payload;
+            const tabKey = action.payload
             if (state[tabKey]) {
-                delete state[tabKey];
+                state[tabKey] = {
+                    columnFilters: [],
+                    sorting: [],
+                    columnVisibility: {},
+                    dateRange: [null, null],
+                    pagination: { pageIndex: 0, pageSize: 20 },
+                    selectedRows: [],
+                }
             }
         },
         clearAllFilters: () => {
-            return {};
+            return initialState
         },
     },
-});
+})
 
 export const {
     setTabFilters,
     setTabPagination,
     setTabPageCount,
     setTabPaginationUI,
+    setSelectedRows,
     clearTabFilters,
     clearAllFilters,
-} = tableFiltersSlice.actions;
-export default tableFiltersSlice.reducer;
-
+} = tableFiltersSlice.actions
+export default tableFiltersSlice.reducer

@@ -1,15 +1,25 @@
 "use client"
 
-import { useState } from "react"
-import { useDispatch, useSelector } from "react-redux"
-import type { RootState } from "@/store"
-import { selectDocument, pauseReview } from "@/store/slices/documentManagementSlice"
+import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Search, Clock, Calendar } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { motion } from "framer-motion"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import type { RootState } from "@/store"
+import { pauseReview, selectDocument } from "@/store/slices/documentManagementSlice"
+import { motion } from "framer-motion"
+import { Calendar, Clock, Search } from "lucide-react"
+import { useState } from "react"
+import { useDispatch, useSelector } from "react-redux"
+
+// Define the Document type with the missing 'status' property
+interface Document {
+  id: string
+  name: string
+  assignedAt: string
+  startTime?: number
+  timeSpent?: number
+  status: "pending" | "in_progress" | "on_hold" | "completed"
+}
 
 export default function DocumentList() {
   const dispatch = useDispatch()
@@ -33,7 +43,7 @@ export default function DocumentList() {
     }
   }
 
-  const getFileAge = (doc: any) => {
+  const getFileAge = (doc: Document) => {
     if (doc.startTime && doc.status === "in_progress") {
       const elapsedSeconds = Math.floor((Date.now() - doc.startTime) / 1000)
       return formatTime(elapsedSeconds + (doc.timeSpent || 0))

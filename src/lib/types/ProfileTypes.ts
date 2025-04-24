@@ -6,6 +6,13 @@ export type DocumentItem = {
     status: string;
 };
 
+export enum USERTYPES {
+    SUPERADMIN = "Super Admin",
+    ADMIN = "Admin",
+    AUDITOR = "Auditor",
+    ANALYST = "Analyst",
+}
+
 export interface AppointmentItemType {
     doctor: string;
     date: string;

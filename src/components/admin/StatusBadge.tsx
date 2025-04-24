@@ -1,6 +1,7 @@
-import { USERTYPES } from "@/lib/types/PrevisitTypes";
+
 import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
+import { USERTYPES } from "@/lib/types/ProfileTypes";
 
 interface StatusBadgeProps {
     status: USERTYPES;

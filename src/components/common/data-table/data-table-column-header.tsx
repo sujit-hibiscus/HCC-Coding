@@ -36,8 +36,8 @@ export function DataTableColumnHeader<TData, TValue>({
   searchType,
 }: DataTableColumnHeaderProps<TData, TValue>) {
   const { dispatch, selector } = useRedux();
-  const { previsit = "", target = "" } = useFullPath();
-  const compositeTabKey = `${previsit}${target}`;
+  const { charts = "", target = "" } = useFullPath();
+  const compositeTabKey = `${charts}${target}`;
   const storedData = selector((state) => state.tableFilters[compositeTabKey]);
 
   const storedColumnFilter = storedData?.columnFilters?.find((filter) => filter.id === column.id);

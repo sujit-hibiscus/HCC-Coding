@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Tab } from "@/lib/types/dashboardTypes";
-import { mockHccEntries } from "@/lib/data";
 
 interface DashboardState {
     token: string;
@@ -79,11 +78,7 @@ const dashboardSlice = createSlice({
 
             if (!existingTab) {
                 if (action?.payload?.href?.includes("/review?chartId")) {
-                    state.tabs.push({
-                        ...action.payload, active: true, stateData: {
-                            newData: mockHccEntries
-                        }
-                    });
+
                 } else {
                     state.tabs.push({ ...action.payload, active: true });
                 }
