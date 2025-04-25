@@ -1,39 +1,39 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import TabsComponent from "@/components/common/CommonTab"
-import { useRedux } from "@/hooks/use-redux"
-import type { Tab } from "@/lib/types/dashboardTypes"
-import { updateTab } from "@/store/slices/DashboardSlice"
+import TabsComponent from "@/components/common/CommonTab";
+import { useRedux } from "@/hooks/use-redux";
+import type { Tab } from "@/lib/types/dashboardTypes";
+import { updateTab } from "@/store/slices/DashboardSlice";
 
-import { ChartTab } from "@/lib/types/chartsTypes"
-import { AnimatePresence, motion } from "framer-motion"
-import { CheckCircle2, Clock, FileEdit } from "lucide-react"
-import { usePathname, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { ChartTab } from "@/lib/types/chartsTypes";
+import { AnimatePresence, motion } from "framer-motion";
+import { CheckCircle2, Clock, FileEdit } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const tabVariants = {
     hidden: { opacity: 0, y: 0 },
     visible: { opacity: 1, y: 0 },
     exit: { opacity: 0, y: 0 },
-}
+};
 
 export default function ChartLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
-    const pathname = usePathname()
-    const router = useRouter()
-    const { selector, dispatch } = useRedux()
-    const [currentTab, setCurrentTab] = useState(pathname.split("/").pop() || "pending")
-    const { tabs: storedTabs = [] } = selector((state) => state.dashboard)
-    const { userType = "", appointmentCounts } = selector((state) => state.user)
-    const chartsCounts = appointmentCounts?.data?.charts
-    const tabCountLoading = appointmentCounts?.status
+    const pathname = usePathname();
+    const router = useRouter();
+    const { selector, dispatch } = useRedux();
+    const [currentTab, setCurrentTab] = useState(pathname.split("/").pop() || "pending");
+    const { tabs: storedTabs = [] } = selector((state) => state.dashboard);
+    const { userType = "", appointmentCounts } = selector((state) => state.user);
+    const chartsCounts = appointmentCounts?.data?.charts;
+    const tabCountLoading = appointmentCounts?.status;
 
-    const { pendingDocuments, assignedDocuments, auditDocuments } = selector((state) => state.documentTable)
+    const { pendingDocuments, assignedDocuments, auditDocuments } = selector((state) => state.documentTable);
 
     const tabs = [
         {
@@ -54,25 +54,25 @@ export default function ChartLayout({
             icon: CheckCircle2,
             count: auditDocuments?.data?.length > 0 ? auditDocuments?.data?.length : chartsCounts?.Audit,
         },
-    ]
+    ];
 
     useEffect(() => {
-        setCurrentTab(pathname.split("/").pop() || "pending")
-    }, [pathname])
+        setCurrentTab(pathname.split("/").pop() || "pending");
+    }, [pathname]);
 
     const handleTabChange = (value: string) => {
-        setCurrentTab(value)
-        const targetHref = `/dashboard/charts/${value}`
+        setCurrentTab(value);
+        const targetHref = `/dashboard/charts/${value}`;
 
-        const targetTab = (storedTabs as Tab[])?.map((item) => (item?.active ? { ...item, href: targetHref } : item))
+        const targetTab = (storedTabs as Tab[])?.map((item) => (item?.active ? { ...item, href: targetHref } : item));
 
         setTimeout(() => {
             // chartsData(value as charts);
-        })
+        });
 
-        dispatch(updateTab(targetTab))
-        router.push(targetHref)
-    }
+        dispatch(updateTab(targetTab));
+        router.push(targetHref);
+    };
 
     return (
         <div className="px-2 py-1 h-full flex space-y-1 flex-col bg-background">
@@ -103,5 +103,5 @@ export default function ChartLayout({
                 </motion.div>
             </AnimatePresence>
         </div>
-    )
+    );
 }

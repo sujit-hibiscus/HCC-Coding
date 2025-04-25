@@ -21,7 +21,6 @@ export function exportFilteredTableToCSV<TData>(
         ...rows.map((row) =>
             exportColumns
                 .map((column) => {
-                    const allData = row?.original;
                     const cellValue =
                         column.id === "Name"
                             ? ""

@@ -13,14 +13,14 @@ import useToast from "@/hooks/use-toast";
 import { setError, setLoading, setUser } from "@/store/slices/user-slice";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ForgotPassword } from "../common/user/forgot-password";
 import { useApiCall } from "../common/ApiCall";
+import { ForgotPassword } from "../common/user/forgot-password";
 
 export default function LoginForm() {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const { getBasePath, getLoginMasterData } = useApiCall();
+    const { getLoginMasterData } = useApiCall();
     const router = useRouter();
     const { error } = useToast();
     const { dispatch } = useRedux();

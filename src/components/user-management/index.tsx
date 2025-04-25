@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useEffect, useState, type FormEvent } from "react"
-import { z } from "zod"
+import { useEffect, useState, type FormEvent } from "react";
+import { z } from "zod";
 
-import { UserTable } from "@/components/user-management/UserDataTable"
+import { UserTable } from "@/components/user-management/UserDataTable";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -15,21 +15,21 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { PasswordInput } from "@/components/ui/PasswordInput"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
-import { useRedux } from "@/hooks/use-redux"
-import useToast from "@/hooks/use-toast"
-import type { UserTypes } from "@/lib/types/chartsTypes"
-import type { RootState } from "@/store"
-import { cancelEditing, resetForm, startEditing, updateField, updateTargetField } from "@/store/slices/user-form-slice"
-import { deleteUser, getAllUsers, registerUser, updateUser } from "@/store/slices/user-slice"
-import { notFound } from "next/navigation"
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/PasswordInput";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { useRedux } from "@/hooks/use-redux";
+import useToast from "@/hooks/use-toast";
+import type { UserTypes } from "@/lib/types/chartsTypes";
+import type { RootState } from "@/store";
+import { cancelEditing, resetForm, startEditing, updateField, updateTargetField } from "@/store/slices/user-form-slice";
+import { deleteUser, getAllUsers, registerUser, updateUser } from "@/store/slices/user-slice";
+import { notFound } from "next/navigation";
 
 type ProfileType = "Analyst" | "Auditor" | "Admin" | "Super Admin"
 
@@ -45,71 +45,71 @@ const userSchema = z.object({
             maxAssignments: z.number().optional(),
         })
         .optional(),
-})
+});
 
 
 export default function AddUserPage() {
     const { dispatch, selector } = useRedux();
     const { userType } = selector(state => state.user);
 
-    if (!(userType?.toLowerCase().includes('admin'))) {
+    if (!(userType?.toLowerCase().includes("admin"))) {
         notFound();
     }
 
-    const loading = selector((state: RootState) => state.user.loading)
-    const reduxError = selector((state: RootState) => state.user.error)
+    const loading = selector((state: RootState) => state.user.loading);
+    const reduxError = selector((state: RootState) => state.user.error);
 
-    const formData = selector((state: RootState) => state.userForm)
-    const isEditing = selector((state: RootState) => state.userForm.isEditing)
+    const formData = selector((state: RootState) => state.userForm);
+    const isEditing = selector((state: RootState) => state.userForm.isEditing);
 
-    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-    const [userToDelete, setUserToDelete] = useState<number | null>(null)
-    const { success, error } = useToast()
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [userToDelete, setUserToDelete] = useState<number | null>(null);
+    const { success, error } = useToast();
 
     // State for showing targets section
-    const [showTargets, setShowTargets] = useState(false)
+    const [showTargets, setShowTargets] = useState(false);
 
     useEffect(() => {
         // Load users on component mount
-        dispatch(getAllUsers())
-    }, [dispatch])
+        dispatch(getAllUsers());
+    }, [dispatch]);
 
     useEffect(() => {
         if (reduxError) {
-            error({ message: reduxError })
+            error({ message: reduxError });
         }
-    }, [reduxError, error])
+    }, [reduxError, error]);
 
     useEffect(() => {
         // Show targets section for Analyst or Auditor
-        setShowTargets(formData.profile_type === "Analyst" || formData.profile_type === "Auditor")
-    }, [formData.profile_type])
+        setShowTargets(formData.profile_type === "Analyst" || formData.profile_type === "Auditor");
+    }, [formData.profile_type]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target
+        const { name, value } = e.target;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        dispatch(updateField({ field: name as any, value }))
-    }
+        dispatch(updateField({ field: name as any, value }));
+    };
 
     const handleTargetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target
-        const numValue = value ? Number(value) : undefined
+        const { name, value } = e.target;
+        const numValue = value ? Number(value) : undefined;
 
         dispatch(
             updateTargetField({
                 field: name as "dailyChartTarget" | "maxAssignments",
                 value: numValue,
             }),
-        )
-    }
+        );
+    };
 
     const handleUserTypeChange = (value: ProfileType) => {
-        dispatch(updateField({ field: "profile_type", value }))
-        setShowTargets(value === "Analyst" || value === "Auditor")
-    }
+        dispatch(updateField({ field: "profile_type", value }));
+        setShowTargets(value === "Analyst" || value === "Auditor");
+    };
 
     const handleSubmit = async (e: FormEvent) => {
-        e.preventDefault()
+        e.preventDefault();
 
         // Trim input values to prevent whitespace issues
         const validationData = {
@@ -124,25 +124,25 @@ export default function AddUserPage() {
                     maxAssignments: formData.target?.maxAssignments,
                 }
                 : undefined,
-        }
+        };
 
         // Validate form data
-        const result = userSchema.safeParse(validationData)
+        const result = userSchema.safeParse(validationData);
         if (!result.success) {
-            const errorMessages = result.error.errors.map((err) => `${err.message}`).join(", ")
-            error({ message: errorMessages })
-            return
+            const errorMessages = result.error.errors.map((err) => `${err.message}`).join(", ");
+            error({ message: errorMessages });
+            return;
         }
 
         // Add additional validation for target fields when they're shown
         if (showTargets) {
             if (formData.target?.dailyChartTarget !== undefined && formData.target.dailyChartTarget <= 0) {
-                error({ message: "Daily chart target must be greater than 0" })
-                return
+                error({ message: "Daily chart target must be greater than 0" });
+                return;
             }
             if (formData.target?.maxAssignments !== undefined && formData.target.maxAssignments <= 0) {
-                error({ message: "Max assignments must be greater than 0" })
-                return
+                error({ message: "Max assignments must be greater than 0" });
+                return;
             }
         }
 
@@ -157,13 +157,13 @@ export default function AddUserPage() {
                         profile_type: formData.profile_type,
                         target: showTargets ? formData.target : undefined,
                     },
-                }
+                };
 
-                const resultAction = await dispatch(updateUser(updateData))
+                const resultAction = await dispatch(updateUser(updateData));
 
                 if (updateUser.fulfilled.match(resultAction)) {
-                    success({ message: "User updated successfully" })
-                    dispatch(resetForm())
+                    success({ message: "User updated successfully" });
+                    dispatch(resetForm());
                 }
             } else {
                 const registerData = {
@@ -173,19 +173,19 @@ export default function AddUserPage() {
                     password: formData.password || "",
                     profile_type: formData.profile_type,
                     target: showTargets ? formData.target : undefined,
-                }
+                };
 
-                const resultAction = await dispatch(registerUser(registerData))
+                const resultAction = await dispatch(registerUser(registerData));
 
                 if (registerUser.fulfilled.match(resultAction)) {
-                    success({ message: "User registered successfully" })
-                    dispatch(resetForm())
+                    success({ message: "User registered successfully" });
+                    dispatch(resetForm());
                 }
             }
         } catch (err) {
-            error({ message: `Error: ${(err as Error).message}` })
+            error({ message: `Error: ${(err as Error).message}` });
         }
-    }
+    };
 
     const handleEdit = (user: UserTypes) => {
         dispatch(
@@ -200,30 +200,30 @@ export default function AddUserPage() {
                     target: user.target,
                 },
             }),
-        )
-    }
+        );
+    };
 
     const handleDelete = (id: number) => {
-        setUserToDelete(id)
-        setShowDeleteDialog(true)
-    }
+        setUserToDelete(id);
+        setShowDeleteDialog(true);
+    };
 
     const confirmDelete = async () => {
         if (userToDelete) {
             try {
-                const resultAction = await dispatch(deleteUser(userToDelete))
+                const resultAction = await dispatch(deleteUser(userToDelete));
 
                 if (deleteUser.fulfilled.match(resultAction)) {
-                    success({ message: "User deleted successfully" })
+                    success({ message: "User deleted successfully" });
                 }
             } catch (err) {
-                error({ message: `Error: ${(err as Error).message}` })
+                error({ message: `Error: ${(err as Error).message}` });
             }
         }
-        setShowDeleteDialog(false)
-        setUserToDelete(null)
-        dispatch(resetForm())
-    }
+        setShowDeleteDialog(false);
+        setUserToDelete(null);
+        dispatch(resetForm());
+    };
 
     return (
         <>
@@ -398,5 +398,5 @@ export default function AddUserPage() {
                 </AlertDialogContent>
             </AlertDialog>
         </>
-    )
+    );
 }

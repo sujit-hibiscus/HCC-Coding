@@ -6,8 +6,6 @@ import { ProgressBar, Viewer, Worker } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import { defaultLayoutPlugin, type ToolbarSlot } from "@react-pdf-viewer/default-layout";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
-import { Download } from "lucide-react";
-import { PDFDocument } from "pdf-lib";
 import React, { type ReactElement, useEffect } from "react";
 
 interface PdfViewerProps {
@@ -16,8 +14,8 @@ interface PdfViewerProps {
   isFlattened?: boolean
 }
 
-const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true, isFlattened = false }) => {
-  const [url, name = ""] = urlData.split("__");
+const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true }) => {
+  const [url] = urlData.split("__");
   const { dispatch, selector } = useRedux();
 
   const savedFilters = selector((state) => state.pdfFilters[url]);
@@ -57,34 +55,34 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true, i
           GoToFirstPage,
         } = slots;
 
-        const handleDownload = async () => {
-          try {
-            const response = await fetch(url);
-            const pdfBytes = await response.arrayBuffer();
-
-            if (isFlattened) {
-              const pdfDoc = await PDFDocument.load(pdfBytes);
-              const pages = pdfDoc.getPages();
-              pages.forEach((page) => {
-                page.setFontSize(12);
-              });
-              const flattenedPdfBytes = await pdfDoc.save({ useObjectStreams: false });
-              const blob = new Blob([flattenedPdfBytes], { type: "application/pdf" });
-              const link = document.createElement("a");
-              link.href = URL.createObjectURL(blob);
-              link.download = name;
-              link.click();
-            } else {
-              const blob = new Blob([pdfBytes], { type: "application/pdf" });
-              const link = document.createElement("a");
-              link.href = URL.createObjectURL(blob);
-              link.download = name;
-              link.click();
-            }
-          } catch (error) {
-            console.error("Error downloading PDF:", error);
-          }
-        };
+        /*    const handleDownload = async () => {
+             try {
+               const response = await fetch(url);
+               const pdfBytes = await response.arrayBuffer();
+   
+               if (isFlattened) {
+                 const pdfDoc = await PDFDocument.load(pdfBytes);
+                 const pages = pdfDoc.getPages();
+                 pages.forEach((page) => {
+                   page.setFontSize(12);
+                 });
+                 const flattenedPdfBytes = await pdfDoc.save({ useObjectStreams: false });
+                 const blob = new Blob([flattenedPdfBytes], { type: "application/pdf" });
+                 const link = document.createElement("a");
+                 link.href = URL.createObjectURL(blob);
+                 link.download = name;
+                 link.click();
+               } else {
+                 const blob = new Blob([pdfBytes], { type: "application/pdf" });
+                 const link = document.createElement("a");
+                 link.href = URL.createObjectURL(blob);
+                 link.download = name;
+                 link.click();
+               }
+             } catch (error) {
+               console.error("Error downloading PDF:", error);
+             }
+           }; */
 
         return (
           <div className="flex items-center w-full px-2">
@@ -198,7 +196,7 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true, i
                   </TooltipContent>
                 </Tooltip>
 
-                <Tooltip>
+                {/*  <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="cursor-pointer" onClick={handleDownload}>
                       <Download className="w-5 h-5 text-[#777777]" />
@@ -207,7 +205,7 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true, i
                   <TooltipContent side="left" align="center">
                     Download PDF
                   </TooltipContent>
-                </Tooltip>
+                </Tooltip> */}
               </div>
             </TooltipProvider>
           </div>

@@ -2,9 +2,19 @@
 import { useTheme } from "next-themes";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import DocumentSkeleton from "@/app/(dashboard)/dashboard/loading";
 
 const LoginIMage = () => {
     const { resolvedTheme } = useTheme();
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+    if (!(isClient)) {
+        return <DocumentSkeleton />;
+    }
     return (
         <div className='w-full flex flex-col gap-1'>
             <div className='flex justify-center'>

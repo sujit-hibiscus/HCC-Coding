@@ -1,5 +1,5 @@
-import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit"
-import type { UserTypes as User } from "@/lib/types/chartsTypes"
+import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
+import type { UserTypes as User } from "@/lib/types/chartsTypes";
 
 export interface AppointmentCounts {
     charts: {
@@ -69,7 +69,7 @@ const initialUsers: User[] = [
         password: "test@123",
         target: { dailyChartTarget: 10, maxAssignments: 20 },
     }
-]
+];
 
 // Initial state
 const initialState: UserState = {
@@ -99,7 +99,7 @@ const initialState: UserState = {
         data: null,
         status: "Success",
     },
-}
+};
 
 // Register user request interface
 export interface RegisterUserRequest {
@@ -130,53 +130,53 @@ export interface UpdateUserRequest {
 const normalizeProfileType = (profileType: number | string): string => {
     if (typeof profileType === "number") {
         switch (profileType) {
-            case 1: return "Analyst"
-            case 2: return "Auditor"
-            case 3: return "Admin"
-            case 4: return "Super Admin"
-            default: return "Analyst"
+            case 1: return "Analyst";
+            case 2: return "Auditor";
+            case 3: return "Admin";
+            case 4: return "Super Admin";
+            default: return "Analyst";
         }
     }
-    return profileType as string
-}
+    return profileType as string;
+};
 
 // Check if email already exists
 const emailExists = (users: User[], email: string, excludeId?: number): boolean => {
-    return users.some(user => user.email.toLowerCase() === email.toLowerCase() && user.id !== excludeId)
-}
+    return users.some(user => user.email.toLowerCase() === email.toLowerCase() && user.id !== excludeId);
+};
 
 // Mock async thunks that work with local state instead of API calls
 export const getAllUsers = createAsyncThunk(
     "user/registered/getAll",
     async (_, { getState }) => {
         // Simulate API delay
-        await new Promise((resolve) => setTimeout(resolve, 500))
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
-        const state = getState() as { user: UserState }
+        const state = getState() as { user: UserState };
         return {
             message: "Users fetched successfully",
             data: state.user.users.data || [],
-        }
+        };
     }
-)
+);
 
 export const registerUser = createAsyncThunk<string, RegisterUserRequest>(
     "user/registered/register",
     async (userData, { getState, dispatch, rejectWithValue }) => {
         try {
             // Simulate API delay
-            await new Promise((resolve) => setTimeout(resolve, 800))
+            await new Promise((resolve) => setTimeout(resolve, 800));
 
-            const state = getState() as { user: UserState }
-            const users = state.user.users.data || []
+            const state = getState() as { user: UserState };
+            const users = state.user.users.data || [];
 
             // Check if email already exists
             if (emailExists(users, userData.email)) {
-                return rejectWithValue("Email already exists. Please use a different email address.")
+                return rejectWithValue("Email already exists. Please use a different email address.");
             }
 
             // Generate a new ID (max ID + 1)
-            const newId = users.length > 0 ? Math.max(...users.map((user) => user.id)) + 1 : 1
+            const newId = users.length > 0 ? Math.max(...users.map((user) => user.id)) + 1 : 1;
 
             // Create new user object
             const newUser: User = {
@@ -187,38 +187,38 @@ export const registerUser = createAsyncThunk<string, RegisterUserRequest>(
                 password: userData.password,
                 profile_type: normalizeProfileType(userData.profile_type),
                 target: userData.target,
-            }
+            };
 
             // Add to state in the reducer
-            dispatch(addUser(newUser))
+            dispatch(addUser(newUser));
 
-            return "User registered successfully"
+            return "User registered successfully";
         } catch (error) {
-            return rejectWithValue((error as Error).message || "Failed to register user")
+            return rejectWithValue((error as Error).message || "Failed to register user");
         }
     }
-)
+);
 
 export const updateUser = createAsyncThunk<User, { id: number; userData: UpdateUserRequest }>(
     "user/registered/update",
     async ({ id, userData }, { getState, dispatch, rejectWithValue }) => {
         try {
             // Simulate API delay
-            await new Promise((resolve) => setTimeout(resolve, 800))
+            await new Promise((resolve) => setTimeout(resolve, 800));
 
-            const state = getState() as { user: UserState }
-            const users = state.user.users.data || []
+            const state = getState() as { user: UserState };
+            const users = state.user.users.data || [];
 
             // Find user to update
-            const userToUpdate = users.find((user) => user.id === id)
+            const userToUpdate = users.find((user) => user.id === id);
 
             if (!userToUpdate) {
-                return rejectWithValue("User not found")
+                return rejectWithValue("User not found");
             }
 
             // Check if email already exists (excluding the current user)
             if (emailExists(users, userData.email, id)) {
-                return rejectWithValue("Email already exists. Please use a different email address.")
+                return rejectWithValue("Email already exists. Please use a different email address.");
             }
 
             // Create updated user object
@@ -229,46 +229,46 @@ export const updateUser = createAsyncThunk<User, { id: number; userData: UpdateU
                 email: userData.email.toLowerCase().trim(),
                 profile_type: normalizeProfileType(userData.profile_type),
                 target: userData.target,
-            }
+            };
 
             // Update in state in the reducer
-            dispatch(updateUserInState(updatedUser))
+            dispatch(updateUserInState(updatedUser));
 
-            return updatedUser
+            return updatedUser;
         } catch (error) {
-            return rejectWithValue((error as Error).message || "Failed to update user")
+            return rejectWithValue((error as Error).message || "Failed to update user");
         }
     }
-)
+);
 
 export const deleteUser = createAsyncThunk<{ id: number; message: string }, number>(
     "user/registered/delete",
     async (id, { dispatch, getState, rejectWithValue }) => {
         try {
             // Simulate API delay
-            await new Promise((resolve) => setTimeout(resolve, 600))
+            await new Promise((resolve) => setTimeout(resolve, 600));
 
-            const state = getState() as { user: UserState }
-            const users = state.user.users.data || []
+            const state = getState() as { user: UserState };
+            const users = state.user.users.data || [];
 
             // Check if user exists
-            const userExists = users.some(user => user.id === id)
+            const userExists = users.some(user => user.id === id);
             if (!userExists) {
-                return rejectWithValue("User not found")
+                return rejectWithValue("User not found");
             }
 
             // Remove from state in the reducer
-            dispatch(removeUser(id))
+            dispatch(removeUser(id));
 
             return {
                 id,
                 message: "User deleted successfully",
-            }
+            };
         } catch (error) {
-            return rejectWithValue((error as Error).message || "Failed to delete user")
+            return rejectWithValue((error as Error).message || "Failed to delete user");
         }
     }
-)
+);
 
 // Create the user slice
 const userSlice = createSlice({
@@ -279,44 +279,44 @@ const userSlice = createSlice({
             state,
             action: PayloadAction<{ userType: string; userRoles: string[]; token: string; email: string }>,
         ) => {
-            state.isAuthenticated = true
-            state.userType = action.payload.userType
-            state.userRoles = action.payload.userRoles
-            state.loading = false
-            state.error = null
-            state.token = action.payload.token
-            state.email = action.payload.email
+            state.isAuthenticated = true;
+            state.userType = action.payload.userType;
+            state.userRoles = action.payload.userRoles;
+            state.loading = false;
+            state.error = null;
+            state.token = action.payload.token;
+            state.email = action.payload.email;
         },
         setLoading: (state, action: PayloadAction<boolean>) => {
-            state.loading = action.payload
+            state.loading = action.payload;
         },
         setError: (state, action: PayloadAction<string>) => {
-            state.error = action.payload
-            state.loading = false
+            state.error = action.payload;
+            state.loading = false;
         },
         clearError: (state) => {
-            state.error = null
+            state.error = null;
         },
         logout: () => initialState,
         // New reducers for local CRUD operations
         addUser: (state, action: PayloadAction<User>) => {
             if (state.users.data) {
-                state.users.data.push(action.payload)
+                state.users.data.push(action.payload);
             } else {
-                state.users.data = [action.payload]
+                state.users.data = [action.payload];
             }
-            state.users.lastUpdated = Date.now()
+            state.users.lastUpdated = Date.now();
         },
         updateUserInState: (state, action: PayloadAction<User>) => {
             if (state.users.data) {
-                state.users.data = state.users.data.map((user) => (user.id === action.payload.id ? action.payload : user))
-                state.users.lastUpdated = Date.now()
+                state.users.data = state.users.data.map((user) => (user.id === action.payload.id ? action.payload : user));
+                state.users.lastUpdated = Date.now();
             }
         },
         removeUser: (state, action: PayloadAction<number>) => {
             if (state.users.data) {
-                state.users.data = state.users.data.filter((user) => user.id !== action.payload)
-                state.users.lastUpdated = Date.now()
+                state.users.data = state.users.data.filter((user) => user.id !== action.payload);
+                state.users.lastUpdated = Date.now();
             }
         },
     },
@@ -324,66 +324,66 @@ const userSlice = createSlice({
         builder
             // Get all users reducers
             .addCase(getAllUsers.pending, (state) => {
-                state.users.status = "Loading"
-                state.error = null
+                state.users.status = "Loading";
+                state.error = null;
             })
             .addCase(getAllUsers.fulfilled, (state, action) => {
-                state.users.data = action.payload.data
-                state.users.status = "Success"
-                state.users.lastUpdated = Date.now()
+                state.users.data = action.payload.data;
+                state.users.status = "Success";
+                state.users.lastUpdated = Date.now();
             })
             .addCase(getAllUsers.rejected, (state, action) => {
-                state.users.status = "Error"
-                state.error = action.error.message || "Failed to fetch users"
+                state.users.status = "Error";
+                state.error = action.error.message || "Failed to fetch users";
             })
 
             // Register user reducers
             .addCase(registerUser.pending, (state) => {
-                state.loading = true
-                state.error = null
+                state.loading = true;
+                state.error = null;
             })
             .addCase(registerUser.fulfilled, (state) => {
-                state.loading = false
-                state.error = null
+                state.loading = false;
+                state.error = null;
             })
             .addCase(registerUser.rejected, (state, action) => {
-                state.loading = false
-                state.error = action.payload as string || action.error.message || "Failed to register user"
-                state.currentUser.status = "Error"
+                state.loading = false;
+                state.error = action.payload as string || action.error.message || "Failed to register user";
+                state.currentUser.status = "Error";
             })
 
             // Update user reducers
             .addCase(updateUser.pending, (state) => {
-                state.loading = true
-                state.error = null
+                state.loading = true;
+                state.error = null;
             })
             .addCase(updateUser.fulfilled, (state, action) => {
-                state.loading = false
-                state.currentUser.data = action.payload
-                state.currentUser.status = "Success"
-                state.error = null
+                state.loading = false;
+                state.currentUser.data = action.payload;
+                state.currentUser.status = "Success";
+                state.error = null;
             })
             .addCase(updateUser.rejected, (state, action) => {
-                state.loading = false
-                state.error = action.payload as string || action.error.message || "Failed to update user"
-                state.currentUser.status = "Error"
+                state.loading = false;
+                state.error = action.payload as string || action.error.message || "Failed to update user";
+                state.currentUser.status = "Error";
             })
 
             // Delete user reducers
             .addCase(deleteUser.pending, (state) => {
-                state.loading = true
-                state.error = null
+                state.loading = true;
+                state.error = null;
             })
             .addCase(deleteUser.fulfilled, (state) => {
-                state.loading = false
-                state.error = null
+                state.loading = false;
+                state.error = null;
             })
             .addCase(deleteUser.rejected, (state, action) => {
-                state.loading = false
-                state.error = action.payload as string || action.error.message || "Failed to delete user"
-            })
+                state.loading = false;
+                state.error = action.payload as string || action.error.message || "Failed to delete user";
+            });
     },
-})
+});
 
 // Export actions and reducer
 export const {
@@ -395,6 +395,6 @@ export const {
     addUser,
     updateUserInState,
     removeUser
-} = userSlice.actions
+} = userSlice.actions;
 
-export default userSlice.reducer
+export default userSlice.reducer;

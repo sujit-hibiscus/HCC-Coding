@@ -1,18 +1,18 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { memo } from "react"
+import type React from "react";
+import { memo } from "react";
 
-import { Button } from "@/components/ui/button"
-import useFullPath from "@/hooks/use-fullpath"
-import { useRedux } from "@/hooks/use-redux"
-import { clearTabFilters, setTabPagination } from "@/store/slices/tableFiltersSlice"
-import type { SortingState, Table } from "@tanstack/react-table"
-import { motion } from "framer-motion"
-import { RefreshCw, X } from "lucide-react"
-import { CalendarDateRangePicker } from "./CalendarDateRangePicker"
-import { DataTableViewOptions } from "./data-table-view-options"
-import { TasksTableToolbarActions } from "./tasks-table-toolbar-actions"
+import { Button } from "@/components/ui/button";
+import useFullPath from "@/hooks/use-fullpath";
+import { useRedux } from "@/hooks/use-redux";
+import { clearTabFilters, setTabPagination } from "@/store/slices/tableFiltersSlice";
+import type { SortingState, Table } from "@tanstack/react-table";
+import { motion } from "framer-motion";
+import { RefreshCw, X } from "lucide-react";
+import { CalendarDateRangePicker } from "./CalendarDateRangePicker";
+import { DataTableViewOptions } from "./data-table-view-options";
+import { TasksTableToolbarActions } from "./tasks-table-toolbar-actions";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
@@ -33,48 +33,48 @@ function DataTableToolbarComponent<TData>({
   dateKey = "",
   handleRefresh,
 }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0
-  const { charts = "", target = "" } = useFullPath()
-  const tabKey = `${charts}${target}`
-  const { selector, dispatch } = useRedux()
-  const storedFilters = selector((state) => state.tableFilters[tabKey])
-  const pageSize = storedFilters?.pagination?.pageSize
-  const pageIndex = storedFilters?.pagination?.pageIndex
+  const isFiltered = table.getState().columnFilters.length > 0;
+  const { charts = "", target = "" } = useFullPath();
+  const tabKey = `${charts}${target}`;
+  const { selector, dispatch } = useRedux();
+  const storedFilters = selector((state) => state.tableFilters[tabKey]);
+  const pageSize = storedFilters?.pagination?.pageSize;
+  const pageIndex = storedFilters?.pagination?.pageIndex;
 
-  const isChangePage = pageSize ? pageSize !== 20 : false || pageIndex ? pageIndex !== 0 : false
-  const isSort = storedFilters?.sorting
-  const isDateRange = storedFilters?.dateRange?.every((value) => value !== null && value !== undefined)
+  const isChangePage = pageSize ? pageSize !== 20 : false || pageIndex ? pageIndex !== 0 : false;
+  const isSort = storedFilters?.sorting;
+  const isDateRange = storedFilters?.dateRange?.every((value) => value !== null && value !== undefined);
 
   // Check if any rows are selected
-  const hasSelectedRows = Object.keys(table.getState().rowSelection || {}).length > 0
+  const hasSelectedRows = Object.keys(table.getState().rowSelection || {}).length > 0;
 
-  const invisibleColumnCount = table.getAllColumns().filter((column) => !column.getIsVisible()).length
+  const invisibleColumnCount = table.getAllColumns().filter((column) => !column.getIsVisible()).length;
 
 
   const handleResetSorting = () => {
     if (setSorting) {
-      setSorting([])
+      setSorting([]);
     }
-  }
+  };
 
   const handleDateRangeChange = (range: [Date | null, Date | null]) => {
-    setDateRange(range)
-  }
+    setDateRange(range);
+  };
 
   const handleReset = () => {
-    table.resetRowSelection()
+    table.resetRowSelection();
 
-    table.resetColumnFilters()
-    handleDateRangeChange([null, null])
+    table.resetColumnFilters();
+    handleDateRangeChange([null, null]);
     if (invisibleColumnCount > 0) {
-      table.getAllColumns().forEach((column) => column.toggleVisibility(true))
+      table.getAllColumns().forEach((column) => column.toggleVisibility(true));
     }
     if (isSort?.length > 0) {
-      handleResetSorting()
+      handleResetSorting();
     }
 
     if (isChangePage) {
-      table.setPageSize(20)
+      table.setPageSize(20);
       dispatch(
         setTabPagination({
           tabKey: tabKey,
@@ -83,17 +83,17 @@ function DataTableToolbarComponent<TData>({
             pageSize: 20,
           },
         }),
-      )
+      );
     }
 
     setTimeout(() => {
-      dispatch(clearTabFilters(tabKey))
-    })
-  }
+      dispatch(clearTabFilters(tabKey));
+    });
+  };
 
   // Show reset button if any filter is applied, any rows are selected, or any other condition is met
   const showResetButton =
-    isFiltered || isDateRange || invisibleColumnCount > 0 || isChangePage || isSort?.length > 0 || hasSelectedRows
+    isFiltered || isDateRange || invisibleColumnCount > 0 || isChangePage || isSort?.length > 0 || hasSelectedRows;
 
 
   return (
@@ -101,7 +101,7 @@ function DataTableToolbarComponent<TData>({
       {handleRefresh && (
         <Button
           onClick={() => {
-            handleRefresh()
+            handleRefresh();
           }}
           disabled={loading}
           variant="blue"
@@ -131,7 +131,7 @@ function DataTableToolbarComponent<TData>({
         <TasksTableToolbarActions table={table} />
       </div>
     </div>
-  )
+  );
 }
 
-export const DataTableToolbar = memo(DataTableToolbarComponent) as typeof DataTableToolbarComponent
+export const DataTableToolbar = memo(DataTableToolbarComponent) as typeof DataTableToolbarComponent;

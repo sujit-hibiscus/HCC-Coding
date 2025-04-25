@@ -1,8 +1,8 @@
-import { Search } from "lucide-react"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
+import { Search } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function DocumentSkeleton() {
     return (
@@ -81,5 +81,5 @@ export default function DocumentSkeleton() {
                 </div>
             </div>
         </div>
-    )
+    );
 }

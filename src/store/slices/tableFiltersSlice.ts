@@ -1,5 +1,5 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
-import type { ColumnFiltersState, SortingState, VisibilityState, PaginationState } from "@tanstack/react-table"
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type { ColumnFiltersState, SortingState, VisibilityState, PaginationState } from "@tanstack/react-table";
 
 export interface TableFilterState {
     columnFilters: ColumnFiltersState
@@ -44,7 +44,7 @@ const initialState: TableFiltersState = {
         pagination: { pageIndex: 0, pageSize: 20 },
         selectedRows: [],
     },
-}
+};
 
 const tableFiltersSlice = createSlice({
     name: "tableFilters",
@@ -57,7 +57,7 @@ const tableFiltersSlice = createSlice({
                 filters: Partial<TableFilterState>
             }>,
         ) => {
-            const { tabKey, filters } = action.payload
+            const { tabKey, filters } = action.payload;
             if (!state[tabKey]) {
                 state[tabKey] = {
                     columnFilters: [],
@@ -65,9 +65,9 @@ const tableFiltersSlice = createSlice({
                     columnVisibility: {},
                     dateRange: [null, null],
                     selectedRows: [],
-                }
+                };
             }
-            state[tabKey] = { ...state[tabKey], ...filters }
+            state[tabKey] = { ...state[tabKey], ...filters };
         },
         setTabPagination: (
             state,
@@ -76,9 +76,9 @@ const tableFiltersSlice = createSlice({
                 pagination: PaginationState
             }>,
         ) => {
-            const { tabKey, pagination } = action.payload
+            const { tabKey, pagination } = action.payload;
             if (state[tabKey]) {
-                state[tabKey].pagination = pagination
+                state[tabKey].pagination = pagination;
             }
         },
         setTabPageCount: (
@@ -88,9 +88,9 @@ const tableFiltersSlice = createSlice({
                 pageCount: number
             }>,
         ) => {
-            const { tabKey, pageCount } = action.payload
+            const { tabKey, pageCount } = action.payload;
             if (state[tabKey]) {
-                state[tabKey].pageCount = pageCount
+                state[tabKey].pageCount = pageCount;
             }
         },
         setTabPaginationUI: (
@@ -103,9 +103,9 @@ const tableFiltersSlice = createSlice({
                 }
             }>,
         ) => {
-            const { tabKey, paginationUI } = action.payload
+            const { tabKey, paginationUI } = action.payload;
             if (state[tabKey]) {
-                state[tabKey].paginationUI = paginationUI
+                state[tabKey].paginationUI = paginationUI;
             }
         },
         setSelectedRows: (
@@ -115,7 +115,7 @@ const tableFiltersSlice = createSlice({
                 selectedRows: string[]
             }>,
         ) => {
-            const { tabKey, selectedRows } = action.payload
+            const { tabKey, selectedRows } = action.payload;
             if (!state[tabKey]) {
                 state[tabKey] = {
                     columnFilters: [],
@@ -123,12 +123,12 @@ const tableFiltersSlice = createSlice({
                     columnVisibility: {},
                     dateRange: [null, null],
                     selectedRows: [],
-                }
+                };
             }
-            state[tabKey].selectedRows = selectedRows
+            state[tabKey].selectedRows = selectedRows;
         },
         clearTabFilters: (state, action: PayloadAction<string>) => {
-            const tabKey = action.payload
+            const tabKey = action.payload;
             if (state[tabKey]) {
                 state[tabKey] = {
                     columnFilters: [],
@@ -137,14 +137,14 @@ const tableFiltersSlice = createSlice({
                     dateRange: [null, null],
                     pagination: { pageIndex: 0, pageSize: 20 },
                     selectedRows: [],
-                }
+                };
             }
         },
         clearAllFilters: () => {
-            return initialState
+            return initialState;
         },
     },
-})
+});
 
 export const {
     setTabFilters,
@@ -154,5 +154,5 @@ export const {
     setSelectedRows,
     clearTabFilters,
     clearAllFilters,
-} = tableFiltersSlice.actions
-export default tableFiltersSlice.reducer
+} = tableFiltersSlice.actions;
+export default tableFiltersSlice.reducer;

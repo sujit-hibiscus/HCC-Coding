@@ -1,146 +1,177 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { CreatableSelect } from "@/components/ui/creatable-select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { useRedux } from "@/hooks/use-redux"
-import type { RootState } from "@/store"
+import { Button } from "@/components/ui/button";
+import { CreatableSelect } from "@/components/ui/creatable-select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useRedux } from "@/hooks/use-redux";
+import type { RootState } from "@/store";
 import {
   completeReview,
-  pauseReview,
   resumeReview,
   startReview,
   startTimer,
   stopTimer,
   updateElapsedTime,
-} from "@/store/slices/documentManagementSlice"
-import { AnimatePresence, motion } from "framer-motion"
-import { CheckCircle, Clock, Play } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
-import { useSelector } from "react-redux"
-import PdfUI from "../ui/pdfUI"
-
-// Add interface for form data
-interface SubmissionFormData {
-  codesMissed: { value: string; label: string }[]
-  codesCorrected: { value: string; label: string }[]
-  auditRemarks: string
-}
+} from "@/store/slices/documentManagementSlice";
+import { AnimatePresence, motion } from "framer-motion";
+import { CheckCircle, Clock, Play } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
+import PdfUI from "../ui/pdfUI";
+import { SubmissionFormSchema, type SubmissionFormData } from "@/lib/schemas";
+import { PreventSaveProvider } from "../layout/prevent-save-provider";
 
 export default function PdfViewer() {
-  const { dispatch, selector } = useRedux()
+  const { dispatch, selector } = useRedux();
   const { documents, selectedDocumentId, isRunning } = useSelector((state: RootState) => state.documentManagement);
-  const { userType } = selector(state => state.user);
+  const { userType } = selector((state) => state.user);
 
-  const selectedDocument = documents.find((doc) => doc.id === selectedDocumentId)
+  const selectedDocument = documents.find((doc) => doc.id === selectedDocumentId);
 
-  const [showControls, setShowControls] = useState(false)
-  const [currentTime, setCurrentTime] = useState(0)
-  const timerRef = useRef<NodeJS.Timeout | null>(null)
+  const [showControls, setShowControls] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Add state for modal
-  const [showModal, setShowModal] = useState(false)
+  const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState<SubmissionFormData>({
     codesMissed: [],
     codesCorrected: [],
     auditRemarks: "",
-  })
+  });
+
+  const [formErrors, setFormErrors] = useState<{
+    codesMissed?: string[]
+    codesCorrected?: string[]
+    auditRemarks?: string
+  }>({});
 
   useEffect(() => {
-    // Reset UI state when document changes
     if (selectedDocument) {
-      setShowControls(selectedDocument.status === "in_progress")
+      setShowControls(selectedDocument.status === "in_progress");
 
-      // Set initial time
       if (selectedDocument.startTime && selectedDocument.status === "in_progress") {
-        const elapsed = Math.floor((Date.now() - selectedDocument.startTime) / 1000) + (selectedDocument.timeSpent || 0)
-        setCurrentTime(elapsed)
+        const elapsed = Math.floor((Date.now() - selectedDocument.startTime) / 1000) + (selectedDocument.timeSpent || 0);
+        setCurrentTime(elapsed);
       } else if (selectedDocument.timeSpent) {
-        setCurrentTime(selectedDocument.timeSpent)
+        setCurrentTime(selectedDocument.timeSpent);
       } else {
-        setCurrentTime(0)
+        setCurrentTime(0);
       }
     }
-  }, [selectedDocumentId, selectedDocument])
+  }, [selectedDocumentId, selectedDocument]);
 
   useEffect(() => {
-    // Start or stop timer based on isRunning state
-    if (isRunning && selectedDocument?.status === "in_progress") {
+    if (isRunning && selectedDocument?.status === "in_progress" && !showModal) {
       timerRef.current = setInterval(() => {
         if (selectedDocument.startTime) {
           const elapsed =
-            Math.floor((Date.now() - selectedDocument.startTime) / 1000) + (selectedDocument.timeSpent || 0)
-          setCurrentTime(elapsed)
-          dispatch(updateElapsedTime())
+            Math.floor((Date.now() - selectedDocument.startTime) / 1000) + (selectedDocument.timeSpent || 0);
+          setCurrentTime(elapsed);
+          dispatch(updateElapsedTime());
         }
-      }, 1000)
+      }, 1000);
     } else {
       if (timerRef.current) {
-        clearInterval(timerRef.current)
-        timerRef.current = null
+        clearInterval(timerRef.current);
+        timerRef.current = null;
       }
     }
 
     return () => {
       if (timerRef.current) {
-        clearInterval(timerRef.current)
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [isRunning, selectedDocument, dispatch, showModal]);
+
+  useEffect(() => {
+    if (showModal && isRunning) {
+      // Pause the timer when modal opens
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    } else if (!showModal && selectedDocument?.status === "in_progress") {
+      // Resume the timer when modal closes if document is still in progress
+      if (!timerRef.current) {
+        timerRef.current = setInterval(() => {
+          if (selectedDocument.startTime) {
+            const elapsed =
+              Math.floor((Date.now() - selectedDocument.startTime) / 1000) + (selectedDocument.timeSpent || 0);
+            setCurrentTime(elapsed);
+            dispatch(updateElapsedTime());
+          }
+        }, 1000);
       }
     }
-  }, [isRunning, selectedDocument, dispatch])
+  }, [showModal, isRunning, selectedDocument, dispatch]);
 
   if (!selectedDocument) {
     return (
       <div className="h-full flex items-center justify-center">
         <p className="text-muted-foreground text-xl font-medium">Select a document to review</p>
       </div>
-    )
+    );
   }
 
   const handleStart = () => {
-    dispatch(startReview(selectedDocument.id))
-    dispatch(startTimer())
-    setShowControls(true)
-  }
+    dispatch(startReview(selectedDocument.id));
+    dispatch(startTimer());
+    setShowControls(true);
+  };
 
-  const handlePause = () => {
-    dispatch(pauseReview(selectedDocument.id))
-    dispatch(stopTimer())
-    setShowControls(false)
-  }
+  /*   const handlePause = () => {
+      dispatch(pauseReview(selectedDocument.id));
+      dispatch(stopTimer());
+      setShowControls(false);
+    }; */
 
   const handleResume = () => {
-    dispatch(resumeReview(selectedDocument.id))
-    dispatch(startTimer())
-    setShowControls(true)
-  }
+    dispatch(resumeReview(selectedDocument.id));
+    dispatch(startTimer());
+    setShowControls(true);
+  };
 
   const handleComplete = (showModal = true) => {
     if (showModal) {
-      setShowModal(true)
+      // handlePause();
+      setShowModal(true);
     } else {
-      submitReview()
+      // submitReview();
+      dispatch(completeReview(selectedDocument.id));
+      dispatch(stopTimer());
+      setShowControls(false);
     }
-  }
+  };
 
   const submitReview = () => {
-    dispatch(completeReview(selectedDocument.id))
-    dispatch(stopTimer())
-    setShowControls(false)
+    const result = SubmissionFormSchema.safeParse(formData);
 
-    // Log the form data
-    console.log("Submission data:", formData)
+    if (!result.success) {
+      const formattedErrors = result.error.format();
+      setFormErrors({
+        codesMissed: formattedErrors.codesMissed?._errors,
+        codesCorrected: formattedErrors.codesCorrected?._errors,
+        auditRemarks: formattedErrors.auditRemarks?._errors?.[0],
+      });
+      return;
+    }
 
-    // Reset form data
+    setFormErrors({});
+
+    dispatch(completeReview(selectedDocument.id));
+    dispatch(stopTimer());
+    setShowControls(false);
+
     setFormData({
       codesMissed: [],
       codesCorrected: [],
       auditRemarks: "",
-    })
+    });
 
-    // Close modal if open
-    setShowModal(false)
+    setShowModal(false);
 
     // API call would go here (commented out)
     /*
@@ -170,16 +201,16 @@ export default function PdfViewer() {
     
     submitData();
     */
-  }
+  };
 
   const formatTime = (seconds: number) => {
-    const hrs = Math.floor(seconds / 3600)
-    const mins = Math.floor((seconds % 3600) / 60)
-    const secs = seconds % 60
-    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
-  }
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
 
-  const pdfUrl = selectedDocument.url || "/pdf/medical_report_user_1.pdf"
+  const pdfUrl = selectedDocument.url || "/pdf/medical_report_user_1.pdf";
 
   return (
     <div className="h-full flex flex-col">
@@ -187,7 +218,9 @@ export default function PdfViewer() {
         {/* PDF Viewer */}
         <div className="w-full h-full bg-gray-100 relative">
           <div className="h-full max-h-[89.2vh] overflow-auto">
-            <PdfUI url={pdfUrl} />
+            <PreventSaveProvider>
+              <PdfUI url={pdfUrl} />
+            </PreventSaveProvider>
           </div>
 
           <AnimatePresence>
@@ -263,8 +296,8 @@ export default function PdfViewer() {
 
       {/* Submission Modal */}
       <AnimatePresence>
-        <Dialog open={showModal} onOpenChange={setShowModal} >
-          <DialogContent className="sm:max-w-[600px] p-3">
+        <Dialog open={showModal} onOpenChange={setShowModal}>
+          <DialogContent className="sm:max-w-[600px] p-3 h-[520px] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Document Review Submission</DialogTitle>
             </DialogHeader>
@@ -286,6 +319,19 @@ export default function PdfViewer() {
                     setFormData((prev) => ({ ...prev, codesMissed: newValue as { value: string; label: string }[] }))
                   }
                 />
+                <div className="h-5">
+                  {formErrors.codesMissed && !(formData.codesMissed?.length > 0) && (
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.5 }}
+                      exit={{ opacity: 0 }}
+                      className="text-sm text-red-500"
+                    >
+                      {formErrors.codesMissed}
+                    </motion.p>
+                  )}
+                </div>
               </div>
 
               <div className="grid gap-2">
@@ -299,6 +345,19 @@ export default function PdfViewer() {
                     setFormData((prev) => ({ ...prev, codesCorrected: newValue as { value: string; label: string }[] }))
                   }
                 />
+                <div className="h-5">
+                  {formErrors.codesCorrected && !(formData.codesCorrected?.length > 0) && (
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.5 }}
+                      exit={{ opacity: 0 }}
+                      className="text-sm text-red-500"
+                    >
+                      {formErrors.codesCorrected}
+                    </motion.p>
+                  )}
+                </div>
               </div>
 
               <div className="grid gap-2">
@@ -310,6 +369,19 @@ export default function PdfViewer() {
                   onChange={(e) => setFormData((prev) => ({ ...prev, auditRemarks: e.target.value }))}
                   rows={4}
                 />
+                <div className="h-5">
+                  {formErrors.auditRemarks && !(formData.auditRemarks?.length >= 10) && (
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.5 }}
+                      exit={{ opacity: 0 }}
+                      className="text-sm text-red-500"
+                    >
+                      {formErrors.auditRemarks}
+                    </motion.p>
+                  )}
+                </div>
               </div>
 
               <div className="flex justify-end gap-2 mt-2">
@@ -323,5 +395,5 @@ export default function PdfViewer() {
         </Dialog>
       </AnimatePresence>
     </div>
-  )
+  );
 }

@@ -50,7 +50,7 @@ export default function NotFound() {
                         variant="default"
                         size="lg"
                         onClick={() => {
-                            redirect("/");
+                            redirect("/dashboard");
                         }}
                         className="w-full sm:w-auto"
                     >

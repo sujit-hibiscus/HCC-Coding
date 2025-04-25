@@ -43,7 +43,7 @@ export function useApiCall() {
 
 
 
-    const loginApi = async (target: "Login" | "Sidebar", userType: "Analyst" | "Auditor" | "Admin") => {
+    const loginApi = async () => {
         /*  if (target === "Login") {
              callBulkApi(userType);
          } else if (target === "Sidebar") {

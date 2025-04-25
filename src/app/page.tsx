@@ -8,7 +8,6 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = HomePageMetaData;
 export default function LoginPage() {
-
     return (
         <div className="flex min-h-screen items-center justify-center p-6 bg-[#ffffff] dark:bg-gray-900">
             <div className="flex flex-col gap-7 items-center w-full max-w-xl p-5 bg-white dark:bg-gray-800 ">

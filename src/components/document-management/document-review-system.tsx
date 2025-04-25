@@ -1,28 +1,24 @@
-"use client"
+"use client";
 
-import DocumentList from "@/components/document-management/document-list"
-import { fetchDocuments, recalculateDocumentTimes } from "@/store/slices/documentManagementSlice"
-import { useEffect } from "react"
-import { useDispatch } from "react-redux"
-import PdfViewer from "./pdf-viewer"
+import DocumentList from "@/components/document-management/document-list";
+import { fetchDocuments, recalculateDocumentTimes } from "@/store/slices/documentManagementSlice";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import PdfViewer from "./pdf-viewer";
 
 export default function DocumentReviewSystem() {
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    // Fetch documents
-    dispatch(fetchDocuments() as any)
-
-    // Recalculate document times after rehydration
-    dispatch(recalculateDocumentTimes())
-
-    // Set up an interval to periodically recalculate times
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    dispatch(fetchDocuments() as any);
+    dispatch(recalculateDocumentTimes());
     const interval = setInterval(() => {
-      dispatch(recalculateDocumentTimes())
-    }, 60000) // Every minute
+      dispatch(recalculateDocumentTimes());
+    }, 60000);
 
-    return () => clearInterval(interval)
-  }, [dispatch])
+    return () => clearInterval(interval);
+  }, [dispatch]);
 
   return (
     <div className="h-full w-full flex flex-col">
@@ -35,5 +31,5 @@ export default function DocumentReviewSystem() {
         </div>
       </div>
     </div>
-  )
+  );
 }

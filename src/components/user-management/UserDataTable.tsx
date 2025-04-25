@@ -1,16 +1,16 @@
-"use client"
-import { useEffect } from "react"
-import { DataTable } from "@/components/common/data-table/data-table"
-import { Loader } from "@/components/ui/Loader"
-import { useLoading } from "@/hooks/use-loading"
-import { useRedux } from "@/hooks/use-redux"
-import type { UserTypes } from "@/lib/types/chartsTypes"
-import { filterData } from "@/lib/utils"
-import { getAllUsers } from "@/store/slices/user-slice"
-import { Suspense } from "react"
-import { UserTableColumns } from "./userTableColumns"
-import { RefreshCcw } from "lucide-react"
-import { Button } from "@/components/ui/button"
+"use client";
+import { useEffect } from "react";
+import { DataTable } from "@/components/common/data-table/data-table";
+import { Loader } from "@/components/ui/Loader";
+import { useLoading } from "@/hooks/use-loading";
+import { useRedux } from "@/hooks/use-redux";
+import type { UserTypes } from "@/lib/types/chartsTypes";
+import { filterData } from "@/lib/utils";
+import { getAllUsers } from "@/store/slices/user-slice";
+import { Suspense } from "react";
+import { UserTableColumns } from "./userTableColumns";
+import { RefreshCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface UserTableProps {
     onEdit: (user: UserTypes) => void
@@ -18,39 +18,39 @@ interface UserTableProps {
 }
 
 export function UserTable({ onEdit, onDelete }: UserTableProps) {
-    const { selector, dispatch } = useRedux()
-    const { status: usersStatus } = selector((state) => state.user.users)
-    const { data: users } = selector((state) => state.user.users)
+    const { selector, dispatch } = useRedux();
+    const { status: usersStatus } = selector((state) => state.user.users);
+    const { data: users } = selector((state) => state.user.users);
 
-    const { isLoading } = useLoading()
+    const { isLoading } = useLoading();
 
     useEffect(() => {
         // Load users on component mount
-        dispatch(getAllUsers())
-    }, [dispatch])
+        dispatch(getAllUsers());
+    }, [dispatch]);
 
-    const { search = "" } = selector((state) => state?.dashboard)
-    const filteredData = filterData(users || [], search)
+    const { search = "" } = selector((state) => state?.dashboard);
+    const filteredData = filterData(users || [], search);
 
     const handleDelete = (chartId: string) => {
-        onDelete(chartId)
-    }
+        onDelete(chartId);
+    };
 
     const handleEdit = (chartId: string) => {
-        const targetEntry = users?.find((item) => item?.id == +chartId)
+        const targetEntry = users?.find((item) => item?.id == +chartId);
         if (targetEntry) {
-            onEdit(targetEntry)
+            onEdit(targetEntry);
         }
-    }
+    };
 
     // Define table columns
     const columns = UserTableColumns({
         onDelete: handleDelete,
         onEdit: handleEdit,
-    })
+    });
 
-    const isTableLoading = usersStatus === "Loading" || isLoading("fetchDraftData")
-    const hasNoData = !isTableLoading && (!users || users.length === 0)
+    const isTableLoading = usersStatus === "Loading" || isLoading("fetchDraftData");
+    const hasNoData = !isTableLoading && (!users || users.length === 0);
 
     const tableLoader = (
         <div className="py-8 flex flex-col items-start justify-center">
@@ -59,7 +59,7 @@ export function UserTable({ onEdit, onDelete }: UserTableProps) {
                 <Loader variant="skeleton" />
             </div>
         </div>
-    )
+    );
 
     return (
         <div className="h-full relative">
@@ -83,11 +83,11 @@ export function UserTable({ onEdit, onDelete }: UserTableProps) {
                         defaultPageSize={20}
                         isRefreshing={isTableLoading}
                         handleRefresh={() => {
-                            dispatch(getAllUsers())
+                            dispatch(getAllUsers());
                         }}
                     />
                 </Suspense>
             )}
         </div>
-    )
+    );
 }

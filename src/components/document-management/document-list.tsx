@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import { Badge } from "@/components/ui/badge"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import type { RootState } from "@/store"
-import { pauseReview, selectDocument } from "@/store/slices/documentManagementSlice"
-import { motion } from "framer-motion"
-import { Calendar, Clock, Search } from "lucide-react"
-import { useState } from "react"
-import { useDispatch, useSelector } from "react-redux"
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { RootState } from "@/store";
+import { pauseReview, selectDocument } from "@/store/slices/documentManagementSlice";
+import { motion } from "framer-motion";
+import { Calendar, Clock, Search } from "lucide-react";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 // Define the Document type with the missing 'status' property
 interface Document {
@@ -22,46 +22,46 @@ interface Document {
 }
 
 export default function DocumentList() {
-  const dispatch = useDispatch()
-  const { documents, selectedDocumentId } = useSelector((state: RootState) => state.documentManagement)
-  const [searchTerm, setSearchTerm] = useState("")
+  const dispatch = useDispatch();
+  const { documents, selectedDocumentId } = useSelector((state: RootState) => state.documentManagement);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredDocuments = documents.filter((doc) => doc.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredDocuments = documents.filter((doc) => doc.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
-        return "bg-amber-100 text-amber-800 border-amber-500"
+        return "bg-amber-100 text-amber-800 border-amber-500";
       case "in_progress":
-        return "bg-sky-100 text-sky-800 border-sky-700"
+        return "bg-sky-100 text-sky-800 border-sky-700";
       case "on_hold":
-        return "bg-orange-100 text-orange-800 border-orange-700"
+        return "bg-orange-100 text-orange-800 border-orange-700";
       case "completed":
-        return "bg-emerald-100 text-emerald-800 border-emerald-700"
+        return "bg-emerald-100 text-emerald-800 border-emerald-700";
       default:
-        return "bg-slate-100 text-slate-800 border-slate-700"
+        return "bg-slate-100 text-slate-800 border-slate-700";
     }
-  }
+  };
 
   const getFileAge = (doc: Document) => {
     if (doc.startTime && doc.status === "in_progress") {
-      const elapsedSeconds = Math.floor((Date.now() - doc.startTime) / 1000)
-      return formatTime(elapsedSeconds + (doc.timeSpent || 0))
+      const elapsedSeconds = Math.floor((Date.now() - doc.startTime) / 1000);
+      return formatTime(elapsedSeconds + (doc.timeSpent || 0));
     } else if (doc.timeSpent) {
-      return formatTime(doc.timeSpent)
+      return formatTime(doc.timeSpent);
     }
-    return "Not started"
-  }
+    return "Not started";
+  };
 
   const formatTime = (seconds: number) => {
-    const hrs = Math.floor(seconds / 3600)
-    const mins = Math.floor((seconds % 3600) / 60)
-    const secs = seconds % 60
-    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
-  }
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
 
   return (
-    <div className="h-full flex flex-col py-3 px-1.5 max-h-[calc(100vh-2.9rem)]">
+    <div className="h-full flex flex-col py-1.5 px-1.5 max-h-[calc(100vh-2.9rem)]">
       <div className="relative mb-2 flex-shrink-0">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
@@ -85,9 +85,9 @@ export default function DocumentList() {
               transition={{ duration: 0.2 }}
               onClick={() => {
                 if (selectedDocumentId) {
-                  dispatch(pauseReview(selectedDocumentId))
+                  dispatch(pauseReview(selectedDocumentId));
                 }
-                dispatch(selectDocument(doc.id))
+                dispatch(selectDocument(doc.id));
               }}
             >
               <Card
@@ -155,5 +155,5 @@ export default function DocumentList() {
         )}
       </div>
     </div>
-  )
+  );
 }

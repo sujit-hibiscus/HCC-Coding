@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import { StatusBadge } from "@/components/admin/StatusBadge"
-import { StatusFilter } from "@/components/admin/StatusHeader"
-import { DataTableColumnHeader } from "@/components/common/data-table/data-table-column-header"
-import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { type UserTypes, USERTYPES } from "@/lib/types/chartsTypes"
-import { cn } from "@/lib/utils"
-import type { ColumnDef } from "@tanstack/react-table"
-import { Pencil, Trash } from "lucide-react"
+import { StatusBadge } from "@/components/admin/StatusBadge";
+import { StatusFilter } from "@/components/admin/StatusHeader";
+import { DataTableColumnHeader } from "@/components/common/data-table/data-table-column-header";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { type UserTypes, USERTYPES } from "@/lib/types/chartsTypes";
+import { cn } from "@/lib/utils";
+import type { ColumnDef } from "@tanstack/react-table";
+import { Pencil, Trash } from "lucide-react";
 
 interface ChartsActionHandlers {
     onDelete: (chartId: string) => void
@@ -24,19 +24,19 @@ export const UserTableColumns = (
             accessorKey: "id",
             header: ({ column }) => <DataTableColumnHeader searchType={"text"} column={column} title="ID" />,
             cell: ({ row }) => {
-                const chartId = row?.original?.id
-                return <div className="min-w-[3rem] cursor-default truncate">{+chartId}</div>
+                const chartId = row?.original?.id;
+                return <div className="min-w-[3rem] cursor-default truncate">{+chartId}</div>;
             },
             filterFn: (row, id, value) => {
-                const rowValue = String(row.getValue(id)).toLowerCase()
-                const filterValue = String(value)?.trim().toLowerCase()
-                return rowValue.includes(filterValue)
+                const rowValue = String(row.getValue(id)).toLowerCase();
+                const filterValue = String(value)?.trim().toLowerCase();
+                return rowValue.includes(filterValue);
             },
             sortingFn: (rowA, rowB, columnId) => {
-                const valueA = rowA.getValue(columnId) as number
-                const valueB = rowB.getValue(columnId) as number
+                const valueA = rowA.getValue(columnId) as number;
+                const valueB = rowB.getValue(columnId) as number;
 
-                return valueA - valueB
+                return valueA - valueB;
             },
             enableSorting: true,
             enableHiding: false,
@@ -46,47 +46,47 @@ export const UserTableColumns = (
             accessorKey: "Fname",
             header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="First Name" />,
             cell: ({ row }) => {
-                const firstName = row?.original?.Fname || ""
-                const fullName = `${firstName}`.trim()
-                return <div className="min-w-[5rem] w-full cursor-pointer truncate">{fullName}</div>
+                const firstName = row?.original?.Fname || "";
+                const fullName = `${firstName}`.trim();
+                return <div className="min-w-[5rem] w-full cursor-pointer truncate">{fullName}</div>;
             },
             filterFn: (row, id, value) => {
-                const firstName = String(row.original.Fname || "").toLowerCase()
+                const firstName = String(row.original.Fname || "").toLowerCase();
 
-                const fullName = `${firstName}`.trim()
-                const filterValue = String(value)?.trim().toLowerCase()
+                const fullName = `${firstName}`.trim();
+                const filterValue = String(value)?.trim().toLowerCase();
 
-                return fullName.includes(filterValue)
+                return fullName.includes(filterValue);
             },
             sortingFn: (rowA, rowB) => {
-                const rowAName = `${rowA.original.Fname}`.trim()
-                const rowBName = `${rowB.original.Fname}`.trim()
+                const rowAName = `${rowA.original.Fname}`.trim();
+                const rowBName = `${rowB.original.Fname}`.trim();
 
-                return rowAName.localeCompare(rowBName)
+                return rowAName.localeCompare(rowBName);
             },
         },
         {
             accessorKey: "Lname",
             header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Last Name" />,
             cell: ({ row }) => {
-                const lastName = row?.original?.Lname || ""
-                const fullName = `${lastName}`.trim()
-                return <div className="min-w-[5rem] w-full cursor-pointer truncate">{fullName}</div>
+                const lastName = row?.original?.Lname || "";
+                const fullName = `${lastName}`.trim();
+                return <div className="min-w-[5rem] w-full cursor-pointer truncate">{fullName}</div>;
             },
             isDragable: true,
             filterFn: (row, id, value) => {
-                const lastName = String(row.original.Lname || "").toLowerCase()
+                const lastName = String(row.original.Lname || "").toLowerCase();
 
-                const fullName = `${lastName}`.trim()
-                const filterValue = String(value)?.trim().toLowerCase()
+                const fullName = `${lastName}`.trim();
+                const filterValue = String(value)?.trim().toLowerCase();
 
-                return fullName.includes(filterValue)
+                return fullName.includes(filterValue);
             },
             sortingFn: (rowA, rowB) => {
-                const rowAName = `${rowA.original.Lname}`.trim()
-                const rowBName = `${rowB.original.Lname}`.trim()
+                const rowAName = `${rowA.original.Lname}`.trim();
+                const rowBName = `${rowB.original.Lname}`.trim();
 
-                return rowAName.localeCompare(rowBName)
+                return rowAName.localeCompare(rowBName);
             },
         },
         {
@@ -105,31 +105,31 @@ export const UserTableColumns = (
             accessorKey: "profile_type",
             header: ({ column }) => <StatusFilter column={column} title="User-Type" statusEnum={USERTYPES} />,
             cell: ({ row }) => {
-                const status: USERTYPES = row.getValue("profile_type")
+                const status: USERTYPES = row.getValue("profile_type");
                 return (
                     <div className="min-w-[4.25rem] max-w-[6rem] whitespace-nowrap">
                         <StatusBadge status={status} />
                     </div>
-                )
+                );
             },
             filterFn: (row, id, value) => {
-                return value.includes(row.getValue(id))
+                return value.includes(row.getValue(id));
             },
         },
         {
             accessorKey: "target",
             header: ({ column }) => <DataTableColumnHeader searchType={"text"} column={column} title="Target Details" />,
             cell: ({ row }) => {
-                const target = row.original.target
-                const profile = row.getValue("profile_type") as string
-                const needsTarget = profile === "Analyst" || profile === "Auditor"
+                const target = row.original.target;
+                const profile = row.getValue("profile_type") as string;
+                const needsTarget = profile === "Analyst" || profile === "Auditor";
 
                 if (!needsTarget) {
                     return (
                         <div className="min-w-[4.25rem] truncate">
                             <span className="text-muted-foreground text-xs">Not available</span>
                         </div>
-                    )
+                    );
                 }
 
                 if (!target) {
@@ -137,7 +137,7 @@ export const UserTableColumns = (
                         <div className="min-w-[4.25rem] truncate">
                             <span className="text-amber-500 text-xs font-medium">No targets set</span>
                         </div>
-                    )
+                    );
                 }
                 return (
                     (<div className="flex justify-center">
@@ -157,7 +157,7 @@ export const UserTableColumns = (
                         </TooltipProvider>
                     </div>
                     )
-                )
+                );
             },
             isDragable: true,
         },
@@ -172,7 +172,7 @@ export const UserTableColumns = (
                 </div>
             ),
             cell: ({ row }) => {
-                const chartId = row?.original?.id
+                const chartId = row?.original?.id;
 
                 return (
                     <div className="flex items-center justify-end gap-1 min-w-[5rem]">
@@ -212,14 +212,14 @@ export const UserTableColumns = (
                             </Tooltip>
                         </TooltipProvider>
                     </div>
-                )
+                );
             },
             filterFn: (row, id, value) => {
-                return value.includes(row.getValue(id))
+                return value.includes(row.getValue(id));
             },
         },
-    ]
-}
+    ];
+};
 
 const PillValue = ({
     current,

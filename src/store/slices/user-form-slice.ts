@@ -1,6 +1,4 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
-
-// Define the state interface for the form
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 interface UserFormState {
     Fname: string
     Lname: string
@@ -18,7 +16,6 @@ interface UserFormState {
     }
 }
 
-// Initial state
 const initialState: UserFormState = {
     Fname: "",
     Lname: "",
@@ -32,21 +29,19 @@ const initialState: UserFormState = {
         maxAssignments: undefined,
     },
     formErrors: {}
-}
+};
 
-// Create the slice
 const userFormSlice = createSlice({
     name: "userForm",
     initialState,
     reducers: {
-        // Update a single field
         updateField: (state, action: PayloadAction<{ field: keyof Omit<UserFormState, "formErrors" | "target">; value: string }>) => {
-            const { field, value } = action.payload
+            const { field, value } = action.payload;
             if (field in state) {
-                // Clear any error for this field when it's updated
+
                 state.formErrors[field] = undefined
-                    // Update the field value
-                    ; (state as any)[field] = value
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    ; (state as any)[field] = value;
             }
         },
 
@@ -55,30 +50,29 @@ const userFormSlice = createSlice({
             state,
             action: PayloadAction<{ field: "dailyChartTarget" | "maxAssignments"; value: number | undefined }>,
         ) => {
-            const { field, value } = action.payload
+            const { field, value } = action.payload;
             if (!state.target) {
-                state.target = {}
+                state.target = {};
             }
-            // Clear any error for this target field when it's updated
-            state.formErrors[`target.${field}`] = undefined
-            state.target[field] = value
+            state.formErrors[`target.${field}`] = undefined;
+            state.target[field] = value;
         },
 
         // Set form validation errors
         setFormError: (state, action: PayloadAction<{ field: string; message: string }>) => {
-            const { field, message } = action.payload
-            state.formErrors[field] = message
+            const { field, message } = action.payload;
+            state.formErrors[field] = message;
         },
 
         // Clear a specific form error
         clearFormError: (state, action: PayloadAction<string>) => {
-            const field = action.payload
-            state.formErrors[field] = undefined
+            const field = action.payload;
+            state.formErrors[field] = undefined;
         },
 
         // Clear all form errors
         clearAllFormErrors: (state) => {
-            state.formErrors = {}
+            state.formErrors = {};
         },
 
         // Set the entire form data (useful when editing a user)
@@ -86,8 +80,8 @@ const userFormSlice = createSlice({
             return {
                 ...state,
                 ...action.payload,
-                formErrors: {} // Clear errors when setting new form data
-            }
+                formErrors: {}
+            };
         },
 
         // Reset the form to initial state
@@ -98,22 +92,22 @@ const userFormSlice = createSlice({
             state,
             action: PayloadAction<{ id: number; userData: Omit<UserFormState, "isEditing" | "editingId" | "formErrors"> }>,
         ) => {
-            const { id, userData } = action.payload
+            const { id, userData } = action.payload;
             return {
                 ...state,
                 ...userData,
                 isEditing: true,
                 editingId: id,
                 formErrors: {} // Clear errors when starting to edit
-            }
+            };
         },
 
         // Cancel editing
         cancelEditing: () => {
-            return initialState
+            return initialState;
         },
     },
-})
+});
 
 // Export actions and reducer
 export const {
@@ -126,6 +120,6 @@ export const {
     setFormError,
     clearFormError,
     clearAllFormErrors
-} = userFormSlice.actions
+} = userFormSlice.actions;
 
-export default userFormSlice.reducer
+export default userFormSlice.reducer;

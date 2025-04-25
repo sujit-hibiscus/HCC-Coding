@@ -1,11 +1,10 @@
-"use client"
-import { useState, useCallback } from "react"
-import type { Props } from "react-select"
-import CreatableReactSelect from "react-select/creatable"
-import { cn } from "@/lib/utils"
-import { components } from "react-select"
-import type { GroupBase, OptionProps } from "react-select"
-import { ChevronDown } from 'lucide-react'
+"use client";
+import { cn } from "@/lib/utils";
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
+import type { GroupBase, OptionProps, Props } from "react-select";
+import { components } from "react-select";
+import CreatableReactSelect from "react-select/creatable";
 
 export interface Option {
     label: string
@@ -16,9 +15,8 @@ export interface CreatableSelectProps extends Props {
     isMulti?: boolean
 }
 
-// Custom Option component to handle the "+X more" indicator
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomOption = (props: OptionProps<any, boolean, GroupBase<any>>) => {
-    // Check if this is our special "more options" option
     if (props.data.__isMoreOptions) {
         return (
             <div
@@ -28,39 +26,35 @@ const CustomOption = (props: OptionProps<any, boolean, GroupBase<any>>) => {
                 Show all {props.data.totalCount} options
                 <ChevronDown className="h-3 w-3" />
             </div>
-        )
+        );
     }
 
-    // Otherwise render the standard option
-    return <components.Option {...props} />
-}
+    return <components.Option {...props} />;
+};
 
 export const CreatableSelect = ({ className, isMulti = false, ...props }: CreatableSelectProps) => {
-    const [showAllOptions, setShowAllOptions] = useState(false)
-    const MAX_VISIBLE_OPTIONS = 10
+    const [showAllOptions, setShowAllOptions] = useState(false);
+    console.info("🚀 ~ CreatableSelect ~ showAllOptions:", showAllOptions);
 
-    // Function to filter and limit options
-    const filterOptions = useCallback((options: any[]) => {
-        if (!options || showAllOptions) return options
-
-        if (options.length <= MAX_VISIBLE_OPTIONS) return options
-
-        // Create a "more options" option
-        const moreOptionsItem = {
-            label: `+${options.length - MAX_VISIBLE_OPTIONS} more`,
-            value: "__more_options__",
-            __isMoreOptions: true,
-            totalCount: options.length,
-            onClick: (e: React.MouseEvent) => {
-                e.preventDefault()
-                e.stopPropagation()
-                setShowAllOptions(true)
-            }
-        }
-
-        // Return limited options plus the "more" indicator
-        return [...options.slice(0, MAX_VISIBLE_OPTIONS), moreOptionsItem]
-    }, [showAllOptions])
+    /*  const filterOptions = useCallback((options: any[]) => {
+         if (!options || showAllOptions) return options;
+ 
+         if (options.length <= MAX_VISIBLE_OPTIONS) return options;
+ 
+         const moreOptionsItem = {
+             label: `+${options.length - MAX_VISIBLE_OPTIONS} more`,
+             value: "__more_options__",
+             __isMoreOptions: true,
+             totalCount: options.length,
+             onClick: (e: React.MouseEvent) => {
+                 e.preventDefault();
+                 e.stopPropagation();
+                 setShowAllOptions(true);
+             }
+         };
+ 
+         return [...options.slice(0, MAX_VISIBLE_OPTIONS), moreOptionsItem];
+     }, [showAllOptions]); */
 
     return (
         <CreatableReactSelect
@@ -93,17 +87,15 @@ export const CreatableSelect = ({ className, isMulti = false, ...props }: Creata
                 ...props.components
             }}
             filterOption={(option, inputValue) => {
-                // Don't filter out our special "more options" item
-                if ((option.data as any).__isMoreOptions) return true
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                if ((option.data as any).__isMoreOptions) return true;
 
-                // Default filtering behavior for other options
-                return option.label.toLowerCase().includes(inputValue.toLowerCase())
+                return option.label.toLowerCase().includes(inputValue.toLowerCase());
             }}
             onMenuOpen={() => {
-                // Reset the show all flag when menu opens
-                setShowAllOptions(false)
+                setShowAllOptions(false);
             }}
             {...props}
         />
-    )
-}
+    );
+};

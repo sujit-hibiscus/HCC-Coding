@@ -1,24 +1,24 @@
-"use client"
+"use client";
 
-import { DataTable } from "@/components/common/data-table/data-table"
-import { Loader } from "@/components/ui/Loader"
-import { useRedux } from "@/hooks/use-redux"
-import { fetchPendingDocuments } from "@/store/slices/table-document-slice"
-import { useEffect } from "react"
-import { pendingDocumentColumns } from "./Admin-columns"
-import AssignmentControls from "./Assignment-controls"
-import { analystsData, auditorsData, ChartTab } from "@/lib/types/chartsTypes"
+import { DataTable } from "@/components/common/data-table/data-table";
+import { Loader } from "@/components/ui/Loader";
+import { useRedux } from "@/hooks/use-redux";
+import { fetchPendingDocuments } from "@/store/slices/table-document-slice";
+import { useEffect } from "react";
+import { pendingDocumentColumns } from "./Admin-columns";
+import AssignmentControls from "./Assignment-controls";
+import { analystsData, auditorsData, ChartTab } from "@/lib/types/chartsTypes";
 
 export default function PendingDocumentsTable() {
-    const { selector, dispatch } = useRedux()
+    const { selector, dispatch } = useRedux();
     const { pendingDocuments } = selector((state) => state.documentTable);
-    const { userType = "" } = selector((state) => state.user)
+    const { userType = "" } = selector((state) => state.user);
 
     useEffect(() => {
-        dispatch(fetchPendingDocuments())
-    }, [dispatch])
+        dispatch(fetchPendingDocuments());
+    }, [dispatch]);
 
-    const isLoading = pendingDocuments.status === "loading"
+    const isLoading = pendingDocuments.status === "loading";
 
     const tableLoader = (
         <div className="py-8 flex h-[85vh] flex-col items-center justify-center">
@@ -27,7 +27,7 @@ export default function PendingDocumentsTable() {
                 <Loader variant="skeleton" />
             </div>
         </div>
-    )
+    );
 
     return (
         <div className="h-full relative">
@@ -48,12 +48,12 @@ export default function PendingDocumentsTable() {
                         isRefreshing={isLoading}
                         handleRefresh={() => {
                             setTimeout(() => {
-                                dispatch(fetchPendingDocuments())
+                                dispatch(fetchPendingDocuments());
                             });
                         }}
                     />
                 </div>
             )}
         </div>
-    )
+    );
 }

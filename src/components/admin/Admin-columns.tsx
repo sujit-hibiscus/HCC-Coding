@@ -1,36 +1,29 @@
-"use client"
+"use client";
 
-import { DataTableColumnHeader } from "@/components/common/data-table/data-table-column-header"
-import { Checkbox } from "@/components/ui/checkbox"
+import { DataTableColumnHeader } from "@/components/common/data-table/data-table-column-header";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
     DOCUMENT_STATUS,
-    type PendingDocument,
     type AssignedDocument,
     type AuditDocument,
-} from "@/store/slices/table-document-slice"
-import type { ColumnDef } from "@tanstack/react-table"
-import { StatusFilter } from "./StatusHeader"
-import { StatusBadge } from "./StatusBadge"
-
-// Status enums for filtering
-const PENDING_STATUSES = {
-    PENDING: DOCUMENT_STATUS.PENDING,
-    IN_PROGRESS: DOCUMENT_STATUS.IN_PROGRESS,
-    ON_HOLD: DOCUMENT_STATUS.ON_HOLD,
-}
+    type PendingDocument,
+} from "@/store/slices/table-document-slice";
+import type { ColumnDef } from "@tanstack/react-table";
+import { StatusBadge } from "./StatusBadge";
+import { StatusFilter } from "./StatusHeader";
 
 const ASSIGNED_STATUSES = {
     PENDING: DOCUMENT_STATUS.PENDING,
     IN_PROGRESS: DOCUMENT_STATUS.IN_PROGRESS,
     ON_HOLD: DOCUMENT_STATUS.ON_HOLD,
-}
+};
 
 const AUDIT_STATUSES = {
     PENDING: DOCUMENT_STATUS.PENDING,
     IN_PROGRESS: DOCUMENT_STATUS.IN_PROGRESS,
     ON_HOLD: DOCUMENT_STATUS.ON_HOLD,
     COMPLETED: DOCUMENT_STATUS.COMPLETED,
-}
+};
 
 // Pending Documents Columns
 export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDragable?: boolean })[] => [
@@ -101,7 +94,7 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
         enableSorting: false,
         isDragable: false
     },
-]
+];
 
 // Assigned Documents Columns
 export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDragable?: boolean })[] => [
@@ -183,7 +176,7 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
             return value.includes(row.getValue(id));
         },
     },
-]
+];
 
 // Audit Documents Columns
 export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable?: boolean })[] => [
@@ -271,4 +264,4 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
             return value.includes(row.getValue(id));
         },
     },
-]
+];
