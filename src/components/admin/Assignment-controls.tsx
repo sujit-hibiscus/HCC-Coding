@@ -9,7 +9,6 @@ import {
     assignPendingDocuments,
     assignToAuditor,
     changeAssignment,
-    setIsAssigning,
     setSelectedAnalyst,
     setSelectedAuditor,
     setSelectedPendingAnalyst,
