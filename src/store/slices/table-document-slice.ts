@@ -269,16 +269,16 @@ export const assignPendingDocuments = createAsyncThunk<
         dispatch(setIsAssigning(true));
 
         // For development, simulate API call
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // Success response
+        toast.success(`Successfully assigned ${documentIds.length} documents to analyst`);
+        dispatch(clearSelectedDocuments("pending"));
+        dispatch(fetchPendingDocuments());
+        dispatch(fetchAssignedDocuments());
+        return { success: true, message: "Documents assigned successfully" };
         if (process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_TEST === "true") {
             // Simulate API delay
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            // Success response
-            toast.success(`Successfully assigned ${documentIds.length} documents to analyst`);
-            dispatch(clearSelectedDocuments("pending"));
-            dispatch(fetchPendingDocuments());
-            dispatch(fetchAssignedDocuments());
-            return { success: true, message: "Documents assigned successfully" };
         }
 
         // Actual API call
@@ -317,15 +317,15 @@ export const changeAssignment = createAsyncThunk<
         dispatch(setIsAssigning(true));
 
         // For development, simulate API call
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // Success response
+        toast.success(`Successfully reassigned ${documentIds.length} documents`);
+        dispatch(clearSelectedDocuments("assigned"));
+        dispatch(fetchAssignedDocuments());
+        return { success: true, message: "Documents reassigned successfully" };
         if (process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_TEST === "true") {
             // Simulate API delay
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            // Success response
-            toast.success(`Successfully reassigned ${documentIds.length} documents`);
-            dispatch(clearSelectedDocuments("assigned"));
-            dispatch(fetchAssignedDocuments());
-            return { success: true, message: "Documents reassigned successfully" };
         }
 
         // Actual API call
@@ -363,15 +363,15 @@ export const assignToAuditor = createAsyncThunk<
         dispatch(setIsAssigning(true));
 
         // For development, simulate API call
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // Success response
+        toast.success(`Successfully assigned ${documentIds.length} documents to auditor`);
+        dispatch(clearSelectedDocuments("audit"));
+        dispatch(fetchAuditDocuments());
+        return { success: true, message: "Documents assigned to auditor successfully" };
         if (process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_TEST === "true") {
             // Simulate API delay
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            // Success response
-            toast.success(`Successfully assigned ${documentIds.length} documents to auditor`);
-            dispatch(clearSelectedDocuments("audit"));
-            dispatch(fetchAuditDocuments());
-            return { success: true, message: "Documents assigned to auditor successfully" };
         }
 
         // Actual API call

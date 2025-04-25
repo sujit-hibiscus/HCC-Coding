@@ -9,6 +9,7 @@ import {
     assignPendingDocuments,
     assignToAuditor,
     changeAssignment,
+    setIsAssigning,
     setSelectedAnalyst,
     setSelectedAuditor,
     setSelectedPendingAnalyst,
@@ -56,18 +57,18 @@ export default function AssignmentControls({ currentTab, userType, analysts, aud
             return;
         }
 
-        const currentAssignee = currentTab === ChartTab.Audit ? selectedAuditor : selectedAnalyst;
+        const currentAssignee = currentTab === ChartTab.Audit ? selectedAuditor : currentTab === ChartTab.Pending ? selectedPendingAnalyst : selectedAnalyst;
         const hasSelectedDocs = Array.isArray(selectedDocumentIds) && selectedDocumentIds.length > 0;
 
         if (!currentAssignee || !hasSelectedDocs || isAssigning) {
             return;
         }
 
-        if (currentTab === ChartTab.Pending && selectedAnalyst) {
+        if (currentTab === ChartTab.Pending && selectedPendingAnalyst) {
             dispatch(
                 assignPendingDocuments({
                     documentIds: selectedDocumentIds,
-                    analystId: selectedAnalyst,
+                    analystId: selectedPendingAnalyst,
                 }),
             ).then(() => {
                 clearSelectedValue();
