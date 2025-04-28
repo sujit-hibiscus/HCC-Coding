@@ -20,6 +20,7 @@ export const SubmissionFormSchema = z.object({
         .min(1, "At least one corrected code is required"),
 
     auditRemarks: z.string().min(10, "Audit remarks must be at least 10 characters long"),
+    rating: z.number().min(0).max(5).optional(),
 });
 
 export type SubmissionFormData = z.infer<typeof SubmissionFormSchema>;

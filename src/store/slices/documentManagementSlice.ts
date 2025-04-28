@@ -12,6 +12,13 @@ export interface Document {
     pauseTimes?: { start: number; end: number }[]
 }
 
+export interface FormData {
+    codesMissed: Array<{ value: string; label: string }>
+    codesCorrected: Array<{ value: string; label: string }>
+    auditRemarks: string
+    rating: number
+}
+
 interface DocumentManagementState {
     documents: Document[]
     loading: boolean
@@ -22,6 +29,9 @@ interface DocumentManagementState {
     isRunning: boolean
     elapsedTime: number
     startTime: number | null
+
+    // Form data for each document
+    formData: Record<string, FormData>
 }
 
 const fetchDocumentsApi = async () => {
@@ -88,6 +98,7 @@ const initialState: DocumentManagementState = {
     isRunning: false,
     elapsedTime: 0,
     startTime: null,
+    formData: {},
 };
 
 const documentManagementSlice = createSlice({
@@ -204,6 +215,35 @@ const documentManagementSlice = createSlice({
                 state.startTime = null;
             }
         },
+        // New reducers for form data
+        updateFormData: (state, action: PayloadAction<{ documentId: string; data: Partial<FormData> }>) => {
+            const { documentId, data } = action.payload;
+
+            if (!state.formData[documentId]) {
+                state.formData[documentId] = {
+                    codesMissed: [],
+                    codesCorrected: [],
+                    auditRemarks: "",
+                    rating: 0,
+                };
+            }
+
+            state.formData[documentId] = {
+                ...state.formData[documentId],
+                ...data,
+            };
+        },
+        resetFormData: (state, action: PayloadAction<string>) => {
+            const documentId = action.payload;
+            if (state.formData[documentId]) {
+                state.formData[documentId] = {
+                    codesMissed: [],
+                    codesCorrected: [],
+                    auditRemarks: "",
+                    rating: 0,
+                };
+            }
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -237,6 +277,9 @@ export const {
     resetTimer,
     updateElapsedTime,
     pauseTimerOnly,
+    // Export new actions
+    updateFormData,
+    resetFormData,
 } = documentManagementSlice.actions;
 
 export default documentManagementSlice.reducer;
