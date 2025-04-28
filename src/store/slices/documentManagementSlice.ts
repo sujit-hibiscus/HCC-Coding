@@ -31,7 +31,7 @@ const fetchDocumentsApi = async () => {
             name: "Medical Insurance Claim Q1 2024",
             url: "/pdf/medical_report_user_1.pdf",
             status: "pending",
-            assignedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+            assignedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
             timeSpent: 0,
         },
         {
@@ -39,7 +39,7 @@ const fetchDocumentsApi = async () => {
             name: "Policy Compliance Review 2024",
             url: "/pdf/medical_report_user_2.pdf",
             status: "pending",
-            assignedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+            assignedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
             timeSpent: 0,
         },
         {
@@ -47,7 +47,7 @@ const fetchDocumentsApi = async () => {
             name: "Insurance Claim Documentation 2024",
             url: "/pdf/medical_report_user_3.pdf",
             status: "pending",
-            assignedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+            assignedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
             timeSpent: 0,
         },
         {
@@ -55,7 +55,7 @@ const fetchDocumentsApi = async () => {
             name: "Quarterly Premium Analysis",
             url: "/pdf/medical_report_user_1.pdf",
             status: "pending",
-            assignedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+            assignedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
             timeSpent: 0,
         },
         {
@@ -63,7 +63,7 @@ const fetchDocumentsApi = async () => {
             name: "Annual Insurance Summary 2023",
             url: "/pdf/medical_report_user_2.pdf",
             status: "pending",
-            assignedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
+            assignedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
             timeSpent: 0,
         },
     ] as Document[];

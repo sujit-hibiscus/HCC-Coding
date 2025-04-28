@@ -77,11 +77,12 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
     const { showPromiseToast } = useToast();
 
     const handleLogout = async () => {
-
         const logoutPromise = new Promise<void>(async (resolve, reject) => {
             try {
                 await logout();
-                resetReduxStore();
+                setTimeout(() => {
+                    resetReduxStore();
+                }, 1000);
                 router.push("/");
                 resolve();
             } catch (error) {
