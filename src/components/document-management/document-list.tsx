@@ -5,21 +5,21 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { RootState } from "@/store";
-import { pauseReview, selectDocument } from "@/store/slices/documentManagementSlice";
+import { selectDocument } from "@/store/slices/documentManagementSlice";
 import { motion } from "framer-motion";
-import { Calendar, Clock, Search } from "lucide-react";
+import { Calendar, Search } from "lucide-react";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 // Define the Document type with the missing 'status' property
-interface Document {
+/* interface Document {
   id: string
   name: string
   assignedAt: string
   startTime?: number
   timeSpent?: number
   status: "pending" | "in_progress" | "on_hold" | "completed"
-}
+} */
 
 export default function DocumentList() {
   const dispatch = useDispatch();
@@ -43,21 +43,42 @@ export default function DocumentList() {
     }
   };
 
-  const getFileAge = (doc: Document) => {
-    if (doc.startTime && doc.status === "in_progress") {
-      const elapsedSeconds = Math.floor((Date.now() - doc.startTime) / 1000);
-      return formatTime(elapsedSeconds + (doc.timeSpent || 0));
-    } else if (doc.timeSpent) {
-      return formatTime(doc.timeSpent);
-    }
-    return "Not started";
-  };
+  /*  const getFileAge = (doc: Document) => {
+     if (doc.startTime && doc.status === "in_progress") {
+       const elapsedSeconds = Math.floor((Date.now() - doc.startTime) / 1000);
+       return formatTime(elapsedSeconds + (doc.timeSpent || 0));
+     } else if (doc.timeSpent) {
+       return formatTime(doc.timeSpent);
+     }
+     return "Not started";
+   }; */
 
-  const formatTime = (seconds: number) => {
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  /*  const formatTime = (seconds: number) => {
+     const hrs = Math.floor(seconds / 3600);
+     const mins = Math.floor((seconds % 3600) / 60);
+     const secs = seconds % 60;
+     return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+   }; */
+
+  const maskFileName = (name: string): string => {
+    if (!name) return "";
+
+    const parts = name.split(" ");
+    const extension = parts.pop() || "";
+    const baseName = parts.join(".");
+
+    if (baseName.length <= 4) {
+      return `${baseName}.${extension}`;
+    }
+
+    const startLength = Math.ceil(baseName.length * 0.3); // first 30%
+    const endLength = Math.ceil(baseName.length * 0.2);   // last 20%
+
+    const visibleStart = baseName.slice(0, startLength);
+    const visibleEnd = baseName.slice(-endLength);
+    const maskedMiddle = "*".repeat(baseName.length - startLength - endLength);
+
+    return `${visibleStart}${maskedMiddle}${visibleEnd}.${extension}`;
   };
 
   return (
@@ -85,7 +106,7 @@ export default function DocumentList() {
               transition={{ duration: 0.2 }}
               onClick={() => {
                 if (selectedDocumentId) {
-                  dispatch(pauseReview(selectedDocumentId));
+                  // dispatch(pauseReview(selectedDocumentId));
                 }
                 dispatch(selectDocument(doc.id));
               }}
@@ -109,7 +130,7 @@ export default function DocumentList() {
 
                   <div className="flex justify-between items-start gap-2">
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-medium text-sm truncate">{doc.name}</h3>
+                      <h3 className="font-medium text-sm truncate">{maskFileName(doc.name)}</h3>
                       <TooltipProvider>
                         <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                           {/* Assigned Date Tooltip */}
@@ -126,7 +147,7 @@ export default function DocumentList() {
                           </Tooltip>
 
                           {/* File Age Tooltip */}
-                          <Tooltip>
+                          {/* <Tooltip>
                             <TooltipTrigger asChild>
                               <div className="flex items-center cursor-default">
                                 <Clock className="h-3 w-3 mr-1" />
@@ -136,7 +157,7 @@ export default function DocumentList() {
                             <TooltipContent side="top" className="text-xs">
                               File age: {getFileAge(doc)}
                             </TooltipContent>
-                          </Tooltip>
+                          </Tooltip> */}
                         </div>
                       </TooltipProvider>
                     </div>

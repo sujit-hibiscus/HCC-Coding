@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useRedux } from "@/hooks/use-redux";
+import { SubmissionFormSchema, type SubmissionFormData } from "@/lib/schemas";
 import type { RootState } from "@/store";
 import {
   completeReview,
@@ -16,12 +17,10 @@ import {
   updateElapsedTime,
 } from "@/store/slices/documentManagementSlice";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle, Clock, Play } from "lucide-react";
+import { CheckCircle, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import PdfUI from "../ui/pdfUI";
-import { SubmissionFormSchema, type SubmissionFormData } from "@/lib/schemas";
-import { PreventSaveProvider } from "../layout/prevent-save-provider";
 
 export default function PdfViewer() {
   const { dispatch, selector } = useRedux();
@@ -32,6 +31,7 @@ export default function PdfViewer() {
 
   const [showControls, setShowControls] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
+  console.info("🚀 ~ PdfViewer ~ currentTime:", currentTime);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const [showModal, setShowModal] = useState(false);
@@ -203,12 +203,12 @@ export default function PdfViewer() {
     */
   };
 
-  const formatTime = (seconds: number) => {
+  /* const formatTime = (seconds: number) => {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
     return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
+  }; */
 
   const pdfUrl = selectedDocument.url || "/pdf/medical_report_user_1.pdf";
 
@@ -218,9 +218,9 @@ export default function PdfViewer() {
         {/* PDF Viewer */}
         <div className="w-full h-full bg-gray-100 relative">
           <div className="h-full max-h-[89.2vh] overflow-auto">
-            <PreventSaveProvider>
-              <PdfUI url={pdfUrl} />
-            </PreventSaveProvider>
+            <PdfUI url={pdfUrl} />
+            {/* <PreventSaveProvider>
+            </PreventSaveProvider> */}
           </div>
 
           <AnimatePresence>
@@ -264,10 +264,10 @@ export default function PdfViewer() {
         </div>
 
         {/* Timer display */}
-        <div className="absolute z-50 top-11 right-4 bg-white/80 rounded-[1px] px-3 py-1 flex items-center gap-2 border border-selectedText">
+        {/* <div className="absolute z-50 top-11 right-4 bg-white/80 rounded-[1px] px-3 py-1 flex items-center gap-2 border border-selectedText">
           <Clock className="h-4 w-4" />
           <span className="font-mono">{formatTime(currentTime)}</span>
-        </div>
+        </div> */}
       </div>
 
       <div className="p-1.5 pr-3 border-t">
