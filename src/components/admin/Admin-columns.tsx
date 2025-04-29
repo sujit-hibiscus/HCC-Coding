@@ -318,6 +318,13 @@ export const completedDocumentColumns = (): (ColumnDef<CompletedDocument> & { is
         isDragable: true,
     },
     {
+        accessorKey: "Assign",
+        header: ({ column }) => <DataTableColumnHeader searchType="date" column={column} title="Assign" />,
+        cell: ({ row }) => <div className="text-center">{row.getValue("Assign")}</div>,
+        enableSorting: true,
+        isDragable: true,
+    },
+    {
         accessorKey: "fileSize",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="File Size" />,
         cell: ({ row }) => {
@@ -334,6 +341,13 @@ export const completedDocumentColumns = (): (ColumnDef<CompletedDocument> & { is
         accessorKey: "category",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Category" />,
         cell: ({ row }) => <div className="text-center">{row.getValue("category")}</div>,
+        enableSorting: true,
+        isDragable: true,
+    },
+    {
+        accessorKey: "endDate",
+        header: ({ column }) => <DataTableColumnHeader searchType="date" column={column} title="End Date" />,
+        cell: ({ row }) => <div className="text-center">{row.getValue("endDate")}</div>,
         enableSorting: true,
         isDragable: true,
     },

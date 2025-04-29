@@ -7,9 +7,11 @@ import { useRedux } from "@/hooks/use-redux";
 import type { Tab } from "@/lib/types/dashboardTypes";
 import { updateTab } from "@/store/slices/DashboardSlice";
 
+import { Button } from "@/components/ui/button";
+import useToast from "@/hooks/use-toast";
 import { ChartTab } from "@/lib/types/chartsTypes";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle2, Clock, FileEdit } from "lucide-react";
+import { CheckCircle2, Clock, FileEdit, LoaderCircle, Sparkles } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -32,6 +34,8 @@ export default function ChartLayout({
     const { userType = "", appointmentCounts } = selector((state) => state.user);
     const chartsCounts = appointmentCounts?.data?.charts;
     const tabCountLoading = appointmentCounts?.status;
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const { success } = useToast();
 
     const { pendingDocuments, assignedDocuments, auditDocuments, completedDocuments } = selector((state) => state.documentTable);
 
@@ -80,18 +84,44 @@ export default function ChartLayout({
         router.push(targetHref);
     };
 
+    const handleAutoAssign = () => {
+        setIsSubmitting(true);
+        setTimeout(() => {
+            setIsSubmitting(false);
+            success({ message: "Chart Assigned Successfully!" });
+
+        }, 2000);
+    };
+
     return (
         <div className="px-2 py-1 h-full flex space-y-1 flex-col bg-background">
             <div className="h-10 flex items-center justify-between">
                 {userType !== "Provider" && (
-                    <>
+                    <div className="flex items-center gap-2">
                         <TabsComponent
                             countLoading={tabCountLoading === "Loading"}
                             tabs={tabs}
                             currentTab={currentTab}
                             handleTabChange={handleTabChange}
                         />
-                    </>
+                        <Button
+                            onClick={handleAutoAssign}
+                            disabled={isSubmitting}
+                            className="flex items-center gap-2"
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <LoaderCircle className="w-4 h-4 animate-spin" />
+                                    Assigning...
+                                </>
+                            ) : (
+                                <>
+                                    <Sparkles className="w-4 h-4" />
+                                    Auto Assign
+                                </>
+                            )}
+                        </Button>
+                    </div>
                 )}
             </div>
 

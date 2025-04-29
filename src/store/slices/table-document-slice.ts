@@ -40,6 +40,7 @@ export interface CompletedDocument extends DocumentBase {
     endDate: string
     age?: string
     auditor?: string
+    Assign?: string
 }
 
 // API Response Types
@@ -244,7 +245,8 @@ const mockCompletedDocuments: CompletedDocument[] = [
         status: DOCUMENT_STATUS.COMPLETED,
         startDate: "04-22-2025",
         endDate: "04-25-2025",
-        auditor: "",
+        auditor: "Michael Thompson",
+        Assign: "",
     },
     {
         id: "SL009",
@@ -256,6 +258,7 @@ const mockCompletedDocuments: CompletedDocument[] = [
         startDate: "04-23-2025",
         endDate: "04-26-2025",
         auditor: "Mike Wilson",
+        Assign: "Daniel Martinez",
     },
     {
         id: "SL010",
@@ -266,7 +269,8 @@ const mockCompletedDocuments: CompletedDocument[] = [
         status: DOCUMENT_STATUS.COMPLETED,
         startDate: "04-24-2025",
         endDate: "",
-        auditor: "",
+        auditor: "Ashley Davis",
+        Assign: "",
     },
     {
         id: "SL011",
@@ -278,9 +282,9 @@ const mockCompletedDocuments: CompletedDocument[] = [
         startDate: "04-25-2025",
         endDate: "04-28-2025",
         auditor: "Sarah Johnson",
+        Assign: "Sarah Robinson",
     },
 ];
-
 
 
 // Process completed documents to add age

@@ -17,7 +17,7 @@ export default function CompletedDocumentsTable() {
     const [showUnassignedOnly, setShowUnassignedOnly] = useState(false);
 
     const sortedDocuments = [...completedDocuments.data]
-        .filter((doc) => !showUnassignedOnly || !doc.auditor) // Filter for unassigned charts if filter is active
+        .filter((doc) => !showUnassignedOnly || !doc.Assign) // Filter for unassigned charts if filter is active
         .sort((a, b) => {
             const dateA = parse(a.received, "MM-dd-yyyy", new Date());
             const dateB = parse(b.received, "MM-dd-yyyy", new Date());
