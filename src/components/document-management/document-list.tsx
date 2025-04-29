@@ -64,22 +64,36 @@ export default function DocumentList() {
     if (!name) return "";
 
     const parts = name.split(" ");
-    const extension = parts.pop() || "";
-    const baseName = parts.join(".");
+    const extension = parts.length > 1 ? parts.pop() : "";
+    const baseName = parts.join(" ");
 
-    if (baseName.length <= 4) {
-      return `${baseName}.${extension}`;
+    if (baseName.length <= 6) {
+      return `${baseName} ${extension}`;
     }
 
-    const startLength = Math.ceil(baseName.length * 0.3); // first 30%
-    const endLength = Math.ceil(baseName.length * 0.2);   // last 20%
+    const start = baseName.slice(0, 2);
+    const end = baseName.slice(-2);
 
-    const visibleStart = baseName.slice(0, startLength);
-    const visibleEnd = baseName.slice(-endLength);
-    const maskedMiddle = "*".repeat(baseName.length - startLength - endLength);
+    const middleIndex = Math.floor(baseName.length / 2);
+    const middle = baseName.slice(middleIndex - 1, middleIndex + 1);
 
-    return `${visibleStart}${maskedMiddle}${visibleEnd}.${extension}`;
+    const generateHash = (str: string, seed: number): string => {
+      let hash = seed;
+      for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash = hash & hash;
+      }
+      return Math.abs(hash).toString(36).substring(0, 4);
+    };
+
+    const hash1 = generateHash(baseName, 1);
+    const hash2 = generateHash(baseName, 2);
+
+    const maskedName = `${start}_${hash1}_${middle}_${hash2}_${end}`;
+
+    return `${maskedName}_${extension}`;
   };
+
 
   return (
     <div className="h-full flex flex-col py-1.5 px-1.5 max-h-[calc(100vh-2.9rem)]">

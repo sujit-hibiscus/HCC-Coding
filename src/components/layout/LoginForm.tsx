@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useApiCall } from "../common/ApiCall";
 import { ForgotPassword } from "../common/user/forgot-password";
+import { addTab } from "@/store/slices/DashboardSlice";
 
 export default function LoginForm() {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -50,11 +51,24 @@ export default function LoginForm() {
                             email: email
                         })
                     );
+
+                    const initialTab = response.userType?.toLowerCase()?.includes("admin") ? {
+                        "id": "pending",
+                        "title": "Charts",
+                        "href": "/dashboard/charts/pending",
+                        "active": true
+                    } : {
+                        "id": "dashboard",
+                        "title": "Dashboard",
+                        "href": "/dashboard",
+                        "active": true
+                    };
+                    dispatch(addTab(initialTab));
                     /* setTimeout(() => {
                         loginApi("Login", response.userType as "Analyst" | "Auditor" | "Admin");
                     }); */
                     setTimeout(() => {
-                        router.push("/dashboard");
+                        router.push(response.userType?.toLowerCase()?.includes("admin") ? "/dashboard/charts/pending" : "/dashboard");
                         resolve();
                         getLoginMasterData();
                     }, 500);

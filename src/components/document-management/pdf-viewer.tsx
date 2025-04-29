@@ -215,7 +215,7 @@ export default function PdfViewer() {
     */
   };
 
-  const handleCancel = () => {
+  /* const handleCancel = () => {
     setShowSidebar(false);
 
     // Resume the timer if document is still in progress
@@ -231,7 +231,7 @@ export default function PdfViewer() {
       rating: 0,
     });
     setFormErrors({});
-  };
+  }; */
 
   const pdfUrl = selectedDocument.url || "/pdf/medical_report_user_1.pdf";
 
@@ -240,10 +240,10 @@ export default function PdfViewer() {
       <div className="flex-1 relative flex flex-col md:flex-row">
         {/* PDF Viewer */}
         <div
-          className={`${userType === "Auditor" && showSidebar ? "w-full md:w-2/3" : "w-full"
+          className={`${userType === "Auditor" && showSidebar ? "w-full md:w-full" : "w-full"
             } h-full bg-gray-100 relative transition-all duration-300`}
         >
-          <div className="h-full max-h-[89.2vh] overflow-auto">
+          <div className={`h-full  overflow-auto ${userType === "Auditor" ? "" : "max-h-[89.2vh]"}`}>
             <PreventSaveProvider>
               <PdfUI url={pdfUrl} />
             </PreventSaveProvider>
@@ -263,7 +263,24 @@ export default function PdfViewer() {
                   <Button
                     size="lg"
                     className="rounded-full w-16 h-16 mb-4 group"
-                    onClick={selectedDocument.status === "on_hold" ? handleResume : handleStart}
+                    onClick={() => {
+                      if (userType === "Auditor") {
+
+                        setShowSidebar(true);
+                        dispatch(stopTimer());
+                        if (selectedDocument.status === "on_hold") {
+                          handleResume();
+                        } else {
+                          handleStart();
+                        };
+                      } else {
+                        if (selectedDocument.status === "on_hold") {
+                          handleResume();
+                        } else {
+                          handleStart();
+                        };
+                      }
+                    }}
                   >
                     <motion.div
                       className="flex items-center justify-center"
@@ -293,7 +310,7 @@ export default function PdfViewer() {
         <AnimatePresence>
           {userType === "Auditor" && showSidebar && (
             <motion.div
-              className="w-full flex flex-col md:w-1/3 h-full border-t md:border-t-0 md:border-l overflow-y-auto bg-white p-2"
+              className="w-full flex flex-col md:w-[32rem] h-full border-t md:border-t-0 md:border-l overflow-y-auto bg-white p-2"
               initial={{ x: "100%", opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: "100%", opacity: 0 }}
@@ -372,10 +389,10 @@ export default function PdfViewer() {
                   </div>
 
                 </div>
-                <div className="flex justify-between gap-3">
-                  <Button variant="outline" onClick={handleCancel} type="button">
+                <div className="flex justify-end gap-3">
+                  {/*   <Button variant="outline" onClick={handleCancel} type="button">
                     Cancel
-                  </Button>
+                  </Button> */}
                   <Button onClick={submitReview} disabled={isSubmitting} type="submit">
                     <CheckCircle className="mr-1" />
                     {isSubmitting ? "Submitting..." : "Submit Review"}
@@ -387,23 +404,16 @@ export default function PdfViewer() {
         </AnimatePresence>
       </div>
 
-      <div className="p-1.5 pr-3 border-t">
-        <div className="flex justify-between items-center">
-          <div>
-            <h3 className="font-medium">{selectedDocument.name}</h3>
-            <p className="text-sm text-muted-foreground">Status: {selectedDocument.status.replace("_", " ")}</p>
-          </div>
-
-          <div className="flex gap-2">
-            {showControls && selectedDocument.status !== "completed" && !showSidebar && (
-              <Button onClick={handleComplete}>
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Submit
-              </Button>
-            )}
-          </div>
+      {showControls && userType !== "Auditor" && <div className="p-1.5 pr-3 border-t">
+        <div className="flex justify-end gap-2">
+          {selectedDocument.status !== "completed" && !showSidebar && (
+            <Button onClick={handleComplete}>
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Submit
+            </Button>
+          )}
         </div>
-      </div>
+      </div>}
     </div>
   );
 }

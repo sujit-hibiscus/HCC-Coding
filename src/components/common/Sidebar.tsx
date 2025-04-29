@@ -54,9 +54,10 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
     const adminMenuOptions = userType?.toLowerCase().includes("admin") ? [
         { icon: Table, label: "Charts", href: "/dashboard/charts/pending" },
     ] : [];
+    const OtherMenuOptionOptions = userType?.toLowerCase().includes("admin") ? [] : [{ icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },];
 
     const menuItems: MenuItem[] = [
-        { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+        ...OtherMenuOptionOptions,
         ...adminMenuOptions
     ];
 
