@@ -86,6 +86,7 @@ export const fetchDocuments = createAsyncThunk("documentManagement/fetchDocument
         return state.documentManagement.documents;
     }
 
+
     const response = await fetchDocumentsApi();
     return response;
 });

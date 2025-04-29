@@ -28,7 +28,7 @@ export default function PdfViewer() {
   const { documents, selectedDocumentId, isRunning } = useSelector((state: RootState) => state.documentManagement);
   const { userType } = selector((state) => state.user);
 
-  const selectedDocument = documents.find((doc) => doc.id === selectedDocumentId);
+  const selectedDocument = documents?.filter(item => item?.status !== "completed").find((doc) => doc.id === selectedDocumentId);
 
   const [showControls, setShowControls] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);

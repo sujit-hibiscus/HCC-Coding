@@ -111,7 +111,7 @@ export default function DocumentList() {
         {filteredDocuments.length === 0 ? (
           <p className="text-center text-muted-foreground py-6 text-sm">No documents found</p>
         ) : (
-          [...filteredDocuments].map((doc) => (
+          [...filteredDocuments]?.filter(item => item?.status !== "completed").map((doc) => (
             <motion.div
               key={doc.id}
               initial={{ opacity: 0.8, y: 5 }}
