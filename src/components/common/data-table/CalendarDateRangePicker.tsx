@@ -96,9 +96,7 @@ export function CalendarDateRangePicker({
 
         if (start instanceof Date && end instanceof Date) {
             const matchingPreset = presets.find(
-                (preset) =>
-                    isSameDay(preset.dates[0], start) &&
-                    isSameDay(preset.dates[1], end)
+                (preset) => isSameDay(preset.dates[0], start) && isSameDay(preset.dates[1], end),
             );
 
             if (matchingPreset) {
@@ -111,7 +109,6 @@ export function CalendarDateRangePicker({
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dateRange]);
-
 
     const handleMonthChange = (value: string) => {
         setSelectedMonth(value);
@@ -131,6 +128,14 @@ export function CalendarDateRangePicker({
     const renderDayContents = (day: number, date: Date) => {
         const today = new Date();
         const isToday = isSameDay(date, today);
+
+        // Check if the date is in the current month being displayed
+        const isCurrentMonth = date.getMonth() === calendarDate.getMonth();
+
+        // Only apply range styling if it's in the current month
+        if (!isCurrentMonth) {
+            return <div className="outside-month-day">{day}</div>;
+        }
 
         return <div className={isToday ? "today-date" : undefined}>{day}</div>;
     };
@@ -371,13 +376,6 @@ export function CalendarDateRangePicker({
     justify-content: center;
   }
 
-  .react-datepicker__day--selected,
-  .react-datepicker__day--in-selecting-range,
-  .react-datepicker__day--in-range,
-  .react-datepicker__day--keyboard-selected {
-    background-color: hsl(var(--primary)) !important;
-    color: hsl(var(--primary-foreground)) !important;
-  }
 
   .react-datepicker__day:hover {
     background-color: hsl(var(--background));
@@ -389,8 +387,36 @@ export function CalendarDateRangePicker({
     color: black !important;
   }
 
+  /* Stronger rules for outside month days */
   .react-datepicker__day--outside-month {
-    color: hsl(var(--muted-foreground));
+    color: hsl(var(--muted-foreground)) !important;
+    background-color: transparent !important;
+  }
+
+  .react-datepicker__day--outside-month.react-datepicker__day--in-range,
+  .react-datepicker__day--outside-month.react-datepicker__day--in-selecting-range,
+  .react-datepicker__day--outside-month.react-datepicker__day--selected {
+    background-color: transparent !important;
+    color: hsl(var(--muted-foreground)) !important;
+  }
+
+  /* Ensure no hover effects on outside month days */
+  .react-datepicker__day--outside-month:hover {
+    background-color: transparent !important;
+    color: hsl(var(--muted-foreground)) !important;
+    cursor: default;
+  }
+
+  /* Custom class for outside month days */
+  
+  /* Override any other styling for outside month days */
+  .react-datepicker__day.react-datepicker__day--outside-month {
+    background-color: transparent !important;
+  }
+  
+  /* Ensure the day container itself doesn't get styled */
+  .react-datepicker__day--outside-month .react-datepicker__day-content,
+  .react-datepicker__day--outside-month > * {
     background-color: transparent !important;
   }
 
@@ -429,6 +455,17 @@ export function CalendarDateRangePicker({
   .react-datepicker__triangle {
     display: none;
   }
+  
+  
+  .react-datepicker__day--selected,
+  .react-datepicker__day--in-selecting-range,
+  .react-datepicker__day--in-range,
+  .react-datepicker__day--keyboard-selected {
+    background-color: hsl(var(--primary)) !important;
+    color: white !important;
+  }
+
+
 `}</style>
         </div>
     );
