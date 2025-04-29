@@ -1,10 +1,9 @@
-import type React from "react";
 import AssignedDocumentsTable from "@/components/admin/AssignedTable";
 import AuditDocumentsTable from "@/components/admin/AuditTable";
 import PendingDocumentsTable from "@/components/admin/PendingTable";
 import { ChartTab } from "@/lib/types/chartsTypes";
 import { notFound } from "next/navigation";
-import CompletedDocumentsTable from "@/components/admin/CompletedTable";
+import type React from "react";
 
 type LayoutProps = {
     params: Promise<{
@@ -140,7 +139,10 @@ const TabPage: React.FC<LayoutProps> = async ({ params }) => {
             ) : tab === ChartTab.Audit ? (
                 <AuditDocumentsTable />
             ) : (
-                <CompletedDocumentsTable />
+                <div>
+                    Completed Table
+                    {/* // <CompletedDocumentsTable /> */}
+                </div>
             )}
         </>
     );

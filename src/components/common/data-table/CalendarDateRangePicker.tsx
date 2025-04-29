@@ -408,7 +408,7 @@ export function CalendarDateRangePicker({
   }
 
   /* Custom class for outside month days */
-  
+
   /* Override any other styling for outside month days */
   .react-datepicker__day.react-datepicker__day--outside-month {
     background-color: transparent !important;
