@@ -42,6 +42,7 @@ import { useEffect, useState } from "react";
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar } from "./data-table-toolbar";
 import { SortableHeader } from "./sortable-header";
+import { EndDateFilter, StartDateFilter } from "@/lib/utils";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -83,7 +84,7 @@ export function DataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(storedFilters?.columnVisibility || {});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(storedFilters?.columnFilters || []);
   const [sorting, setSorting] = React.useState<SortingState>(storedFilters?.sorting || []);
-  const [dateRange, setDateRange] = React.useState<[Date | null, Date | null]>(storedFilters?.dateRange || [null, null]);
+  const [dateRange, setDateRange] = React.useState<[Date | null, Date | null]>(storedFilters?.dateRange || [StartDateFilter, EndDateFilter]);
   const [columnsOrder, setColumnOrder] = React.useState<string[]>(() =>
     columns.map((col) => (typeof col.id === "string" ? col.id : "")),
   );

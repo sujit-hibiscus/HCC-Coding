@@ -1,7 +1,10 @@
 import { clsx, type ClassValue } from "clsx";
-import { format, parseISO } from "date-fns";
+import { endOfWeek, format, parseISO, startOfWeek } from "date-fns";
 import { redirect } from "next/navigation";
 import { twMerge } from "tailwind-merge";
+
+export const StartDateFilter = startOfWeek(new Date(), { weekStartsOn: 1 }); // week starts on Monday
+export const EndDateFilter = endOfWeek(new Date(), { weekStartsOn: 1 });
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

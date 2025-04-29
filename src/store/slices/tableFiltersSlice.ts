@@ -1,5 +1,6 @@
+import { EndDateFilter, StartDateFilter } from "@/lib/utils";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { ColumnFiltersState, SortingState, VisibilityState, PaginationState } from "@tanstack/react-table";
+import type { ColumnFiltersState, PaginationState, SortingState, VisibilityState } from "@tanstack/react-table";
 
 export interface TableFilterState {
     columnFilters: ColumnFiltersState
@@ -24,7 +25,7 @@ const initialState: TableFiltersState = {
         columnFilters: [],
         sorting: [],
         columnVisibility: {},
-        dateRange: [null, null],
+        dateRange: [StartDateFilter, EndDateFilter],
         pagination: { pageIndex: 0, pageSize: 20 },
         selectedRows: [],
     },
@@ -32,7 +33,7 @@ const initialState: TableFiltersState = {
         columnFilters: [],
         sorting: [],
         columnVisibility: {},
-        dateRange: [null, null],
+        dateRange: [StartDateFilter, EndDateFilter],
         pagination: { pageIndex: 0, pageSize: 20 },
         selectedRows: [],
     },
@@ -40,7 +41,7 @@ const initialState: TableFiltersState = {
         columnFilters: [],
         sorting: [],
         columnVisibility: {},
-        dateRange: [null, null],
+        dateRange: [StartDateFilter, EndDateFilter],
         pagination: { pageIndex: 0, pageSize: 20 },
         selectedRows: [],
     },
@@ -58,12 +59,14 @@ const tableFiltersSlice = createSlice({
             }>,
         ) => {
             const { tabKey, filters } = action.payload;
+
             if (!state[tabKey]) {
+                console.log("🚀 ~ inside filters:", filters);
                 state[tabKey] = {
                     columnFilters: [],
                     sorting: [],
                     columnVisibility: {},
-                    dateRange: [null, null],
+                    dateRange: [StartDateFilter, EndDateFilter],
                     selectedRows: [],
                 };
             }
@@ -134,7 +137,7 @@ const tableFiltersSlice = createSlice({
                     columnFilters: [],
                     sorting: [],
                     columnVisibility: {},
-                    dateRange: [null, null],
+                    dateRange: [StartDateFilter, EndDateFilter],
                     pagination: { pageIndex: 0, pageSize: 20 },
                     selectedRows: [],
                 };

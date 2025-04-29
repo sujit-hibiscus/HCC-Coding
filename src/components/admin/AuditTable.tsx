@@ -8,12 +8,19 @@ import { useEffect } from "react";
 import { auditDocumentColumns } from "./Admin-columns";
 import AssignmentControls from "./Assignment-controls";
 import { analystsData, auditorsData, ChartTab } from "@/lib/types/chartsTypes";
+import { parse } from "date-fns";
 
 export default function AuditDocumentsTable() {
     const { selector, dispatch } = useRedux();
     const { auditDocuments } = selector((state) => state.documentTable);
     const { userType = "" } = selector((state) => state.user);
 
+
+    const sortedDocuments = [...auditDocuments.data].sort((a, b) => {
+        const dateA = parse(a.received, "MM-dd-yyyy", new Date());
+        const dateB = parse(b.received, "MM-dd-yyyy", new Date());
+        return dateB.getTime() - dateA.getTime(); // Descending
+    });
 
     useEffect(() => {
         dispatch(fetchAuditDocuments());
@@ -41,7 +48,7 @@ export default function AuditDocumentsTable() {
                     </div>
                     <DataTable
                         columns={auditDocumentColumns()}
-                        data={auditDocuments.data}
+                        data={sortedDocuments}
                         dateKey="received"
                         onAction={() => { }}
                         defaultPageSize={20}

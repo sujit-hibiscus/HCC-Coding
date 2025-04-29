@@ -33,7 +33,7 @@ export default function ChartLayout({
     const chartsCounts = appointmentCounts?.data?.charts;
     const tabCountLoading = appointmentCounts?.status;
 
-    const { pendingDocuments, assignedDocuments, auditDocuments } = selector((state) => state.documentTable);
+    const { pendingDocuments, assignedDocuments, auditDocuments, completedDocuments } = selector((state) => state.documentTable);
 
     const tabs = [
         {
@@ -58,7 +58,7 @@ export default function ChartLayout({
             value: ChartTab.Completed,
             label: "Completed",
             icon: CheckCircle2,
-            count: auditDocuments?.data?.length > 0 ? auditDocuments?.data?.length : chartsCounts?.Audit,
+            count: completedDocuments?.data?.length > 0 ? completedDocuments?.data?.length : chartsCounts?.Completed,
         },
     ];
 

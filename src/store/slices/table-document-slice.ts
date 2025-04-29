@@ -1,6 +1,6 @@
 import { fetchData } from "@/lib/api/api-client";
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { format, isValid, parseISO } from "date-fns";
+import { format, isValid, parseISO, differenceInDays } from "date-fns";
 import toast from "react-hot-toast";
 
 // Document Types
@@ -33,6 +33,12 @@ export interface AssignedDocument extends DocumentBase {
 export interface AuditDocument extends DocumentBase {
     analyst: string
     auditor: string
+}
+
+export interface CompletedDocument extends DocumentBase {
+    startDate: string
+    endDate: string
+    age?: string
 }
 
 // API Response Types
@@ -68,6 +74,11 @@ interface DocumentState {
         status: FetchStatus
         error: string | null
     }
+    completedDocuments: {
+        data: CompletedDocument[]
+        status: FetchStatus
+        error: string | null
+    }
     selectedPendingAnalyst: string | null
     selectedAnalyst: string | null
     selectedAuditor: string | null
@@ -75,6 +86,7 @@ interface DocumentState {
         pending: string[]
         assigned: string[]
         audit: string[]
+        completed: string[]
     }
     isAssigning: boolean
 }
@@ -86,6 +98,33 @@ export const formatDate = (date: string): string => {
         return isValid(parsedDate) ? format(parsedDate, "MM/dd/yyyy") : date;
     }
     return date?.replace(/\//g, "-") || "";
+};
+
+// Calculate age helper
+export const calculateAge = (startDate: string, endDate: string): string => {
+    if (!startDate || !endDate) return "N/A";
+
+    try {
+        // Convert dates to standard format if they're in MM-DD-YYYY format
+        const standardizeDate = (dateStr: string) => {
+            if (dateStr.includes("-")) {
+                const [month, day, year] = dateStr.split("-");
+                return `${year}-${month}-${day}`;
+            }
+            return dateStr;
+        };
+
+        const start = parseISO(standardizeDate(startDate));
+        const end = parseISO(standardizeDate(endDate));
+
+        if (!isValid(start) || !isValid(end)) return "N/A";
+
+        const days = differenceInDays(end, start);
+        return days === 1 ? `${days} day` : `${days} days`;
+    } catch (error) {
+        console.error("🚀 ~ calculateAge ~ error:", error);
+        return "N/A";
+    }
 };
 
 // Initial State
@@ -105,6 +144,11 @@ const initialState: DocumentState = {
         status: FetchStatus.IDLE,
         error: null,
     },
+    completedDocuments: {
+        data: [],
+        status: FetchStatus.IDLE,
+        error: null,
+    },
     selectedAnalyst: null,
     selectedPendingAnalyst: null,
     selectedAuditor: null,
@@ -112,6 +156,7 @@ const initialState: DocumentState = {
         pending: [],
         assigned: [],
         audit: [],
+        completed: [],
     },
     isAssigning: false,
 };
@@ -120,8 +165,8 @@ const initialState: DocumentState = {
 const mockPendingDocuments: PendingDocument[] = [
     {
         id: "SL001",
-        title: "Medical Report 2023",
-        received: "04-15-2023",
+        title: "Medical Report 2025",
+        received: "04-28-2025",
         fileSize: "2.4 MB",
         category: "Medical",
         status: DOCUMENT_STATUS.PENDING,
@@ -129,7 +174,7 @@ const mockPendingDocuments: PendingDocument[] = [
     {
         id: "SL002",
         title: "Insurance Claim Form",
-        received: "04-18-2023",
+        received: "04-29-2025",
         fileSize: "1.2 MB",
         category: "Insurance",
         status: DOCUMENT_STATUS.PENDING,
@@ -137,7 +182,7 @@ const mockPendingDocuments: PendingDocument[] = [
     {
         id: "SL003",
         title: "Patient History",
-        received: "04-20-2023",
+        received: "04-30-2025",
         fileSize: "3.7 MB",
         category: "Medical",
         status: DOCUMENT_STATUS.PENDING,
@@ -147,8 +192,8 @@ const mockPendingDocuments: PendingDocument[] = [
 const mockAssignedDocuments: AssignedDocument[] = [
     {
         id: "SL004",
-        title: "Lab Results 2023",
-        received: "04-22-2023",
+        title: "Lab Results 2025",
+        received: "04-28-2025",
         fileSize: "1.8 MB",
         category: "Medical",
         status: DOCUMENT_STATUS.IN_PROGRESS,
@@ -157,7 +202,7 @@ const mockAssignedDocuments: AssignedDocument[] = [
     {
         id: "SL005",
         title: "Prescription Records",
-        received: "04-25-2023",
+        received: "04-29-2025",
         fileSize: "0.9 MB",
         category: "Pharmacy",
         status: DOCUMENT_STATUS.ON_HOLD,
@@ -169,7 +214,7 @@ const mockAuditDocuments: AuditDocument[] = [
     {
         id: "SL006",
         title: "Annual Checkup Report",
-        received: "04-28-2023",
+        received: "04-29-2025",
         fileSize: "2.1 MB",
         category: "Medical",
         status: DOCUMENT_STATUS.COMPLETED,
@@ -179,7 +224,7 @@ const mockAuditDocuments: AuditDocument[] = [
     {
         id: "SL007",
         title: "Specialist Consultation",
-        received: "05-01-2023",
+        received: "04-30-2025",
         fileSize: "1.5 MB",
         category: "Medical",
         status: DOCUMENT_STATUS.IN_PROGRESS,
@@ -188,22 +233,73 @@ const mockAuditDocuments: AuditDocument[] = [
     },
 ];
 
+const mockCompletedDocuments: CompletedDocument[] = [
+    {
+        id: "SL008",
+        title: "Annual Physical Examination",
+        received: "04-28-2025",
+        fileSize: "2.3 MB",
+        category: "Medical",
+        status: DOCUMENT_STATUS.COMPLETED,
+        startDate: "04-22-2025",
+        endDate: "04-25-2025",
+    },
+    {
+        id: "SL009",
+        title: "Cardiology Consultation",
+        received: "04-29-2025",
+        fileSize: "1.7 MB",
+        category: "Cardiology",
+        status: DOCUMENT_STATUS.COMPLETED,
+        startDate: "04-23-2025",
+        endDate: "04-26-2025",
+    },
+    {
+        id: "SL010",
+        title: "Diabetes Management Plan",
+        received: "04-30-2025",
+        fileSize: "0.8 MB",
+        category: "Endocrinology",
+        status: DOCUMENT_STATUS.COMPLETED,
+        startDate: "04-24-2025",
+        endDate: "",
+    },
+    {
+        id: "SL011",
+        title: "Orthopedic Surgery Report",
+        received: "05-01-2025",
+        fileSize: "3.2 MB",
+        category: "Orthopedics",
+        status: DOCUMENT_STATUS.COMPLETED,
+        startDate: "04-25-2025",
+        endDate: "04-28-2025",
+    },
+];
+
+
+
+// Process completed documents to add age
+const processedCompletedDocuments = mockCompletedDocuments.map((doc) => ({
+    ...doc,
+    age: calculateAge(doc.startDate, doc.endDate),
+}));
+
 // Async Thunks
 export const fetchPendingDocuments = createAsyncThunk<PendingDocument[], void, { rejectValue: string }>(
     "documents/fetchPendingDocuments",
     async (_, { rejectWithValue }) => {
         try {
             // For development, return mock data
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, 1000));
             return mockPendingDocuments;
 
             /*  const response = await fetchData<ApiResponse>("/api/documents/pending")
-             if (response.data.status === "Success") {
-                 return response.data.data as PendingDocument[]
-             } else {
-                 toast.error(response.data.message)
-                 return []
-             } */
+                   if (response.data.status === "Success") {
+                       return response.data.data as PendingDocument[]
+                   } else {
+                       toast.error(response.data.message)
+                       return []
+                   } */
         } catch (error: unknown) {
             if (error instanceof Error) {
                 return rejectWithValue(error.message);
@@ -217,16 +313,15 @@ export const fetchAssignedDocuments = createAsyncThunk<AssignedDocument[], void,
     "documents/fetchAssignedDocuments",
     async (_, { rejectWithValue }) => {
         try {
-
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, 1000));
             return mockAssignedDocuments;
             /* const response = await fetchData<ApiResponse>("/api/documents/assigned")
-            if (response.data.status === "Success") {
-                return response.data.data as AssignedDocument[]
-            } else {
-                toast.error(response.data.message)
-                return []
-            } */
+                  if (response.data.status === "Success") {
+                      return response.data.data as AssignedDocument[]
+                  } else {
+                      toast.error(response.data.message)
+                      return []
+                  } */
         } catch (error: unknown) {
             if (error instanceof Error) {
                 return rejectWithValue(error.message);
@@ -240,21 +335,49 @@ export const fetchAuditDocuments = createAsyncThunk<AuditDocument[], void, { rej
     "documents/fetchAuditDocuments",
     async (_, { rejectWithValue }) => {
         try {
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, 1000));
             return mockAuditDocuments;
 
             /* const response = await fetchData<ApiResponse>("/api/documents/audit")
-            if (response.data.status === "Success") {
-                return response.data.data as AuditDocument[]
-            } else {
-                toast.error(response.data.message)
-                return []
-            } */
+                  if (response.data.status === "Success") {
+                      return response.data.data as AuditDocument[]
+                  } else {
+                      toast.error(response.data.message)
+                      return []
+                  } */
         } catch (error: unknown) {
             if (error instanceof Error) {
                 return rejectWithValue(error.message);
             }
             return rejectWithValue("Failed to fetch audit documents");
+        }
+    },
+);
+
+export const fetchCompletedDocuments = createAsyncThunk<CompletedDocument[], void, { rejectValue: string }>(
+    "documents/fetchCompletedDocuments",
+    async (_, { rejectWithValue }) => {
+        try {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            return processedCompletedDocuments;
+
+            /* const response = await fetchData<ApiResponse>("/api/documents/completed")
+                  if (response.data.status === "Success") {
+                      const documents = response.data.data as CompletedDocument[]
+                      // Process documents to add age
+                      return documents.map(doc => ({
+                        ...doc,
+                        age: calculateAge(doc.startDate, doc.endDate)
+                      }))
+                  } else {
+                      toast.error(response.data.message)
+                      return []
+                  } */
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                return rejectWithValue(error.message);
+            }
+            return rejectWithValue("Failed to fetch completed documents");
         }
     },
 );
@@ -417,14 +540,14 @@ const documentSlice = createSlice({
         setSelectedDocuments: (
             state,
             action: PayloadAction<{
-                tabKey: "pending" | "assigned" | "audit"
+                tabKey: "pending" | "assigned" | "audit" | "completed"
                 documentIds: string[]
             }>,
         ) => {
             const { tabKey, documentIds } = action.payload;
             state.selectedDocuments[tabKey] = documentIds;
         },
-        clearSelectedDocuments: (state, action: PayloadAction<"pending" | "assigned" | "audit">) => {
+        clearSelectedDocuments: (state, action: PayloadAction<"pending" | "assigned" | "audit" | "completed">) => {
             state.selectedDocuments[action.payload] = [];
         },
         setIsAssigning: (state, action: PayloadAction<boolean>) => {
@@ -444,6 +567,11 @@ const documentSlice = createSlice({
             state.auditDocuments.data = [];
             state.auditDocuments.status = FetchStatus.IDLE;
             state.auditDocuments.error = null;
+        },
+        clearCompletedDocuments: (state) => {
+            state.completedDocuments.data = [];
+            state.completedDocuments.status = FetchStatus.IDLE;
+            state.completedDocuments.error = null;
         },
     },
     extraReducers: (builder) => {
@@ -491,6 +619,21 @@ const documentSlice = createSlice({
                 state.auditDocuments.status = FetchStatus.SUCCEEDED;
                 state.auditDocuments.data = action.payload;
             });
+
+        // Completed Documents
+        builder
+            .addCase(fetchCompletedDocuments.pending, (state) => {
+                state.completedDocuments.status = FetchStatus.LOADING;
+                state.completedDocuments.error = null;
+            })
+            .addCase(fetchCompletedDocuments.fulfilled, (state, action: PayloadAction<CompletedDocument[]>) => {
+                state.completedDocuments.status = FetchStatus.SUCCEEDED;
+                state.completedDocuments.data = action.payload;
+            })
+            .addCase(fetchCompletedDocuments.rejected, (state, action) => {
+                state.completedDocuments.status = FetchStatus.FAILED;
+                state.completedDocuments.error = action.payload || "Failed to fetch completed documents";
+            });
     },
 });
 
@@ -504,6 +647,7 @@ export const {
     clearPendingDocuments,
     clearAssignedDocuments,
     clearAuditDocuments,
+    clearCompletedDocuments,
 } = documentSlice.actions;
 
 export default documentSlice.reducer;

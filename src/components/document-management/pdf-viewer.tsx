@@ -21,6 +21,7 @@ import { CheckCircle, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import PdfUI from "../ui/pdfUI";
+import { PreventSaveProvider } from "../layout/prevent-save-provider";
 
 export default function PdfViewer() {
   const { dispatch, selector } = useRedux();
@@ -243,7 +244,9 @@ export default function PdfViewer() {
             } h-full bg-gray-100 relative transition-all duration-300`}
         >
           <div className="h-full max-h-[89.2vh] overflow-auto">
-            <PdfUI url={pdfUrl} />
+            <PreventSaveProvider>
+              <PdfUI url={pdfUrl} />
+            </PreventSaveProvider>
           </div>
 
           <AnimatePresence>

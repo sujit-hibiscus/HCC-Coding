@@ -3,28 +3,25 @@
 import { DataTable } from "@/components/common/data-table/data-table";
 import { Loader } from "@/components/ui/Loader";
 import { useRedux } from "@/hooks/use-redux";
-import { fetchPendingDocuments } from "@/store/slices/table-document-slice";
+import { fetchCompletedDocuments } from "@/store/slices/table-document-slice";
 import { useEffect } from "react";
-import { pendingDocumentColumns } from "./Admin-columns";
-import AssignmentControls from "./Assignment-controls";
-import { analystsData, auditorsData, ChartTab } from "@/lib/types/chartsTypes";
+import { completedDocumentColumns } from "./Admin-columns";
 import { parse } from "date-fns";
 
-export default function PendingDocumentsTable() {
+export default function CompletedDocumentsTable() {
     const { selector, dispatch } = useRedux();
-    const { pendingDocuments } = selector((state) => state.documentTable);
-    const { userType = "" } = selector((state) => state.user);
+    const { completedDocuments } = selector((state) => state.documentTable);
 
-    const sortedDocuments = [...pendingDocuments.data].sort((a, b) => {
+    const sortedDocuments = [...completedDocuments.data].sort((a, b) => {
         const dateA = parse(a.received, "MM-dd-yyyy", new Date());
         const dateB = parse(b.received, "MM-dd-yyyy", new Date());
         return dateB.getTime() - dateA.getTime(); // Descending
     });
     useEffect(() => {
-        dispatch(fetchPendingDocuments());
+        dispatch(fetchCompletedDocuments());
     }, [dispatch]);
 
-    const isLoading = pendingDocuments.status === "loading";
+    const isLoading = completedDocuments.status === "loading";
 
     const tableLoader = (
         <div className="py-8 flex h-[85vh] flex-col items-center justify-center">
@@ -37,16 +34,12 @@ export default function PendingDocumentsTable() {
 
     return (
         <div className="h-full relative">
-
             {isLoading ? (
                 tableLoader
             ) : (
-                <div className="flex  h-full flex-col gap-1">
-                    <div className="flex justify-end pr-2">
-                        <AssignmentControls currentTab={ChartTab.Pending} userType={userType as string} analysts={analystsData} auditors={auditorsData} />
-                    </div>
+                <div className="flex h-full flex-col gap-1">
                     <DataTable
-                        columns={pendingDocumentColumns()}
+                        columns={completedDocumentColumns()}
                         data={sortedDocuments}
                         dateKey="received"
                         onAction={() => { }}
@@ -54,7 +47,7 @@ export default function PendingDocumentsTable() {
                         isRefreshing={isLoading}
                         handleRefresh={() => {
                             setTimeout(() => {
-                                dispatch(fetchPendingDocuments());
+                                dispatch(fetchCompletedDocuments());
                             });
                         }}
                     />

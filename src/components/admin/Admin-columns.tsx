@@ -6,11 +6,13 @@ import {
     DOCUMENT_STATUS,
     type AssignedDocument,
     type AuditDocument,
+    type CompletedDocument,
     type PendingDocument,
 } from "@/store/slices/table-document-slice";
 import type { ColumnDef } from "@tanstack/react-table";
 import { StatusBadge } from "./StatusBadge";
 import { StatusFilter } from "./StatusHeader";
+import { cn } from "@/lib/utils";
 
 const ASSIGNED_STATUSES = {
     PENDING: DOCUMENT_STATUS.PENDING,
@@ -48,8 +50,7 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
         ),
         enableSorting: false,
         enableHiding: false,
-        isDragable: false
-
+        isDragable: false,
     },
     {
         accessorKey: "id",
@@ -57,37 +58,31 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
         cell: ({ row }) => <div className="font-medium">{row.getValue("id")}</div>,
         enableSorting: true,
         enableHiding: false,
-        isDragable: false
+        isDragable: false,
     },
     {
         accessorKey: "title",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Title" />,
         cell: ({ row }) => <div>{row.getValue("title")}</div>,
         enableSorting: true,
-        isDragable: true
+        isDragable: true,
     },
     {
         accessorKey: "received",
         header: ({ column }) => <DataTableColumnHeader searchType="date" column={column} title="Received" />,
-        cell: ({ row }) => <div>{row.getValue("received")}</div>,
+        cell: ({ row }) => <div className="text-center">{row.getValue("received")}</div>,
         enableSorting: true,
-        isDragable: true
+        isDragable: true,
     },
     {
         accessorKey: "fileSize",
-        header: ({ column }) => (
-            <DataTableColumnHeader searchType="text" column={column} title="File Size" />
-        ),
+        header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="File Size" />,
         cell: ({ row }) => {
             const fileSizeRaw = row.getValue<string>("fileSize"); // example: "1.2 MB"
-            const fileSizeNumber = parseFloat(fileSizeRaw); // extracts 1.2
+            const fileSizeNumber = Number.parseFloat(fileSizeRaw); // extracts 1.2
             const isLargeFile = fileSizeNumber > 2;
 
-            return (
-                <div className={isLargeFile ? "text-red-500 font-semibold" : ""}>
-                    {fileSizeRaw}
-                </div>
-            );
+            return <div className={cn(isLargeFile ? "text-red-500 font-semibold" : "", "text-center")}>{fileSizeRaw}</div>;
         },
         enableSorting: true,
         isDragable: true,
@@ -95,16 +90,16 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
     {
         accessorKey: "category",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Category" />,
-        cell: ({ row }) => <div>{row.getValue("category")}</div>,
+        cell: ({ row }) => <div className="text-center">{row.getValue("category")}</div>,
         enableSorting: true,
-        isDragable: true
+        isDragable: true,
     },
     {
         accessorKey: "action",
         header: () => <div className="text-center">Action</div>,
-        cell: () => <div className="text-center">Assign</div>,
+        cell: () => <div className="text-start">Assign</div>,
         enableSorting: false,
-        isDragable: false
+        isDragable: false,
     },
 ];
 
@@ -129,7 +124,7 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
         ),
         enableSorting: false,
         enableHiding: false,
-        isDragable: false
+        isDragable: false,
     },
     {
         accessorKey: "id",
@@ -137,37 +132,31 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
         cell: ({ row }) => <div className="font-medium">{row.getValue("id")}</div>,
         enableSorting: true,
         enableHiding: false,
-        isDragable: false
+        isDragable: false,
     },
     {
         accessorKey: "title",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Title" />,
         cell: ({ row }) => <div>{row.getValue("title")}</div>,
         enableSorting: true,
-        isDragable: true
+        isDragable: true,
     },
     {
         accessorKey: "received",
         header: ({ column }) => <DataTableColumnHeader searchType="date" column={column} title="Received" />,
-        cell: ({ row }) => <div>{row.getValue("received")}</div>,
+        cell: ({ row }) => <div className="text-center">{row.getValue("received")}</div>,
         enableSorting: true,
-        isDragable: true
+        isDragable: true,
     },
     {
         accessorKey: "fileSize",
-        header: ({ column }) => (
-            <DataTableColumnHeader searchType="text" column={column} title="File Size" />
-        ),
+        header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="File Size" />,
         cell: ({ row }) => {
             const fileSizeRaw = row.getValue<string>("fileSize"); // example: "1.2 MB"
-            const fileSizeNumber = parseFloat(fileSizeRaw); // extracts 1.2
+            const fileSizeNumber = Number.parseFloat(fileSizeRaw); // extracts 1.2
             const isLargeFile = fileSizeNumber > 2;
 
-            return (
-                <div className={isLargeFile ? "text-red-500 font-semibold" : ""}>
-                    {fileSizeRaw}
-                </div>
-            );
+            return <div className={cn(isLargeFile ? "text-red-500 font-semibold" : "", "text-center")}>{fileSizeRaw}</div>;
         },
         enableSorting: true,
         isDragable: true,
@@ -175,16 +164,16 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
     {
         accessorKey: "assignedTo",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Assigned To" />,
-        cell: ({ row }) => <div>{row.getValue("assignedTo")}</div>,
+        cell: ({ row }) => <div className="text-center">{row.getValue("assignedTo")}</div>,
         enableSorting: true,
-        isDragable: true
+        isDragable: true,
     },
     {
         accessorKey: "category",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Category" />,
-        cell: ({ row }) => <div>{row.getValue("category")}</div>,
+        cell: ({ row }) => <div className="text-center">{row.getValue("category")}</div>,
         enableSorting: true,
-        isDragable: true
+        isDragable: true,
     },
     {
         accessorKey: "status",
@@ -222,7 +211,8 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
             />
         ),
         enableSorting: false,
-        enableHiding: false, isDragable: false
+        enableHiding: false,
+        isDragable: false,
     },
     {
         accessorKey: "id",
@@ -230,37 +220,31 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
         cell: ({ row }) => <div className="font-medium">{row.getValue("id")}</div>,
         enableSorting: true,
         enableHiding: false,
-        isDragable: false
+        isDragable: false,
     },
     {
         accessorKey: "title",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Title" />,
         cell: ({ row }) => <div>{row.getValue("title")}</div>,
         enableSorting: true,
-        isDragable: true
+        isDragable: true,
     },
     {
         accessorKey: "received",
         header: ({ column }) => <DataTableColumnHeader searchType="date" column={column} title="Received" />,
-        cell: ({ row }) => <div>{row.getValue("received")}</div>,
+        cell: ({ row }) => <div className="text-center">{row.getValue("received")}</div>,
         enableSorting: true,
-        isDragable: true
+        isDragable: true,
     },
     {
         accessorKey: "fileSize",
-        header: ({ column }) => (
-            <DataTableColumnHeader searchType="text" column={column} title="File Size" />
-        ),
+        header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="File Size" />,
         cell: ({ row }) => {
             const fileSizeRaw = row.getValue<string>("fileSize"); // example: "1.2 MB"
-            const fileSizeNumber = parseFloat(fileSizeRaw); // extracts 1.2
+            const fileSizeNumber = Number.parseFloat(fileSizeRaw); // extracts 1.2
             const isLargeFile = fileSizeNumber > 2;
 
-            return (
-                <div className={isLargeFile ? "text-red-500 font-semibold" : ""}>
-                    {fileSizeRaw}
-                </div>
-            );
+            return <div className={cn(isLargeFile ? "text-red-500 font-semibold" : "", "text-center")}>{fileSizeRaw}</div>;
         },
         enableSorting: true,
         isDragable: true,
@@ -268,23 +252,23 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
     {
         accessorKey: "category",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Category" />,
-        cell: ({ row }) => <div>{row.getValue("category")}</div>,
+        cell: ({ row }) => <div className="text-center">{row.getValue("category")}</div>,
         enableSorting: true,
-        isDragable: true
+        isDragable: true,
     },
     {
         accessorKey: "analyst",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Analyst" />,
-        cell: ({ row }) => <div>{row.getValue("analyst")}</div>,
+        cell: ({ row }) => <div className="text-center">{row.getValue("analyst")}</div>,
         enableSorting: true,
-        isDragable: true
+        isDragable: true,
     },
     {
         accessorKey: "auditor",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Auditor" />,
-        cell: ({ row }) => <div>{row.getValue("auditor")}</div>,
+        cell: ({ row }) => <div className="text-center">{row.getValue("auditor")}</div>,
         enableSorting: true,
-        isDragable: true
+        isDragable: true,
     },
     {
         accessorKey: "status",
@@ -299,5 +283,69 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
         filterFn: (row, id, value) => {
             return value.includes(row.getValue(id));
         },
+    },
+];
+
+// Completed Documents Columns
+export const completedDocumentColumns = (): (ColumnDef<CompletedDocument> & { isDragable?: boolean })[] => [
+    {
+        accessorKey: "id",
+        header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="SL #" />,
+        cell: ({ row }) => <div className="font-medium pl-3">{row.getValue("id")}</div>,
+        enableSorting: true,
+        enableHiding: false,
+        isDragable: false,
+    },
+    {
+        accessorKey: "title",
+        header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Title" />,
+        cell: ({ row }) => <div>{row.getValue("title")}</div>,
+        enableSorting: true,
+        isDragable: true,
+    },
+    {
+        accessorKey: "received",
+        header: ({ column }) => <DataTableColumnHeader searchType="date" column={column} title="Received" />,
+        cell: ({ row }) => <div className="text-center">{row.getValue("received")}</div>,
+        enableSorting: true,
+        isDragable: true,
+    },
+    {
+        accessorKey: "fileSize",
+        header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="File Size" />,
+        cell: ({ row }) => {
+            const fileSizeRaw = row.getValue<string>("fileSize"); // example: "1.2 MB"
+            const fileSizeNumber = Number.parseFloat(fileSizeRaw); // extracts 1.2
+            const isLargeFile = fileSizeNumber > 2;
+
+            return <div className={cn(isLargeFile ? "text-red-500 font-semibold" : "", "text-center")}>{fileSizeRaw}</div>;
+        },
+        enableSorting: true,
+        isDragable: true,
+    },
+    {
+        accessorKey: "category",
+        header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Category" />,
+        cell: ({ row }) => <div className="text-center">{row.getValue("category")}</div>,
+        enableSorting: true,
+        isDragable: true,
+    },
+    {
+        accessorKey: "age",
+        header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Age" />,
+        cell: ({ row }) => <div className="text-center">{row.getValue("age") || "N/A"}</div>,
+        enableSorting: true,
+        isDragable: true,
+    },
+    {
+        accessorKey: "status",
+        header: () => <div className="text-center">Status</div>,
+        cell: ({ row }) => (
+            <div>
+                <StatusBadge status={row.getValue("status")} />
+            </div>
+        ),
+        enableSorting: true,
+        isDragable: false,
     },
 ];

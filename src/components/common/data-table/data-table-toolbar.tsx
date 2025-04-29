@@ -13,6 +13,7 @@ import { RefreshCw, X } from "lucide-react";
 import { CalendarDateRangePicker } from "./CalendarDateRangePicker";
 import { DataTableViewOptions } from "./data-table-view-options";
 import { TasksTableToolbarActions } from "./tasks-table-toolbar-actions";
+import { EndDateFilter, StartDateFilter } from "@/lib/utils";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
@@ -43,7 +44,8 @@ function DataTableToolbarComponent<TData>({
 
   const isChangePage = pageSize ? pageSize !== 20 : false || pageIndex ? pageIndex !== 0 : false;
   const isSort = storedFilters?.sorting;
-  const isDateRange = storedFilters?.dateRange?.every((value) => value !== null && value !== undefined);
+  const isDateRange = storedFilters?.dateRange[0] !== StartDateFilter && storedFilters?.dateRange[1] !== EndDateFilter;
+
 
   // Check if any rows are selected
   const hasSelectedRows = Object.keys(table.getState().rowSelection || {}).length > 0;
@@ -65,7 +67,7 @@ function DataTableToolbarComponent<TData>({
     table.resetRowSelection();
 
     table.resetColumnFilters();
-    handleDateRangeChange([null, null]);
+    handleDateRangeChange([StartDateFilter, EndDateFilter],);
     if (invisibleColumnCount > 0) {
       table.getAllColumns().forEach((column) => column.toggleVisibility(true));
     }

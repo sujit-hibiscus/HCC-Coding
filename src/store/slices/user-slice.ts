@@ -6,6 +6,7 @@ export interface AppointmentCounts {
         Pending?: number
         Assigned?: number
         Audit?: number
+        Completed?: number
     }
 }
 
@@ -85,7 +86,8 @@ const initialState: UserState = {
             charts: {
                 Pending: 3,
                 Assigned: 2,
-                Audit: 2
+                Audit: 2,
+                Completed: 4,
             }
         },
         status: "Success",

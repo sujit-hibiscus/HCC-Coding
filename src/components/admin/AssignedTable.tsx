@@ -8,11 +8,18 @@ import { useEffect } from "react";
 import { assignedDocumentColumns } from "./Admin-columns";
 import AssignmentControls from "./Assignment-controls";
 import { analystsData, auditorsData, ChartTab } from "@/lib/types/chartsTypes";
+import { parse } from "date-fns";
 
 export default function AssignedDocumentsTable() {
     const { selector, dispatch } = useRedux();
     const { assignedDocuments } = selector((state) => state.documentTable);
     const { userType = "" } = selector((state) => state.user);
+
+    const sortedDocuments = [...assignedDocuments.data].sort((a, b) => {
+        const dateA = parse(a.received, "MM-dd-yyyy", new Date());
+        const dateB = parse(b.received, "MM-dd-yyyy", new Date());
+        return dateB.getTime() - dateA.getTime(); // Descending
+    });
 
     useEffect(() => {
         dispatch(fetchAssignedDocuments());
@@ -41,7 +48,7 @@ export default function AssignedDocumentsTable() {
 
                     <DataTable
                         columns={assignedDocumentColumns()}
-                        data={assignedDocuments.data}
+                        data={sortedDocuments}
                         dateKey="received"
                         onAction={() => { }}
                         defaultPageSize={20}

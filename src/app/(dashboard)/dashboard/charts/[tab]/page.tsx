@@ -1,14 +1,16 @@
+import type React from "react";
 import AssignedDocumentsTable from "@/components/admin/AssignedTable";
 import AuditDocumentsTable from "@/components/admin/AuditTable";
 import PendingDocumentsTable from "@/components/admin/PendingTable";
 import { ChartTab } from "@/lib/types/chartsTypes";
 import { notFound } from "next/navigation";
+import CompletedDocumentsTable from "@/components/admin/CompletedTable";
 
 type LayoutProps = {
     params: Promise<{
-        tab: string;
-    }>;
-};
+        tab: string
+    }>
+}
 
 // Dynamic metadata function
 export async function generateMetadata({ params }: LayoutProps) {
@@ -17,10 +19,7 @@ export async function generateMetadata({ params }: LayoutProps) {
     const baseUrl = "https://adi-sable.vercel.app/dashboard/charts";
     const imageUrl = "https://images.unsplash.com/photo-1551076803-c50f24c5d0d2";
 
-    const metadataMap: Record<
-        string,
-        { title: string; description: string; openGraph: object }
-    > = {
+    const metadataMap: Record<string, { title: string; description: string; openGraph: object }> = {
         pending: {
             title: "Pending - HCC Coding",
             description: "View and manage all pending charts cases efficiently.",
@@ -80,18 +79,18 @@ export async function generateMetadata({ params }: LayoutProps) {
         },
         completed: {
             title: "Completed - HCC Coding",
-            description: "Analyze and review charts cases before finalization.",
+            description: "View all completed charts cases with processing time.",
             openGraph: {
                 title: "Completed - HCC Coding",
-                description: "Ensure accurate case reviews before proceeding.",
-                url: `${baseUrl}/review`,
+                description: "Review completed cases and their processing times.",
+                url: `${baseUrl}/completed`,
                 siteName: "HCC Coding",
                 images: [
                     {
                         url: imageUrl,
                         width: 1200,
                         height: 630,
-                        alt: "Medical professional reviewing patient data",
+                        alt: "Medical professional reviewing completed patient data",
                     },
                 ],
                 type: "website",
@@ -124,7 +123,6 @@ export async function generateMetadata({ params }: LayoutProps) {
     return metadataMap[tab];
 }
 
-
 const TabPage: React.FC<LayoutProps> = async ({ params }) => {
     const { tab = "" } = await params;
     const tabs = ["pending", "assigned", "audit", "completed"];
@@ -135,7 +133,6 @@ const TabPage: React.FC<LayoutProps> = async ({ params }) => {
 
     return (
         <>
-            {/* <APICallForCharts tab={tab} /> */}
             {tab === ChartTab.Pending ? (
                 <PendingDocumentsTable />
             ) : tab === ChartTab.Assigned ? (
@@ -143,9 +140,8 @@ const TabPage: React.FC<LayoutProps> = async ({ params }) => {
             ) : tab === ChartTab.Audit ? (
                 <AuditDocumentsTable />
             ) : (
-                <>Completed</>
-            )
-            }
+                <CompletedDocumentsTable />
+            )}
         </>
     );
 };
