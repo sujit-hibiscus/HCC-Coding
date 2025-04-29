@@ -304,6 +304,13 @@ export const completedDocumentColumns = (): (ColumnDef<CompletedDocument> & { is
         isDragable: true,
     },
     {
+        accessorKey: "auditor",
+        header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Auditor" />,
+        cell: ({ row }) => <div>{row.getValue("auditor")}</div>,
+        enableSorting: true,
+        isDragable: true,
+    },
+    {
         accessorKey: "received",
         header: ({ column }) => <DataTableColumnHeader searchType="date" column={column} title="Received" />,
         cell: ({ row }) => <div className="text-center">{row.getValue("received")}</div>,
