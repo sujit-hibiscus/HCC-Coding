@@ -1,8 +1,8 @@
-# Project RETRO-CDI (Retro-cdi)
+# Project HCC Coding
 
 ## Overview
 
-Project AADI is a healthcare data project leveraging AI to assist in document improvement. It is built using modern web technologies to ensure efficiency, scalability, and responsiveness.
+Project HCC Coding is a healthcare data project leveraging AI to assist in document improvement. It is built using modern web technologies to ensure efficiency, scalability, and responsiveness.
 
 ## Tech Stack
 
@@ -28,8 +28,8 @@ Ensure you have the following installed:
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-repo/project-aadi.git
-   cd project-aadi
+   git clone https://github.com/your-repo/project-HCC Coding.git
+   cd project-HCC Coding
    ```
 
 2. Install dependencies:

@@ -2,6 +2,7 @@ export enum ChartTab {
     Pending = "pending",
     Assigned = "assigned",
     Audit = "audit",
+    Completed = "completed",
 }
 
 export enum USERTYPES {

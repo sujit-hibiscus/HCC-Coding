@@ -54,6 +54,12 @@ export default function ChartLayout({
             icon: CheckCircle2,
             count: auditDocuments?.data?.length > 0 ? auditDocuments?.data?.length : chartsCounts?.Audit,
         },
+        {
+            value: ChartTab.Completed,
+            label: "Completed",
+            icon: CheckCircle2,
+            count: auditDocuments?.data?.length > 0 ? auditDocuments?.data?.length : chartsCounts?.Audit,
+        },
     ];
 
     useEffect(() => {

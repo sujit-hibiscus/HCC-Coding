@@ -11,7 +11,7 @@ export function Typography({ variant, children, className }: TypographyProps) {
     const baseStyles = "text-foreground";
 
     const variantStyles = {
-        "big-heading": "text-3xl font-extrabold leading-tight sm:text-4xl md:text-5xl lg:text-6xl",
+        "big-heading": "text-xl font-extrabold leading-tight sm:text-3xl md:text-4xl lg:text-4xl",
         heading: "text-xl font-semibold leading-snug sm:text-2xl md:text-3xl",
         subheading: "text-lg font-semibold leading-snug sm:text-xl md:text-2xl",
         body: "text-sm leading-normal sm:text-base md:text-lg",

@@ -27,7 +27,6 @@ import useToast from "@/hooks/use-toast";
 import { cn, logout } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { useState } from "react";
-import NextImage from "../ui/next-image";
 import { ChangePassword } from "./user/change-password";
 
 interface MenuItem {
@@ -108,36 +107,38 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
         // getUserApiCall("/dashboard/add-user");
     };
 
+    const appName = "HCC-Coding";
     return (
         <Sidebar collapsible="icon" className="bg-primary border-r-0 shadow-xl">
             <SidebarHeader className="p-0">
                 <SidebarMenu>
-                    <SidebarMenuItem className="p-0">
-                        <div className="flex justify-between w-full items-center p-2">
+                    <SidebarMenuItem className={`${open ? "p-0" : "py-1"}`}>
+                        {open && <div className="flex justify-between w-full items-center p-2">
                             <div className="flex items-center justify-center w-full">
-                                {open ? (
-                                    <div className="flex items-center justify-between w-full">
-                                        <div className="flex items-center">
-                                            <NextImage height={40} width={60} src="/images/ADI-cropped.svg" alt="hom" />
-                                            <div className="pl-3">
-                                                {["R", "E", "T", "R", "O"]?.map((item, index) => {
-                                                    return <span key={index} className="ml-2 text-2xl leading-7 letter-sp text-selectedText tracking-widest font-semibold">{item}</span>;
-                                                })}
-                                            </div>
 
+                                <div className="flex items-center justify-between w-full">
+                                    <div className="flex items-center">
+                                        {/* <NextImage height={40} width={60} src="/images/ADI-cropped.svg" alt="hom" /> */}
+                                        <div className="pl-3">
+                                            {appName?.split("")?.map((item, index) => {
+                                                return <span key={index} className="ml-[1px] text-2xl leading-7 letter-sp text-selectedText tracking-widest font-semibold">{item}</span>;
+                                            })}
                                         </div>
 
                                     </div>
-                                ) : (
-                                    <div className="flex flex-col items-center">
-                                        <motion.div whileHover={{ scale: 1 }} whileTap={{ scale: 0.95 }} className="mb-2 w-[3rem] cursor-pointer">
-                                            <NextImage height={100} width={100} src="/images/ADI-cropped.svg" alt="hom" />
-                                        </motion.div>
 
-                                    </div>
-                                )}
+                                </div>
+
+                                <>
+                                    {/*    <div className="flex flex-col items-center">
+                                                <motion.div whileHover={{ scale: 1 }} whileTap={{ scale: 0.95 }} className="mb-2 w-[3rem] cursor-pointer">
+                                                    <NextImage height={100} width={100} src="/images/ADI-cropped.svg" alt="hom" />
+                                                </motion.div>
+
+                                            </div> */}
+                                </>
                             </div>
-                        </div>
+                        </div>}
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
@@ -351,6 +352,6 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
 
 
             <SidebarRail />
-        </Sidebar>
+        </Sidebar >
     );
 }

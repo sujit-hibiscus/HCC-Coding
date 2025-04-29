@@ -22,13 +22,13 @@ export async function generateMetadata({ params }: LayoutProps) {
         { title: string; description: string; openGraph: object }
     > = {
         pending: {
-            title: "Pending Charts Cases - AADI",
+            title: "Pending - HCC Coding",
             description: "View and manage all pending charts cases efficiently.",
             openGraph: {
-                title: "Pending charts Cases - AADI",
-                description: "Track and manage pending charts cases seamlessly.",
+                title: "Pending - HCC Coding",
+                description: "Track and manage Pending cases seamlessly.",
                 url: `${baseUrl}/pending`,
-                siteName: "AADI",
+                siteName: "HCC Coding",
                 images: [
                     {
                         url: imageUrl,
@@ -40,33 +40,33 @@ export async function generateMetadata({ params }: LayoutProps) {
                 type: "website",
             },
         },
-        draft: {
-            title: "Draft charts Cases - AADI",
-            description: "Review and edit your saved draft charts cases.",
+        assigned: {
+            title: "Assigned - HCC Coding",
+            description: "Review and edit your saved Assigned charts cases.",
             openGraph: {
-                title: "Draft charts Cases - AADI",
-                description: "Save, edit, and manage your draft charts cases efficiently.",
-                url: `${baseUrl}/draft`,
-                siteName: "AADI",
+                title: "Assigned charts Cases - HCC Coding",
+                description: "Save, edit, and manage your Assigned charts cases efficiently.",
+                url: `${baseUrl}/Assigned`,
+                siteName: "HCC Coding",
                 images: [
                     {
                         url: imageUrl,
                         width: 1200,
                         height: 630,
-                        alt: "Doctor reviewing draft patient cases",
+                        alt: "Doctor reviewing Assigned patient cases",
                     },
                 ],
                 type: "website",
             },
         },
-        review: {
-            title: "charts Review Cases - AADI",
+        audit: {
+            title: "Audit - HCC Coding",
             description: "Analyze and review charts cases before finalization.",
             openGraph: {
-                title: "charts Review Cases - AADI",
+                title: "Audit - HCC Coding",
                 description: "Ensure accurate case reviews before proceeding.",
                 url: `${baseUrl}/review`,
-                siteName: "AADI",
+                siteName: "HCC Coding",
                 images: [
                     {
                         url: imageUrl,
@@ -78,20 +78,20 @@ export async function generateMetadata({ params }: LayoutProps) {
                 type: "website",
             },
         },
-        "provider-review": {
-            title: "Provider Review - AADI",
-            description: "View cases requiring provider review before submission.",
+        completed: {
+            title: "Completed - HCC Coding",
+            description: "Analyze and review charts cases before finalization.",
             openGraph: {
-                title: "Provider Review - AADI",
-                description: "Manage provider reviews and finalize charts cases.",
-                url: `${baseUrl}/provider-review`,
-                siteName: "AADI",
+                title: "Completed - HCC Coding",
+                description: "Ensure accurate case reviews before proceeding.",
+                url: `${baseUrl}/review`,
+                siteName: "HCC Coding",
                 images: [
                     {
                         url: imageUrl,
                         width: 1200,
                         height: 630,
-                        alt: "Doctor reviewing patient documents",
+                        alt: "Medical professional reviewing patient data",
                     },
                 ],
                 type: "website",
@@ -101,13 +101,13 @@ export async function generateMetadata({ params }: LayoutProps) {
 
     if (!metadataMap[tab]) {
         return {
-            title: "charts Management - AADI",
+            title: "Charts - HCC Coding",
             description: "Manage charts cases efficiently with AADI.",
             openGraph: {
-                title: "charts Management - AADI",
-                description: "Streamline charts case management with AADI's secure platform.",
+                title: "charts - HCC Coding",
+                description: "Streamline charts case with HCC Coding's secure platform.",
                 url: baseUrl,
-                siteName: "AADI",
+                siteName: "HCC Coding",
                 images: [
                     {
                         url: imageUrl,
@@ -127,7 +127,7 @@ export async function generateMetadata({ params }: LayoutProps) {
 
 const TabPage: React.FC<LayoutProps> = async ({ params }) => {
     const { tab = "" } = await params;
-    const tabs = ["pending", "assigned", "audit"];
+    const tabs = ["pending", "assigned", "audit", "completed"];
 
     if (!tabs.includes(tab)) {
         notFound();
@@ -143,7 +143,7 @@ const TabPage: React.FC<LayoutProps> = async ({ params }) => {
             ) : tab === ChartTab.Audit ? (
                 <AuditDocumentsTable />
             ) : (
-                <></>
+                <>Completed</>
             )
             }
         </>

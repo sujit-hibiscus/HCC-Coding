@@ -4,6 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import DocumentSkeleton from "@/app/(dashboard)/dashboard/loading";
+import { Typography } from "../ui/Typography";
 
 const LoginIMage = () => {
     const { resolvedTheme } = useTheme();
@@ -28,14 +29,17 @@ const LoginIMage = () => {
                     priority
                 />
             </div>
-            <motion.h1
-                className="text-2xl font-poppins capitalize md:text-[40px] font-bold text-center leading-tight"
+
+            <motion.div
+                className="font-poppins capitalize text-center leading-tight"
                 initial={{ opacity: 0, y: 0 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
             >
-                Retro-CDI
-            </motion.h1>
+                <Typography variant="big-heading">
+                    HCC Coding
+                </Typography>
+            </motion.div>
 
         </div>
     );

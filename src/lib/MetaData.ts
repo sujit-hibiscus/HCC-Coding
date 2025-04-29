@@ -1,7 +1,7 @@
 export const HomePageMetaData = {
-    title: "RETRO",
+    title: "HCC Coding",
     description:
-        "RETRO is a US-based healthcare product that securely manages patient documents and data. Ensure compliance, streamline workflows, and enhance patient care with our advanced document management system.",
+        "HCC Coding is a US-based healthcare product that securely manages patient documents and data. Ensure compliance, streamline workflows, and enhance patient care with our advanced document management system.",
     keywords: [
         "healthcare document management",
         "patient data security",
@@ -13,11 +13,11 @@ export const HomePageMetaData = {
         "US healthcare solutions",
     ],
     openGraph: {
-        title: "RETRO",
+        title: "HCC Coding",
         description:
-            "RETRO is a secure, HIPAA-compliant healthcare document management system designed for hospitals, clinics, and providers. Easily manage patient records and improve data security.",
+            "HCC Coding is a secure, HIPAA-compliant healthcare document management system designed for hospitals, clinics, and providers. Easily manage patient records and improve data security.",
         url: "https://adi-sable.vercel.app",
-        siteName: "RETRO",
+        siteName: "HCC Coding",
         images: [
             {
                 url: "https://yourwebsite.com/path-to-your-healthcare-image.jpg",
@@ -31,7 +31,7 @@ export const HomePageMetaData = {
 };
 
 export const DashboardPageMetaData = {
-    title: "Dashboard - RETRO",
+    title: "Dashboard - HCC Coding",
     description:
         "Access your RETRO dashboard to manage patient documents, track healthcare data, and ensure compliance with HIPAA standards. Secure, efficient, and user-friendly.",
     keywords: [
