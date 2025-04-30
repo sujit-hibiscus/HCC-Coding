@@ -69,8 +69,6 @@ const dashboardSlice = createSlice({
         },
         addTab: (state, action: PayloadAction<Tab>) => {
             state.tabs.forEach((tab) => (tab.active = false));
-            console.log(action.payload, "action.payload");
-
             const existingTab = state.tabs.find((tab) => tab.id === action.payload.id);
 
             if (!existingTab) {

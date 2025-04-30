@@ -11,16 +11,6 @@ import { Calendar, Search } from "lucide-react";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-// Define the Document type with the missing 'status' property
-/* interface Document {
-  id: string
-  name: string
-  assignedAt: string
-  startTime?: number
-  timeSpent?: number
-  status: "pending" | "in_progress" | "on_hold" | "completed"
-} */
-
 export default function DocumentList() {
   const dispatch = useDispatch();
   const { documents, selectedDocumentId } = useSelector((state: RootState) => state.documentManagement);
@@ -41,57 +31,6 @@ export default function DocumentList() {
       default:
         return "bg-slate-100 text-slate-800 border-slate-700";
     }
-  };
-
-  /*  const getFileAge = (doc: Document) => {
-     if (doc.startTime && doc.status === "in_progress") {
-       const elapsedSeconds = Math.floor((Date.now() - doc.startTime) / 1000);
-       return formatTime(elapsedSeconds + (doc.timeSpent || 0));
-     } else if (doc.timeSpent) {
-       return formatTime(doc.timeSpent);
-     }
-     return "Not started";
-   }; */
-
-  /*  const formatTime = (seconds: number) => {
-     const hrs = Math.floor(seconds / 3600);
-     const mins = Math.floor((seconds % 3600) / 60);
-     const secs = seconds % 60;
-     return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-   }; */
-
-  const maskFileName = (name: string): string => {
-    if (!name) return "";
-
-    const parts = name.split(" ");
-    const extension = parts.length > 1 ? parts.pop() : "";
-    const baseName = parts.join(" ");
-
-    if (baseName.length <= 6) {
-      return `${baseName} ${extension}`;
-    }
-
-    const start = baseName.slice(0, 2);
-    const end = baseName.slice(-2);
-
-    const middleIndex = Math.floor(baseName.length / 2);
-    const middle = baseName.slice(middleIndex - 1, middleIndex + 1);
-
-    const generateHash = (str: string, seed: number): string => {
-      let hash = seed;
-      for (let i = 0; i < str.length; i++) {
-        hash = (hash << 5) - hash + str.charCodeAt(i);
-        hash = hash & hash;
-      }
-      return Math.abs(hash).toString(36).substring(0, 4);
-    };
-
-    const hash1 = generateHash(baseName, 1);
-    const hash2 = generateHash(baseName, 2);
-
-    const maskedName = `${start}_${hash1}_${middle}_${hash2}_${end}`;
-
-    return `${maskedName}_${extension}`;
   };
 
 
@@ -144,7 +83,7 @@ export default function DocumentList() {
 
                   <div className="flex justify-between items-start gap-2">
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-medium text-sm truncate">{maskFileName(doc.name)}</h3>
+                      <h3 className="font-medium text-sm truncate">{doc.name}</h3>
                       <TooltipProvider>
                         <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                           {/* Assigned Date Tooltip */}
@@ -159,19 +98,6 @@ export default function DocumentList() {
                               Assigned: {new Date(doc.assignedAt).toLocaleDateString()}
                             </TooltipContent>
                           </Tooltip>
-
-                          {/* File Age Tooltip */}
-                          {/* <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center cursor-default">
-                                <Clock className="h-3 w-3 mr-1" />
-                                {getFileAge(doc)}
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="text-xs">
-                              File age: {getFileAge(doc)}
-                            </TooltipContent>
-                          </Tooltip> */}
                         </div>
                       </TooltipProvider>
                     </div>

@@ -61,7 +61,6 @@ const tableFiltersSlice = createSlice({
             const { tabKey, filters } = action.payload;
 
             if (!state[tabKey]) {
-                console.log("🚀 ~ inside filters:", filters);
                 state[tabKey] = {
                     columnFilters: [],
                     sorting: [],

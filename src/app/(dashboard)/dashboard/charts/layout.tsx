@@ -8,8 +8,8 @@ import type { Tab } from "@/lib/types/dashboardTypes";
 import { updateTab } from "@/store/slices/DashboardSlice";
 
 import { Button } from "@/components/ui/button";
-import useToast from "@/hooks/use-toast";
 import { ChartTab } from "@/lib/types/chartsTypes";
+import { autoAssign } from "@/store/slices/documentManagementSlice";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, Clock, FileEdit, LoaderCircle, Sparkles } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
@@ -35,7 +35,6 @@ export default function ChartLayout({
     const chartsCounts = appointmentCounts?.data?.charts;
     const tabCountLoading = appointmentCounts?.status;
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { success } = useToast();
 
     const { pendingDocuments, assignedDocuments, auditDocuments, completedDocuments } = selector((state) => state.documentTable);
 
@@ -84,13 +83,19 @@ export default function ChartLayout({
         router.push(targetHref);
     };
 
-    const handleAutoAssign = () => {
+    const handleAutoAssign = async () => {
         setIsSubmitting(true);
-        setTimeout(() => {
+
+
+        const resultAction = await dispatch(autoAssign());;
+        if (autoAssign.fulfilled.match(resultAction)) {
+            setIsSubmitting(false);
+        }
+        /* setTimeout(() => {
             setIsSubmitting(false);
             success({ message: "Chart Assigned Successfully!" });
 
-        }, 2000);
+        }, 2000); */
     };
 
     return (

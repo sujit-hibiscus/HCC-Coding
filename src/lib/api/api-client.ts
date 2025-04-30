@@ -1,4 +1,4 @@
-import store, { resetReduxStore } from "@/store";
+import { resetReduxStore } from "@/store";
 import toast from "react-hot-toast";
 import { logout } from "../utils";
 
@@ -70,18 +70,18 @@ const getCookie = (name: string): string | null => {
 };
 
 const createFetchClient = () => {
-    const baseURL = "http://localhost:3000/";
+    const baseURL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000/api";
     const defaultTimeout = 30000;
 
     const requestInterceptor = (options: ExtendedRequestInit): ExtendedRequestInit => {
         if (typeof window !== "undefined") {
-            const token = TokenManager.getToken() || store.getState().user.token;
-            if (token) {
-                options.headers = {
-                    ...options.headers,
-                    Authorization: `Bearer ${token}`
-                };
-            }
+            /*  const token = TokenManager.getToken() || store.getState().user.token;
+             if (token) {
+                 options.headers = {
+                     ...options.headers,
+                     Authorization: `Bearer ${token}`
+                 };
+             } */
         }
         return {
             ...options,

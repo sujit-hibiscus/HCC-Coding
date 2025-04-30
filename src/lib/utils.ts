@@ -1,5 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
-import { endOfWeek, format, parseISO, startOfWeek } from "date-fns";
+import { endOfWeek, format, isMatch, parseISO, startOfWeek } from "date-fns";
 import { redirect } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 
@@ -8,6 +8,49 @@ export const EndDateFilter = endOfWeek(new Date(), { weekStartsOn: 1 });
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+export const maskFileName = (name: string): string => {
+  if (!name) return "";
+
+  const parts = name.split(" ");
+  const extension = parts.length > 1 ? parts.pop() : "";
+  const baseName = parts.join(" ");
+
+  if (baseName.length <= 6) {
+    return `${baseName} ${extension}`;
+  }
+
+  const start = baseName.slice(0, 2);
+  const end = baseName.slice(-2);
+
+  const middleIndex = Math.floor(baseName.length / 2);
+  const middle = baseName.slice(middleIndex - 1, middleIndex + 1);
+
+  const generateHash = (str: string, seed: number): string => {
+    let hash = seed;
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash << 5) - hash + str.charCodeAt(i);
+      hash = hash & hash;
+    }
+    return Math.abs(hash).toString(36).substring(0, 4);
+  };
+
+  const hash1 = generateHash(baseName, 1);
+  const hash2 = generateHash(baseName, 2);
+
+  const maskedName = `${start}_${hash1}_${middle}_${hash2}_${end}`;
+
+  return `${maskedName}_${extension}`;
+};
+
+export function formatToMMDDYYYYIfNeeded(dateStr: string): string {
+  if (isMatch(dateStr, "MM-dd-yyyy")) {
+    return dateStr;
+  }
+
+  const date = parseISO(dateStr);
+  return format(date, "MM-dd-yyyy");
 }
 
 

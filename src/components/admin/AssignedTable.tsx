@@ -16,8 +16,8 @@ export default function AssignedDocumentsTable() {
     const { userType = "" } = selector((state) => state.user);
 
     const sortedDocuments = [...assignedDocuments.data].sort((a, b) => {
-        const dateA = parse(a.received, "MM-dd-yyyy", new Date());
-        const dateB = parse(b.received, "MM-dd-yyyy", new Date());
+        const dateA = parse(a.assignedDate, "MM-dd-yyyy", new Date());
+        const dateB = parse(b.assignedDate, "MM-dd-yyyy", new Date());
         return dateB.getTime() - dateA.getTime(); // Descending
     });
 

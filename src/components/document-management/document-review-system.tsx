@@ -1,7 +1,7 @@
 "use client";
 
 import DocumentList from "@/components/document-management/document-list";
-import { fetchDocuments, recalculateDocumentTimes } from "@/store/slices/documentManagementSlice";
+import { recalculateDocumentTimes } from "@/store/slices/documentManagementSlice";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import PdfViewer from "./pdf-viewer";
@@ -10,8 +10,6 @@ export default function DocumentReviewSystem() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    dispatch(fetchDocuments() as any);
     dispatch(recalculateDocumentTimes());
     const interval = setInterval(() => {
       dispatch(recalculateDocumentTimes());

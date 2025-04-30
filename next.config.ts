@@ -1,8 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  poweredByHeader: false,
-  trailingSlash: false,
+  /* config options here */
 };
 
 export default nextConfig;

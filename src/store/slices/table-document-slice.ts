@@ -27,12 +27,14 @@ export interface PendingDocument extends DocumentBase {
 }
 
 export interface AssignedDocument extends DocumentBase {
-    assignedTo: string
+    assignedTo: string;
+    assignedDate: string;
 }
 
 export interface AuditDocument extends DocumentBase {
     analyst: string
     auditor: string
+    endDate: string;
 }
 
 export interface CompletedDocument extends DocumentBase {
@@ -200,6 +202,7 @@ const mockAssignedDocuments: AssignedDocument[] = [
         category: "Medical",
         status: DOCUMENT_STATUS.IN_PROGRESS,
         assignedTo: "John Doe",
+        assignedDate: "04-12-2025",
     },
     {
         id: "SL005",
@@ -209,6 +212,7 @@ const mockAssignedDocuments: AssignedDocument[] = [
         category: "Pharmacy",
         status: DOCUMENT_STATUS.ON_HOLD,
         assignedTo: "Jane Smith",
+        assignedDate: "04-13-2025",
     },
 ];
 
@@ -217,6 +221,7 @@ const mockAuditDocuments: AuditDocument[] = [
         id: "SL006",
         title: "Annual Checkup Report",
         received: "04-29-2025",
+        endDate: "04-20-2025",
         fileSize: "2.1 MB",
         category: "Medical",
         status: DOCUMENT_STATUS.COMPLETED,
@@ -229,6 +234,7 @@ const mockAuditDocuments: AuditDocument[] = [
         received: "04-30-2025",
         fileSize: "1.5 MB",
         category: "Medical",
+        endDate: "04-22-2025",
         status: DOCUMENT_STATUS.IN_PROGRESS,
         analyst: "Jane Smith",
         auditor: "Mike Wilson",

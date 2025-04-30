@@ -169,6 +169,13 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
         isDragable: true,
     },
     {
+        accessorKey: "assignedDate",
+        header: ({ column }) => <DataTableColumnHeader searchType="date" column={column} title="Assigned Date" />,
+        cell: ({ row }) => <div className="text-center">{row.getValue("assignedDate")}</div>,
+        enableSorting: true,
+        isDragable: true,
+    },
+    {
         accessorKey: "category",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Category" />,
         cell: ({ row }) => <div className="text-center">{row.getValue("category")}</div>,
@@ -267,6 +274,13 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
         accessorKey: "auditor",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Auditor" />,
         cell: ({ row }) => <div className="text-center">{row.getValue("auditor")}</div>,
+        enableSorting: true,
+        isDragable: true,
+    },
+    {
+        accessorKey: "endDate",
+        header: ({ column }) => <DataTableColumnHeader searchType="date" column={column} title="End Date" />,
+        cell: ({ row }) => <div className="text-center">{row.getValue("endDate")}</div>,
         enableSorting: true,
         isDragable: true,
     },

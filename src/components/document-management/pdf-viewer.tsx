@@ -9,15 +9,14 @@ import { useRedux } from "@/hooks/use-redux";
 import { SubmissionFormSchema, type SubmissionFormData } from "@/lib/schemas";
 import type { RootState } from "@/store";
 import {
-  completeReview,
+  completeReviewWithAPI,
+  fetchDocuments,
   resumeReview,
-  startReview,
-  startTimer,
-  stopTimer,
+  startReviewWithApi,
   updateElapsedTime,
 } from "@/store/slices/documentManagementSlice";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle, Play } from "lucide-react";
+import { CheckCircle, Loader2, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import PdfUI from "../ui/pdfUI";
@@ -28,7 +27,9 @@ export default function PdfViewer() {
   const { documents, selectedDocumentId, isRunning } = useSelector((state: RootState) => state.documentManagement);
   const { userType } = selector((state) => state.user);
 
-  const selectedDocument = documents?.filter(item => item?.status !== "completed").find((doc) => doc.id === selectedDocumentId);
+  const selectedDocument = documents
+    ?.filter((item) => item?.status !== "completed")
+    .find((doc) => doc.id === selectedDocumentId);
 
   const [showControls, setShowControls] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -51,6 +52,8 @@ export default function PdfViewer() {
   }>({});
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isStartingReview, setIsStartingReview] = useState(false);
+  const [isCompletingReview, setIsCompletingReview] = useState(false);
 
   useEffect(() => {
     if (selectedDocument) {
@@ -116,32 +119,46 @@ export default function PdfViewer() {
   if (!selectedDocument) {
     return (
       <div className="h-full flex items-center justify-center">
-        <p className="text-muted-foreground text-xl font-medium">Select a document to review</p>
+        <p className="text-muted-foreground text-xl font-medium">
+          {!(documents?.length > 0) ? "No Document available!" : "Select a document to review"}
+        </p>
       </div>
     );
   }
 
-  const handleStart = () => {
-    dispatch(startReview(selectedDocument.id));
-    dispatch(startTimer());
-    setShowControls(true);
+  const handleStart = async () => {
+    setIsStartingReview(true);
+    try {
+      const resultAction = await dispatch(startReviewWithApi(selectedDocument));
+      if (startReviewWithApi.fulfilled.match(resultAction)) {
+        dispatch(fetchDocuments());
+        setShowControls(true);
+      }
+    } catch (error) {
+      console.error("Error starting review:", error);
+    } finally {
+      setIsStartingReview(false);
+    }
   };
 
   const handleResume = () => {
-    dispatch(resumeReview(selectedDocument.id));
-    dispatch(startTimer());
-    setShowControls(true);
+    setIsStartingReview(true);
+    try {
+      dispatch(resumeReview(selectedDocument.id));
+      setShowControls(true);
+    } catch (error) {
+      console.error("Error resuming review:", error);
+    } finally {
+      setIsStartingReview(false);
+    }
   };
 
   const handleComplete = () => {
     if (userType === "Auditor") {
       setShowSidebar(true);
-
-      dispatch(stopTimer());
     } else {
-      dispatch(completeReview(selectedDocument.id));
-      dispatch(stopTimer());
-      setShowControls(false);
+      setIsCompletingReview(true);
+      submitChartApiCall();
     }
   };
 
@@ -163,6 +180,21 @@ export default function PdfViewer() {
     return true;
   };
 
+  const submitChartApiCall = async () => {
+    setIsCompletingReview(true);
+    try {
+      const resultAction = await dispatch(completeReviewWithAPI(selectedDocument));
+      if (completeReviewWithAPI.fulfilled.match(resultAction)) {
+        dispatch(fetchDocuments());
+        setShowControls(false);
+      }
+    } catch (error) {
+      console.error("Error completing review:", error);
+    } finally {
+      setIsCompletingReview(false);
+    }
+  };
+
   const submitReview = () => {
     setIsSubmitting(true);
 
@@ -171,9 +203,7 @@ export default function PdfViewer() {
       return;
     }
 
-    dispatch(completeReview(selectedDocument.id));
-    dispatch(stopTimer());
-    setShowControls(false);
+    submitChartApiCall();
 
     setFormData({
       codesMissed: [],
@@ -184,54 +214,7 @@ export default function PdfViewer() {
 
     setShowSidebar(false);
     setIsSubmitting(false);
-
-    // API call would go here (commented out)
-    /*
-    const submitData = async () => {
-      try {
-        const response = await fetch('/api/document-review', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            documentId: selectedDocument.id,
-            reviewData: formData
-          }),
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to submit review');
-        }
-        
-        const data = await response.json();
-        console.log('Review submitted successfully:', data);
-      } catch (error) {
-        console.error('Error submitting review:', error);
-      }
-    };
-    
-    submitData();
-    */
   };
-
-  /* const handleCancel = () => {
-    setShowSidebar(false);
-
-    // Resume the timer if document is still in progress
-    if (selectedDocument.status === "in_progress") {
-      dispatch(startTimer());
-    }
-
-    // Reset form data and errors
-    setFormData({
-      codesMissed: [],
-      codesCorrected: [],
-      auditRemarks: "",
-      rating: 0,
-    });
-    setFormErrors({});
-  }; */
 
   const pdfUrl = selectedDocument.url || "/pdf/medical_report_user_1.pdf";
 
@@ -243,7 +226,7 @@ export default function PdfViewer() {
           className={`${userType === "Auditor" && showSidebar ? "w-full md:w-full" : "w-full"
             } h-full bg-gray-100 relative transition-all duration-300`}
         >
-          <div className={`h-full  overflow-auto ${userType === "Auditor" ? "" : "max-h-[89.2vh]"}`}>
+          <div className={`h-full overflow-auto ${userType === "Auditor" ? "" : "max-h-[89.2vh]"}`}>
             <PreventSaveProvider>
               <PdfUI url={pdfUrl} />
             </PreventSaveProvider>
@@ -259,47 +242,60 @@ export default function PdfViewer() {
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
               >
-                <motion.div whileHover={{ scale: 1.1 }}>
+                <motion.div whileHover={{ scale: isStartingReview ? 1 : 1.1 }}>
                   <Button
                     size="lg"
                     className="rounded-full w-16 h-16 mb-4 group"
                     onClick={() => {
                       if (userType === "Auditor") {
-
                         setShowSidebar(true);
-                        dispatch(stopTimer());
                         if (selectedDocument.status === "on_hold") {
                           handleResume();
                         } else {
                           handleStart();
-                        };
+                        }
                       } else {
                         if (selectedDocument.status === "on_hold") {
                           handleResume();
                         } else {
                           handleStart();
-                        };
+                        }
                       }
                     }}
+                    disabled={isStartingReview}
                   >
                     <motion.div
                       className="flex items-center justify-center"
                       initial={{ scale: 1 }}
-                      whileHover={{ scale: 1.2 }}
+                      whileHover={{ scale: isStartingReview ? 1 : 1.2 }}
                       transition={{ duration: 0.3, ease: "easeOut" }}
                     >
-                      <Play
-                        className="text-white transition-all duration-300 ease-in-out"
-                        style={{
-                          height: "2rem",
-                          width: "2rem",
-                        }}
-                      />
+                      {isStartingReview ? (
+                        <Loader2
+                          className="text-white animate-spin"
+                          style={{
+                            height: "2rem",
+                            width: "2rem",
+                          }}
+                        />
+                      ) : (
+                        <Play
+                          className="text-white transition-all duration-300 ease-in-out"
+                          style={{
+                            height: "2rem",
+                            width: "2rem",
+                          }}
+                        />
+                      )}
                     </motion.div>
                   </Button>
                 </motion.div>
                 <p className="text-white font-medium">
-                  {selectedDocument.status === "on_hold" ? "Resume Review" : "Start Review"}
+                  {isStartingReview
+                    ? "Starting..."
+                    : selectedDocument.status === "on_hold"
+                      ? "Resume Review"
+                      : "Start Review"}
                 </p>
               </motion.div>
             )}
@@ -322,7 +318,6 @@ export default function PdfViewer() {
                 velocity: 2,
               }}
             >
-
               <h3 className="text-lg font-semibold mb-4">Audit Review</h3>
 
               <div className="flex flex-col justify-between h-full">
@@ -335,7 +330,10 @@ export default function PdfViewer() {
                       placeholder="Add codes that were missed..."
                       value={formData.codesMissed}
                       onChange={(newValue) =>
-                        setFormData((prev) => ({ ...prev, codesMissed: newValue as { value: string; label: string }[] }))
+                        setFormData((prev) => ({
+                          ...prev,
+                          codesMissed: newValue as { value: string; label: string }[],
+                        }))
                       }
                     />
                     {formErrors.codesMissed && !(formData.codesMissed?.length > 0) && (
@@ -387,15 +385,15 @@ export default function PdfViewer() {
                     />
                     {formErrors.rating && <p className="text-xs text-red-500 mt-1">{formErrors.rating}</p>}
                   </div>
-
                 </div>
                 <div className="flex justify-end gap-3">
-                  {/*   <Button variant="outline" onClick={handleCancel} type="button">
-                    Cancel
-                  </Button> */}
-                  <Button onClick={submitReview} disabled={isSubmitting} type="submit">
-                    <CheckCircle className="mr-1" />
-                    {isSubmitting ? "Submitting..." : "Submit Review"}
+                  <Button onClick={submitReview} disabled={isSubmitting || isCompletingReview} type="submit">
+                    {isSubmitting || isCompletingReview ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                    )}
+                    {isSubmitting || isCompletingReview ? "Submitting..." : "Submit Review"}
                   </Button>
                 </div>
               </div>
@@ -404,16 +402,22 @@ export default function PdfViewer() {
         </AnimatePresence>
       </div>
 
-      {showControls && userType !== "Auditor" && <div className="p-1.5 pr-3 border-t">
-        <div className="flex justify-end gap-2">
-          {selectedDocument.status !== "completed" && !showSidebar && (
-            <Button onClick={handleComplete}>
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Submit
-            </Button>
-          )}
+      {showControls && userType !== "Auditor" && (
+        <div className="p-1.5 pr-3 border-t">
+          <div className="flex justify-end gap-2">
+            {selectedDocument.status !== "completed" && !showSidebar && (
+              <Button onClick={handleComplete} disabled={isCompletingReview}>
+                {isCompletingReview ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                )}
+                {isCompletingReview ? "Submitting..." : "Submit"}
+              </Button>
+            )}
+          </div>
         </div>
-      </div>}
+      )}
     </div>
   );
 }

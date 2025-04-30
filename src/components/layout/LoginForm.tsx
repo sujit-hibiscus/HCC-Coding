@@ -16,6 +16,7 @@ import { useState } from "react";
 import { useApiCall } from "../common/ApiCall";
 import { ForgotPassword } from "../common/user/forgot-password";
 import { addTab } from "@/store/slices/DashboardSlice";
+import { fetchDocuments } from "@/store/slices/documentManagementSlice";
 
 export default function LoginForm() {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -72,6 +73,12 @@ export default function LoginForm() {
                         resolve();
                         getLoginMasterData();
                     }, 500);
+
+                    if (response.userType?.toLowerCase()?.includes("admin")) {
+                        /* Get All different stages charts */
+                    } else {
+                        dispatch(fetchDocuments());
+                    }
                 } else {
                     dispatch(setError(response.error || "Login failed"));
                     reject(new Error(response.error || "Invalid email or password. Please try again."));
