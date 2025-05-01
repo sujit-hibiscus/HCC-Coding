@@ -339,7 +339,7 @@ export const fetchPendingDocuments = createAsyncThunk<PendingDocument[], void, {
                 const response = apiRes?.data?.map((item) => {
                     return {
                         id: String(item.id),
-                        title: item.title,
+                        title: item.title?.replace(/^dev-/, ""),
                         received: formatToMMDDYYYYIfNeeded(item.received_date),
                         fileSize: `${item.file_size} KB`,
                         category: "Medical",
@@ -390,7 +390,7 @@ export const fetchAssignedDocuments = createAsyncThunk<AssignedDocument[], void,
                 const response = apiRes?.data?.map((item) => {
                     return {
                         id: item?.id.toString(),
-                        title: item?.title,
+                        title: item?.title?.replace(/^dev-/, ""),
                         received: formatToMMDDYYYYIfNeeded(item?.received_date),
                         fileSize: `${item.file_size} KB`,
                         category: "Medical",
@@ -463,7 +463,7 @@ export const fetchAuditDocuments = createAsyncThunk<AuditDocument[], void, { rej
                     console.log("🚀 ~ response ~ item:", item);
                     return {
                         id: item?.id.toString(),
-                        title: item?.title,
+                        title: item?.title?.replace(/^dev-/, ""),
                         received: item?.received_date ? formatToMMDDYYYYIfNeeded(item?.received_date) : "",
                         endDate: item?.end_date ? formatToMMDDYYYYIfNeeded(item?.received_date) : "",
                         fileSize: `${item.file_size} KB`,
