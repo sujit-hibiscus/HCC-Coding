@@ -1,6 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
 import { endOfWeek, format, isMatch, parseISO, startOfWeek } from "date-fns";
-import { redirect } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 
 export const StartDateFilter = startOfWeek(new Date(), { weekStartsOn: 1 }); // week starts on Monday
@@ -86,24 +85,4 @@ export const DateToFormattedDate = (date: Date): string => {
     return "";
   }
 };
-
-
-
-
-export async function logout() {
-  try {
-    const response = await fetch("/api/logout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    });
-
-    if (response.ok) {
-      redirect("/");
-    } else {
-      console.error("Logout failed");
-    }
-  } catch (error) {
-    console.error("Logout error:", error);
-  }
-}
 
