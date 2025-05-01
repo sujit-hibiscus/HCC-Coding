@@ -60,7 +60,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
             )}
         >
             <span className="text-[0.5rem]">{config.icon}</span>
-            {status}
+            {status?.toLowerCase() === "error" ? "Closed" : status}
         </Badge>
     );
 }

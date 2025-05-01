@@ -314,11 +314,11 @@ interface pendingApiResponse {
 }
 
 const statusByIndex: DOCUMENT_STATUS[] = [
-    DOCUMENT_STATUS.PENDING,
-    DOCUMENT_STATUS.IN_PROGRESS,
-    DOCUMENT_STATUS.ON_HOLD,
-    DOCUMENT_STATUS.COMPLETED,
-    DOCUMENT_STATUS.ERROR,
+    DOCUMENT_STATUS.PENDING,//0
+    DOCUMENT_STATUS.IN_PROGRESS, //1
+    DOCUMENT_STATUS.ON_HOLD, //2
+    DOCUMENT_STATUS.COMPLETED, //3
+    DOCUMENT_STATUS.ERROR,// 4
 ];
 
 const getDocumentStatusFromNumber = (num: number): DOCUMENT_STATUS | undefined => {
@@ -460,6 +460,7 @@ export const fetchAuditDocuments = createAsyncThunk<AuditDocument[], void, { rej
 
             if (apiRes.status === "Success") {
                 const response = apiRes.data.map((item) => {
+                    console.log("🚀 ~ response ~ item:", item);
                     return {
                         id: item?.id.toString(),
                         title: item?.title,
