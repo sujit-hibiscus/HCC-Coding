@@ -17,6 +17,7 @@ export default function DocumentList() {
 
   const filteredDocuments = documents.filter((doc: { name: string; }) => doc.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
+  console.log("🚀 ~ DocumentList ~ documents:", documents);
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":

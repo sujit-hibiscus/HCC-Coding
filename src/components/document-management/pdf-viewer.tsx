@@ -31,7 +31,7 @@ export default function PdfViewer() {
     documents,
     selectedDocumentId,
     isRunning,
-    pdfUrl,
+    pdfUrl = "",
     pdfLoading,
     formData: allFormData,
   } = selector((state: RootState) => state.documentManagement);
@@ -310,9 +310,10 @@ export default function PdfViewer() {
               </div>
             ) : (
               <PreventSaveProvider>
-                <PdfUI url={pdfUrl as string} />
+                {(pdfUrl as string)?.length > 0 ? <PdfUI url={pdfUrl as string} /> : <div className="h-full w-full flex justify-center items-center">{"No Document available"}</div>}
               </PreventSaveProvider>
             )}
+
           </div>
 
           <AnimatePresence>
