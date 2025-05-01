@@ -23,6 +23,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle, Loader2, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import PdfUI from "../ui/pdfUI";
+import { PreventSaveProvider } from "../layout/prevent-save-provider";
 
 export default function PdfViewer() {
   const { dispatch, selector } = useRedux();
@@ -309,9 +310,9 @@ export default function PdfViewer() {
               </div>
             ) : (
               <>
-                <PdfUI url={pdfUrl as string} />
-                {/* <PreventSaveProvider>
-              </PreventSaveProvider> */}
+                <PreventSaveProvider>
+                  <PdfUI url={pdfUrl as string} />
+                </PreventSaveProvider>
               </>
             )}
           </div>

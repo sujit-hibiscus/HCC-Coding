@@ -5,7 +5,7 @@ import { useRedux } from "@/hooks/use-redux";
 import { loadDashboardData, resetDashboard, setDashboardData, setDateRange } from "@/store/slices/dashboard-filters-3";
 import { motion } from "framer-motion";
 import { toPng } from "html-to-image";
-import { Download, RotateCcw } from "lucide-react";
+import { Download, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { AnalystTable } from "./analyst-table";
 import { ChartsAuditsChart } from "./charts-audits-chart";
@@ -78,14 +78,9 @@ export function AdminDashboard() {
         <h1 className="text-2xl font-bold">{userType} Dashboard</h1>
         <div className="flex flex-wrap items-center gap-2">
           {filtersApplied && (
-            <Button
-              variant="outline"
-              onClick={handleResetFilters}
-              size="sm"
-              className="text-red-600 border-red-200 hover:bg-red-50"
-            >
-              <RotateCcw className="mr-1 h-3.5 w-3.5" />
-              Reset
+            <Button variant="blue" onClick={handleResetFilters} className="h-8 px-2 lg:px-3">
+              <span className="hidden md:inline-block">Reset</span>
+              <X className="md:ml-2 h-4 w-4" />
             </Button>
           )}
           <DateRangePicker dateRange={dateRange} onChange={handleDateRangeChange} />
