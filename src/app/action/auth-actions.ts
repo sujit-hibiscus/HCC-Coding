@@ -30,23 +30,23 @@ export async function logoutAction() {
 
 const mockCredentials = {
     analyst: {
-        email: "analyst.sujit@mailinator.com",
-        password: "test@123",
+        email: "kavita@homrcm.com",
+        password: "Kavita@123",
         userType: "Analyst",
     },
     auditor: {
-        email: "auditor.sujit@mailinator.com",
-        password: "test@123",
+        email: "sandeep@homrcm.com",
+        password: "Sandeep@123",
         userType: "Auditor",
     },
     admin: {
-        email: "admin.sujit@mailinator.com",
-        password: "test@123",
+        email: "admin@homrcm.com",
+        password: "admin@123",
         userType: "Admin",
     },
     superAdmin: {
-        email: "super.admin.sujit@mailinator.com",
-        password: "test@123",
+        email: "super.admin@homrcm.com",
+        password: "admin@123",
         userType: "Super Admin",
     },
 };
