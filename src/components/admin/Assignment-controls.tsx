@@ -151,7 +151,7 @@ export default function AssignmentControls({ currentTab, userType, analysts, aud
         <div className="flex items-center gap-4 ml-auto">
             <div className="relative w-[250px]">
                 <Select value={selectedValue} onValueChange={setSelectedValue}>
-                    <SelectTrigger className="w-full pr-8">
+                    <SelectTrigger className="w-full rounded-sm pr-8">
                         <SelectValue placeholder={placeholder} />
                     </SelectTrigger>
                     <SelectContent>
