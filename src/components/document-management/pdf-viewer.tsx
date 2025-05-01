@@ -309,11 +309,9 @@ export default function PdfViewer() {
                 <span className="ml-2 text-lg font-medium">Loading PDF...</span>
               </div>
             ) : (
-              <>
-                <PreventSaveProvider>
-                  <PdfUI url={pdfUrl as string} />
-                </PreventSaveProvider>
-              </>
+              <PreventSaveProvider>
+                <PdfUI url={pdfUrl as string} />
+              </PreventSaveProvider>
             )}
           </div>
 

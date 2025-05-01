@@ -420,6 +420,13 @@ interface AuditTo {
     last_name: string;
 }
 
+
+export interface Assignment {
+    first_name: string;
+    last_name: string;
+    assigned_date: string; // ISO timestamp string
+}
+
 interface auditItem {
     id: number;
     title: string;
@@ -428,8 +435,8 @@ interface auditItem {
     received_date: string;
     assigned_to: AuditTo;
     assigned_date: string;
-    analyst: string;
-    auditor: string;
+    analyst_assignments: Assignment[];
+    auditor_assignments: Assignment[];
     end_date: string;
 }
 
@@ -469,8 +476,8 @@ export const fetchAuditDocuments = createAsyncThunk<AuditDocument[], void, { rej
                         fileSize: `${item.file_size} KB`,
                         category: "Medical",
                         status: getDocumentStatusFromNumber(item.status) || DOCUMENT_STATUS.PENDING,
-                        analyst: item?.analyst,
-                        auditor: item?.auditor,
+                        analyst: `${item?.analyst_assignments[0]?.first_name} ${item?.analyst_assignments[0]?.last_name}` || "",
+                        auditor: `${item?.auditor_assignments[0]?.first_name} ${item?.auditor_assignments[0]?.last_name}` || "",
                     };
                 });
                 return response;
