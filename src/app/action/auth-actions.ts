@@ -13,6 +13,21 @@ export interface LoginResponse {
     message: string
 }
 
+
+export async function logoutAction() {
+    const cookieStore = cookies();
+    (await cookieStore).set("authToken", "", {
+        httpOnly: true,
+        expires: new Date(0),
+        path: "/",
+    });
+    (await cookieStore).set("userType", "", {
+        httpOnly: true,
+        expires: new Date(0),
+        path: "/",
+    });
+}
+
 const mockCredentials = {
     analyst: {
         email: "analyst.sujit@mailinator.com",

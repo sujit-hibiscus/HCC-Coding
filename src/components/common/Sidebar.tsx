@@ -5,6 +5,7 @@ import { ChevronRight, FileText, Key, Laptop, LayoutDashboard, LogOut, Moon, Set
 import { usePathname, useRouter } from "next/navigation";
 import type * as React from "react";
 
+import { logoutAction } from "@/app/action/auth-actions";
 import {
     Dialog
 } from "@/components/ui/dialog";
@@ -24,7 +25,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useRedux } from "@/hooks/use-redux";
 import useToast from "@/hooks/use-toast";
-import { cn, logout } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { useState } from "react";
 import { ChangePassword } from "./user/change-password";
@@ -78,13 +79,18 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
     const { showPromiseToast } = useToast();
 
     const handleLogout = async () => {
-        const logoutPromise = logout()
-            .then(() => {
+        const logoutPromise = new Promise<void>(async (resolve, reject) => {
+            try {
+                await logoutAction();
                 setTimeout(() => {
                     resetReduxStore();
                 }, 1000);
                 router.push("/");
-            });
+                resolve();
+            } catch (error) {
+                reject(error);
+            }
+        });
 
         showPromiseToast({
             promise: logoutPromise,
@@ -92,7 +98,6 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
             error: "Failed to log out. Please try again.",
         });
     };
-
 
     const comparePaths = (path1: string, path2: string) => {
         const trimLastEntity = (path: string) => path.split("/").slice(0, -1).join("/");
