@@ -284,7 +284,6 @@ export default function PdfViewer() {
   return (
     <div className="h-full flex flex-col">
       <div className="flex-1 relative flex flex-col md:flex-row">
-        {/* PDF Viewer */}
         <div
           className={`${userType === "Auditor" && showSidebar ? "w-full md:w-full" : "w-full"
             } h-full bg-gray-100 relative transition-all duration-300`}
