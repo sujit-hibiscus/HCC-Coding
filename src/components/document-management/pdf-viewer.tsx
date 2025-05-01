@@ -22,7 +22,6 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle, Loader2, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { PreventSaveProvider } from "../layout/prevent-save-provider";
 import PdfUI from "../ui/pdfUI";
 
 export default function PdfViewer() {
@@ -240,8 +239,20 @@ export default function PdfViewer() {
 
   const submitChartAuditorApiCall = async () => {
     setIsCompletingReview(true);
+
+    const bodyData = {
+      codes_corrected: formData.codesCorrected?.map(item => item.value) || [],
+      codes_missed: formData.codesMissed?.map(item => item.value) || [],
+      rating: formData.rating || "0",
+      audit_remarks: formData.auditRemarks || ""
+    } as {
+      codes_corrected: string[];
+      codes_missed: string[];
+      rating: number | string;
+      audit_remarks: string;
+    };
     try {
-      const resultAction = await dispatch(completeReviewAuditorWithAPI(selectedDocument));
+      const resultAction = await dispatch(completeReviewAuditorWithAPI({ doc: selectedDocument, body: bodyData }));
       if (completeReviewAuditorWithAPI.fulfilled.match(resultAction)) {
         dispatch(fetchDocuments());
         setShowControls(false);
@@ -254,6 +265,8 @@ export default function PdfViewer() {
   };
 
   const submitReview = () => {
+    console.log(formData, "daxfk");
+
     setIsSubmitting(true);
 
     if (!validateForm()) {
@@ -295,9 +308,11 @@ export default function PdfViewer() {
                 <span className="ml-2 text-lg font-medium">Loading PDF...</span>
               </div>
             ) : (
-              <PreventSaveProvider>
+              <>
                 <PdfUI url={pdfUrl as string} />
-              </PreventSaveProvider>
+                {/* <PreventSaveProvider>
+              </PreventSaveProvider> */}
+              </>
             )}
           </div>
 

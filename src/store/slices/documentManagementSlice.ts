@@ -198,41 +198,42 @@ export const startReviewAuditorWithApi = createAsyncThunk(
         }
     },
 );
-export const completeReviewAuditorWithAPI = createAsyncThunk(
+
+interface AuditorReviewPayload {
+    doc: Document;
+    body: {
+        codes_corrected: string[];
+        codes_missed: string[];
+        rating: number | string;
+        audit_remarks: string;
+    };
+}
+export const completeReviewAuditorWithAPI = createAsyncThunk<
+    ApiResponse, // return type
+    AuditorReviewPayload, // argument type
+    { rejectValue: string } // reject value type
+>(
     "documentManagement/completeReviewWithApi",
-    async (document: Document, { rejectWithValue }) => {
+    async ({ doc, body }, { rejectWithValue }) => {
         try {
             const response = await postData("update_auditor_charts/", {
-                id: document.id,
-                assignment_id: document.assignId || "",
+                id: doc.id,
+                assignment_id: doc.assignId || "",
                 status: 5,
                 start_time: "False",
                 end_time: "True",
+                ...body,
             });
-            const apiRes = response.data as ApiResponse;
-            return apiRes;
 
-            // Check if the response indicates success
-            /*  if (response.status === "Success") {
-                             // You can return any data you want to use in the reducer
-                             return {
-                                 documentId: document.id,
-                                 timestamp: Date.now(),
-                             };
-                         } else {
-                             // If the API returns an error status
-                             toast.error(response.message || "Failed to start review");
-                             return rejectWithValue(response.message || "Failed to start review");
-                         } */
+            return response.data as ApiResponse;
         } catch (error) {
-            // Handle any exceptions during the API call
-            const errorMessage = error instanceof Error ? error.message : "Failed to start review";
+            const errorMessage =
+                error instanceof Error ? error.message : "Failed to start review";
             toast.error(errorMessage);
             return rejectWithValue(errorMessage);
         }
-    },
+    }
 );
-
 // Update fetchPdfFile to check if we've already fetched this PDF
 export const fetchPdfFile = createAsyncThunk<string, string>(
     "pdf/fetchPdfFile",
