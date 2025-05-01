@@ -78,18 +78,13 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
     const { showPromiseToast } = useToast();
 
     const handleLogout = async () => {
-        const logoutPromise = new Promise<void>(async (resolve, reject) => {
-            try {
-                await logout();
+        const logoutPromise = logout()
+            .then(() => {
                 setTimeout(() => {
                     resetReduxStore();
                 }, 1000);
                 router.push("/");
-                resolve();
-            } catch (error) {
-                reject(error);
-            }
-        });
+            });
 
         showPromiseToast({
             promise: logoutPromise,
@@ -97,6 +92,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
             error: "Failed to log out. Please try again.",
         });
     };
+
 
     const comparePaths = (path1: string, path2: string) => {
         const trimLastEntity = (path: string) => path.split("/").slice(0, -1).join("/");
