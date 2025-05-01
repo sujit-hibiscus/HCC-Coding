@@ -81,9 +81,9 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
         cell: ({ row }) => {
             const fileSizeRaw = row.getValue<string>("fileSize"); // example: "1.2 MB"
             const fileSizeNumber = Number.parseFloat(fileSizeRaw); // extracts 1.2
-            const isLargeFile = fileSizeNumber > 2;
+            const isLargeFile = fileSizeNumber > 500;
 
-            return <div className={cn(isLargeFile ? "" : "", "text-center")}>{fileSizeRaw}</div>;
+            return <div className={cn(isLargeFile ? "text-red-500 font-semibold" : "", "text-center")}>{fileSizeRaw}</div>;
         },
         enableSorting: true,
         isDragable: true,
@@ -155,9 +155,9 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
         cell: ({ row }) => {
             const fileSizeRaw = row.getValue<string>("fileSize"); // example: "1.2 MB"
             const fileSizeNumber = Number.parseFloat(fileSizeRaw); // extracts 1.2
-            const isLargeFile = fileSizeNumber > 2;
+            const isLargeFile = fileSizeNumber > 500;
 
-            return <div className={cn(isLargeFile ? "font-semibold" : "", "text-center")}>{fileSizeRaw}</div>;
+            return <div className={cn(isLargeFile ? "font-semibold text-red-500" : "", "text-center")}>{fileSizeRaw}</div>;
         },
         enableSorting: true,
         isDragable: true,
@@ -250,9 +250,9 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
         cell: ({ row }) => {
             const fileSizeRaw = row.getValue<string>("fileSize"); // example: "1.2 MB"
             const fileSizeNumber = Number.parseFloat(fileSizeRaw); // extracts 1.2
-            const isLargeFile = fileSizeNumber > 2;
+            const isLargeFile = fileSizeNumber > 500;
 
-            return <div className={cn(isLargeFile ? "font-semibold" : "", "text-center")}>{fileSizeRaw}</div>;
+            return <div className={cn(isLargeFile ? "font-semibold text-red-500" : "", "text-center")}>{fileSizeRaw}</div>;
         },
         enableSorting: true,
         isDragable: true,
@@ -345,9 +345,9 @@ export const completedDocumentColumns = (): (ColumnDef<CompletedDocument> & { is
         cell: ({ row }) => {
             const fileSizeRaw = row.getValue<string>("fileSize"); // example: "1.2 MB"
             const fileSizeNumber = Number.parseFloat(fileSizeRaw); // extracts 1.2
-            const isLargeFile = fileSizeNumber > 2;
+            const isLargeFile = fileSizeNumber > 500;
 
-            return <div className={cn(isLargeFile ? "font-semibold" : "", "text-center")}>{fileSizeRaw}</div>;
+            return <div className={cn(isLargeFile ? "font-semibold text-red-500" : "", "text-center")}>{fileSizeRaw}</div>;
         },
         enableSorting: true,
         isDragable: true,
