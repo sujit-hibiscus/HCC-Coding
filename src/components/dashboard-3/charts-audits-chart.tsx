@@ -13,6 +13,7 @@ interface ChartsAuditsChartProps {
 export function ChartsAuditsChart({ data }: ChartsAuditsChartProps) {
   const { selector, dispatch } = useRedux();
   const { activeChartSeries } = selector((state) => state.dashboardFilters3);
+  console.log("🚀 ~ ChartsAuditsChart ~ activeChartSeries:", activeChartSeries);
 
   // Reverse the data to show days in ascending order (oldest to newest)
   const chartData = [...data].reverse();
@@ -42,7 +43,7 @@ export function ChartsAuditsChart({ data }: ChartsAuditsChartProps) {
               <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
               <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
               <Tooltip
-                formatter={(value) => [`${value}`, ""]}
+                formatter={(value, name) => [`${value}`, name]}
                 labelFormatter={(label) => `Day ${label}`}
                 contentStyle={{
                   backgroundColor: "white",

@@ -33,16 +33,30 @@ export function ChartsChart({ data }: ChartsChartProps) {
               <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
               <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
               <Tooltip
-                formatter={(value) => [`${value}`, ""]}
+                formatter={(value) => [`${value}`, "Charts"]}
                 labelFormatter={(label) => `Day ${label}`}
                 contentStyle={{
-                  backgroundColor: "white",
+                  backgroundColor: "#ffffff",
                   border: "1px solid #e2e8f0",
-                  borderRadius: "4px",
-                  padding: "8px",
+                  borderRadius: "8px",
+                  padding: "12px 16px",
+                  boxShadow: "0 4px 10px rgba(0, 0, 0, 0.05)",
+                  fontSize: "14px",
+                  color: "#2d3748", // gray-700
+                }}
+                itemStyle={{
+                  color: "#3182ce", // blue-600
+                  fontWeight: 500,
+                  marginBottom: "4px",
+                }}
+                labelStyle={{
+                  color: "#4a5568", // gray-600
+                  fontWeight: 600,
+                  marginBottom: "6px",
                 }}
                 animationDuration={300}
               />
+
               <Bar
                 dataKey="charts"
                 name="Charts"
