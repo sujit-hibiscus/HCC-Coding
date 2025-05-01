@@ -217,7 +217,7 @@ const mockAssignedDocuments: AssignedDocument[] = [
     },
 ];
 
-const mockAuditDocuments: AuditDocument[] = [
+/* const mockAuditDocuments: AuditDocument[] = [
     {
         id: "SL006",
         title: "Annual Checkup Report",
@@ -240,7 +240,7 @@ const mockAuditDocuments: AuditDocument[] = [
         analyst: "Jane Smith",
         auditor: "Mike Wilson",
     },
-];
+]; */
 
 const mockCompletedDocuments: CompletedDocument[] = [
     {
@@ -415,28 +415,78 @@ export const fetchAssignedDocuments = createAsyncThunk<AssignedDocument[], void,
     },
 );
 
+interface AuditTo {
+    first_name: string;
+    last_name: string;
+}
+
+interface auditItem {
+    id: number;
+    title: string;
+    file_size: number;
+    status: number;
+    received_date: string;
+    assigned_to: AuditTo;
+    assigned_date: string;
+    analyst: string;
+    auditor: string;
+    end_date: string;
+}
+
+interface auditApiResponse {
+    data: auditItem[];
+    status: "Success" | "Not Found" | "Error";
+    message: string;
+}
+
+export interface AuditDocument {
+    id: string;
+    title: string;
+    received: string;
+    endDate: string;
+    fileSize: string;
+    category: string;
+    status: DOCUMENT_STATUS;
+    analyst: string;
+    auditor: string;
+}
+
 export const fetchAuditDocuments = createAsyncThunk<AuditDocument[], void, { rejectValue: string }>(
     "documents/fetchAuditDocuments",
     async (_, { rejectWithValue }) => {
         try {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            return mockAuditDocuments;
+            const auditData = await fetchData("admin_audit_charts/");
+            const apiRes = auditData.data as auditApiResponse;
 
-            /* const response = await fetchData<ApiResponse>("/api/documents/audit")
-                  if (response.data.status === "Success") {
-                      return response.data.data as AuditDocument[]
-                  } else {
-                      toast.error(response.data.message)
-                      return []
-                  } */
+            if (apiRes.status === "Success") {
+                const response = apiRes.data.map((item) => {
+                    return {
+                        id: item?.id.toString(),
+                        title: item?.title,
+                        received: item?.received_date ? formatToMMDDYYYYIfNeeded(item?.received_date) : "",
+                        endDate: item?.end_date ? formatToMMDDYYYYIfNeeded(item?.received_date) : "",
+                        fileSize: `${item.file_size} KB`,
+                        category: "Medical",
+                        status: getDocumentStatusFromNumber(item.status) || DOCUMENT_STATUS.PENDING,
+                        analyst: item?.analyst,
+                        auditor: item?.auditor,
+                    };
+                });
+                return response;
+            } else {
+                toast.error(apiRes.message);
+                return [];
+            }
         } catch (error: unknown) {
             if (error instanceof Error) {
                 return rejectWithValue(error.message);
             }
             return rejectWithValue("Failed to fetch audit documents");
         }
-    },
+    }
 );
+
+
 
 export const fetchCompletedDocuments = createAsyncThunk<CompletedDocument[], void, { rejectValue: string }>(
     "documents/fetchCompletedDocuments",

@@ -17,7 +17,7 @@ import { useApiCall } from "../common/ApiCall";
 import { ForgotPassword } from "../common/user/forgot-password";
 import { addTab } from "@/store/slices/DashboardSlice";
 import { fetchDocuments } from "@/store/slices/documentManagementSlice";
-import { fetchAssignedDocuments, fetchPendingDocuments } from "@/store/slices/table-document-slice";
+import { fetchAssignedDocuments, fetchAuditDocuments, fetchPendingDocuments } from "@/store/slices/table-document-slice";
 
 export default function LoginForm() {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -80,6 +80,7 @@ export default function LoginForm() {
                         /* Get All different stages charts */
                         dispatch(fetchPendingDocuments());
                         dispatch(fetchAssignedDocuments());
+                        dispatch(fetchAuditDocuments());
 
                     } else {
                         dispatch(fetchDocuments());

@@ -3,12 +3,11 @@
 import { DataTable } from "@/components/common/data-table/data-table";
 import { Loader } from "@/components/ui/Loader";
 import { useRedux } from "@/hooks/use-redux";
+import { analystsData, auditorsData, ChartTab } from "@/lib/types/chartsTypes";
 import { fetchAuditDocuments } from "@/store/slices/table-document-slice";
-import { useEffect } from "react";
+import { parse } from "date-fns";
 import { auditDocumentColumns } from "./Admin-columns";
 import AssignmentControls from "./Assignment-controls";
-import { analystsData, auditorsData, ChartTab } from "@/lib/types/chartsTypes";
-import { parse } from "date-fns";
 
 export default function AuditDocumentsTable() {
     const { selector, dispatch } = useRedux();
@@ -22,9 +21,9 @@ export default function AuditDocumentsTable() {
         return dateB.getTime() - dateA.getTime(); // Descending
     });
 
-    useEffect(() => {
-        dispatch(fetchAuditDocuments());
-    }, [dispatch]);
+    /*   useEffect(() => {
+          dispatch(fetchAuditDocuments());
+      }, [dispatch]); */
 
     const isLoading = auditDocuments.status === "loading";
 
