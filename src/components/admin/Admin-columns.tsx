@@ -56,7 +56,7 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
     {
         accessorKey: "id",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="SL #" />,
-        cell: ({ row }) => <div className="font-medium">{row.getValue("id")}</div>,
+        cell: ({ row }) => <div className="font-medium text-center">{row.getValue("id")}</div>,
         enableSorting: true,
         enableHiding: false,
         isDragable: false,
@@ -64,7 +64,7 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
     {
         accessorKey: "title",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Title" />,
-        cell: ({ row }) => <div>{row.getValue("title")}</div>,
+        cell: ({ row }) => <div className="text-center">{row.getValue("title")}</div>,
         enableSorting: true,
         isDragable: true,
     },
@@ -91,7 +91,7 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
     {
         accessorKey: "category",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Category" />,
-        cell: ({ row }) => <div className="text-start">{row.getValue("category")}</div>,
+        cell: ({ row }) => <div className="text-center">{row.getValue("category")}</div>,
         enableSorting: true,
         isDragable: true,
     },
@@ -130,7 +130,7 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
     {
         accessorKey: "id",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="SL #" />,
-        cell: ({ row }) => <div className="font-medium">{row.getValue("id")}</div>,
+        cell: ({ row }) => <div className="font-medium text-center">{row.getValue("id")}</div>,
         enableSorting: true,
         enableHiding: false,
         isDragable: false,
@@ -138,7 +138,7 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
     {
         accessorKey: "title",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Title" />,
-        cell: ({ row }) => <div>{row.getValue("title")}</div>,
+        cell: ({ row }) => <div className="text-center">{row.getValue("title")}</div>,
         enableSorting: true,
         isDragable: true,
     },
@@ -179,7 +179,7 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
     {
         accessorKey: "category",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Category" />,
-        cell: ({ row }) => <div className="text-start">{row.getValue("category")}</div>,
+        cell: ({ row }) => <div className="text-center">{row.getValue("category")}</div>,
         enableSorting: true,
         isDragable: true,
     },
@@ -187,7 +187,7 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
         accessorKey: "status",
         header: ({ column }) => <StatusFilter column={column} title="Status" statusEnum={ASSIGNED_STATUSES} />,
         cell: ({ row }) => (
-            <div>
+            <div className="text-center">
                 <StatusBadge status={row.getValue("status")} />
             </div>
         ),
@@ -225,7 +225,7 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
     {
         accessorKey: "id",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="SL #" />,
-        cell: ({ row }) => <div className="font-medium">{row.getValue("id")}</div>,
+        cell: ({ row }) => <div className="font-medium text-center">{row.getValue("id")}</div>,
         enableSorting: true,
         enableHiding: false,
         isDragable: false,
@@ -233,7 +233,7 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
     {
         accessorKey: "title",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Title" />,
-        cell: ({ row }) => <div>{row.getValue("title")}</div>,
+        cell: ({ row }) => <div className="text-center">{row.getValue("title")}</div>,
         enableSorting: true,
         isDragable: true,
     },
@@ -260,7 +260,7 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
     {
         accessorKey: "category",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Category" />,
-        cell: ({ row }) => <div className="text-start">{row.getValue("category")}</div>,
+        cell: ({ row }) => <div className="text-center">{row.getValue("category")}</div>,
         enableSorting: true,
         isDragable: true,
     },
@@ -289,7 +289,7 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
         accessorKey: "status",
         header: ({ column }) => <StatusFilter column={column} title="Status" statusEnum={AUDIT_STATUSES} />,
         cell: ({ row }) => (
-            <div>
+            <div className="text-center">
                 <StatusBadge status={row.getValue("status")} />
             </div>
         ),
@@ -306,7 +306,7 @@ export const completedDocumentColumns = (): (ColumnDef<CompletedDocument> & { is
     {
         accessorKey: "id",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="SL #" />,
-        cell: ({ row }) => <div className="font-medium pl-3">{row.getValue("id")}</div>,
+        cell: ({ row }) => <div className="font-medium text-center">{row.getValue("id")}</div>,
         enableSorting: true,
         enableHiding: false,
         isDragable: false,
@@ -314,14 +314,14 @@ export const completedDocumentColumns = (): (ColumnDef<CompletedDocument> & { is
     {
         accessorKey: "title",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Title" />,
-        cell: ({ row }) => <div>{row.getValue("title")}</div>,
+        cell: ({ row }) => <div className="text-center">{row.getValue("title")}</div>,
         enableSorting: true,
         isDragable: true,
     },
     {
         accessorKey: "auditor",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Auditor" />,
-        cell: ({ row }) => <div>{row.getValue("auditor")}</div>,
+        cell: ({ row }) => <div className="text-center">{row.getValue("auditor")}</div>,
         enableSorting: true,
         isDragable: true,
     },
@@ -355,7 +355,7 @@ export const completedDocumentColumns = (): (ColumnDef<CompletedDocument> & { is
     {
         accessorKey: "category",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Category" />,
-        cell: ({ row }) => <div className="text-start">{row.getValue("category")}</div>,
+        cell: ({ row }) => <div className="text-center">{row.getValue("category")}</div>,
         enableSorting: true,
         isDragable: true,
     },

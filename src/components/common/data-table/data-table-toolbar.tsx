@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { memo } from "react";
+import { memo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import useFullPath from "@/hooks/use-fullpath";
@@ -10,9 +10,10 @@ import { EndDateFilter, StartDateFilter } from "@/lib/utils";
 import { clearTabFilters, setTabPagination } from "@/store/slices/tableFiltersSlice";
 import type { SortingState, Table } from "@tanstack/react-table";
 import { motion } from "framer-motion";
-import { RefreshCw, X } from "lucide-react";
+import { LoaderCircle, RefreshCw, Sparkles, X } from "lucide-react";
 import { CalendarDateRangePicker } from "./CalendarDateRangePicker";
 import { TasksTableToolbarActions } from "./tasks-table-toolbar-actions";
+import { autoAssign } from "@/store/slices/documentManagementSlice";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
@@ -40,6 +41,7 @@ function DataTableToolbarComponent<TData>({
   const storedFilters = selector((state) => state.tableFilters[tabKey]);
   const pageSize = storedFilters?.pagination?.pageSize;
   const pageIndex = storedFilters?.pagination?.pageIndex;
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isChangePage = pageSize ? pageSize !== 20 : false || pageIndex ? pageIndex !== 0 : false;
   const isSort = storedFilters?.sorting;
@@ -97,6 +99,21 @@ function DataTableToolbarComponent<TData>({
     isFiltered || isDateRange || invisibleColumnCount > 0 || isChangePage || isSort?.length > 0 || hasSelectedRows;
 
 
+  const handleAutoAssign = async () => {
+    setIsSubmitting(true);
+
+
+    const resultAction = await dispatch(autoAssign());;
+    if (autoAssign.fulfilled.match(resultAction)) {
+      setIsSubmitting(false);
+    }
+    /* setTimeout(() => {
+        setIsSubmitting(false);
+        success({ message: "Chart Assigned Successfully!" });
+
+    }, 2000); */
+  };
+
   return (
     <div className="flex flex-wrap items-center justify-end w-full lg:w-auto space-x-2">
 
@@ -132,6 +149,24 @@ function DataTableToolbarComponent<TData>({
         {/* <DataTableViewOptions table={table} /> */}
         <TasksTableToolbarActions table={table} />
       </div>
+
+      <Button
+        onClick={handleAutoAssign}
+        disabled={isSubmitting}
+        className="h-8 px-2 lg:px-3"
+      >
+        {isSubmitting ? (
+          <>
+            <LoaderCircle className="w-4 h-4 animate-spin" />
+            Assigning...
+          </>
+        ) : (
+          <>
+            <Sparkles className="w-4 h-4" />
+            Auto Assign
+          </>
+        )}
+      </Button>
 
     </div>
   );

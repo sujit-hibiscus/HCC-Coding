@@ -84,9 +84,9 @@ const initialState: UserState = {
     appointmentCounts: {
         data: {
             charts: {
-                Pending: 3,
-                Assigned: 2,
-                Audit: 2,
+                Pending: 0,
+                Assigned: 0,
+                Audit: 0,
                 Completed: 4,
             }
         },
