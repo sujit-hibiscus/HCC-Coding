@@ -1,6 +1,6 @@
+import { logoutAction } from "@/app/action/auth-actions";
 import { resetReduxStore } from "@/store";
 import toast from "react-hot-toast";
-import { logout } from "../utils";
 
 export interface ExtendedRequestInit extends RequestInit {
     baseURL?: string
@@ -95,7 +95,7 @@ const createFetchClient = () => {
             if (typeof window !== "undefined") {
                 toast.error("Your session has expired or the token is invalid. Please log in again.");
                 TokenManager.removeToken();
-                await logout();
+                await logoutAction();
                 await resetReduxStore();
                 window.location.href = "/";
             }
