@@ -6,14 +6,13 @@ import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import useFullPath from "@/hooks/use-fullpath";
 import { useRedux } from "@/hooks/use-redux";
+import { EndDateFilter, StartDateFilter } from "@/lib/utils";
 import { clearTabFilters, setTabPagination } from "@/store/slices/tableFiltersSlice";
 import type { SortingState, Table } from "@tanstack/react-table";
 import { motion } from "framer-motion";
 import { RefreshCw, X } from "lucide-react";
 import { CalendarDateRangePicker } from "./CalendarDateRangePicker";
-import { DataTableViewOptions } from "./data-table-view-options";
 import { TasksTableToolbarActions } from "./tasks-table-toolbar-actions";
-import { EndDateFilter, StartDateFilter } from "@/lib/utils";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
@@ -100,6 +99,17 @@ function DataTableToolbarComponent<TData>({
 
   return (
     <div className="flex flex-wrap items-center justify-end w-full lg:w-auto space-x-2">
+
+
+      <div className="flex items-center gap-1">
+        {showResetButton && (
+          <Button variant="blue" onClick={() => handleReset()} className="h-8 px-2 lg:px-3">
+            <span className="hidden md:inline-block">Reset</span>
+            <X className="md:ml-2 h-4 w-4" />
+          </Button>
+        )}
+        {dateKey?.length > 0 && <CalendarDateRangePicker dateRange={dateRange} setDateRange={handleDateRangeChange} />}
+      </div>
       {handleRefresh && (
         <Button
           onClick={() => {
@@ -118,20 +128,11 @@ function DataTableToolbarComponent<TData>({
           Refresh
         </Button>
       )}
-
       <div className="flex items-center gap-1">
-        {showResetButton && (
-          <Button variant="blue" onClick={() => handleReset()} className="h-8 px-2 lg:px-3">
-            <span className="hidden md:inline-block">Reset</span>
-            <X className="md:ml-2 h-4 w-4" />
-          </Button>
-        )}
-        {dateKey?.length > 0 && <CalendarDateRangePicker dateRange={dateRange} setDateRange={handleDateRangeChange} />}
-      </div>
-      <div className="flex items-center gap-1">
-        <DataTableViewOptions table={table} />
+        {/* <DataTableViewOptions table={table} /> */}
         <TasksTableToolbarActions table={table} />
       </div>
+
     </div>
   );
 }

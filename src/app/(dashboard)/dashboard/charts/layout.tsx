@@ -36,6 +36,7 @@ export default function ChartLayout({
     const tabCountLoading = appointmentCounts?.status;
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+
     const { pendingDocuments, assignedDocuments, auditDocuments, completedDocuments } = selector((state) => state.documentTable);
 
     const tabs = [

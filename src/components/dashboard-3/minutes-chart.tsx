@@ -1,8 +1,8 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type { DailyData } from "@/lib/types/dashboard";
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 
 interface MinutesChartProps {
   data: DailyData[]
@@ -16,7 +16,7 @@ export function MinutesChart({ data }: MinutesChartProps) {
   return (
     <Card className="overflow-hidden px-0">
       <CardHeader className="p-0 pt-1">
-        <CardTitle className="text-lg text-center">Minutes</CardTitle>
+        <CardTitle className="text-lg text-center">Duration</CardTitle>
       </CardHeader>
       <CardContent className="p-0 w-full">
         <div className="h-[300px] w-full">
@@ -30,9 +30,9 @@ export function MinutesChart({ data }: MinutesChartProps) {
                 bottom: 5,
               }}
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              {/* <CartesianGrid strokeDasharray="3 3" vertical={false} /> */}
               <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+              {/* <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} /> */}
               <Tooltip
                 formatter={(value) => [`${value} min`, "Duration"]}
                 labelFormatter={(label) => `Day ${label}`}
@@ -60,14 +60,14 @@ export function MinutesChart({ data }: MinutesChartProps) {
 
               <Bar
                 dataKey="minutes"
-                name="Minutes"
-                fill="#eab308"
+                name="Duration"
+                fill="#005A9C"
                 radius={[4, 4, 0, 0]}
                 barSize={20}
                 animationDuration={500}
                 label={{
                   position: "top",
-                  fill: "#eab308",
+                  fill: "#005A9C",
                   fontSize: 10,
                   formatter: (value: string) => value,
                 }}

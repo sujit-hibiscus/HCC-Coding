@@ -22,7 +22,7 @@ const LoginIMage = () => {
                 transition={{ duration: 0.8, ease: "easeOut" }}
             >
                 <Typography variant="big-heading" className="">
-                    HCC Coding
+                    HCC Coding Portal
                 </Typography>
             </motion.div>
 

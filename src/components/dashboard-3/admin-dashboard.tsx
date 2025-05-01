@@ -5,7 +5,7 @@ import { useRedux } from "@/hooks/use-redux";
 import { loadDashboardData, resetDashboard, setDashboardData, setDateRange } from "@/store/slices/dashboard-filters-3";
 import { motion } from "framer-motion";
 import { toPng } from "html-to-image";
-import { Download, X } from "lucide-react";
+import { Download, RefreshCw, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { AnalystTable } from "./analyst-table";
 import { ChartsAuditsChart } from "./charts-audits-chart";
@@ -13,6 +13,7 @@ import { generateDashboardData } from "./data-generator";
 import { DateRangePicker } from "./date-range-picker";
 import { MetricsPanel } from "./metrics-panel";
 import { PeriodComparisonPanel } from "./period-comparison-panel";
+import { Loader } from "../ui/Loader";
 
 export function AdminDashboard() {
   const { selector, dispatch } = useRedux();
@@ -86,13 +87,23 @@ export function AdminDashboard() {
           <DateRangePicker dateRange={dateRange} onChange={handleDateRangeChange} />
           <Button
             onClick={handleLoadData}
-            className="bg-green-600 hover:bg-green-700"
+            className="px-6 rounded-sm flex items-center gap-2"
             size="sm"
             disabled={!isDirty || isLoading}
           >
-            {isLoading ? "Loading..." : "Load"}
+            {isLoading ? (
+              <>
+                <Loader className="animate-spin h-4 w-4" />
+                Loading...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-4 w-4" />
+                Load
+              </>
+            )}
           </Button>
-          <Button onClick={handleExportToImage} className="bg-blue-700 hover:bg-blue-800" size="sm">
+          <Button onClick={handleExportToImage} className="px-6 rounded-sm" size="sm">
             <Download className="mr-1 h-3.5 w-3.5" />
             Export
           </Button>
@@ -159,9 +170,9 @@ export function AdminDashboard() {
           transition={{ duration: 0.3, delay: 0.5 }}
         >
           <AnalystTable
-            title="Charts Review"
+            title="Charts Reviewed"
             analysts={dashboardData.analysts}
-            headerClassName="bg-blue-700 text-white"
+            headerClassName="bg-[#e76e50] text-white"
           />
         </motion.div>
         <motion.div
@@ -172,7 +183,7 @@ export function AdminDashboard() {
           <AnalystTable
             title="Charts Audited"
             analysts={dashboardData.auditors}
-            headerClassName="bg-blue-700 text-white"
+            headerClassName="bg-[#2a9d90] text-white"
           />
         </motion.div>
       </div>

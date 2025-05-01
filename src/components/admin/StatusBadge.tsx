@@ -31,11 +31,11 @@ const statusConfig: Record<string, { color: string; icon: React.ReactNode }> = {
         icon: ""
     },
     [DOCUMENT_STATUS.ON_HOLD]: {
-        color: "bg-orange-400 text-white hover:bg-orange-500",
+        color: "bg-red-400 hover:text-white text-black border-red-700 hover:bg-red-700",
         icon: ""
     },
     [DOCUMENT_STATUS.IN_PROGRESS]: {
-        color: "bg-blue-500 text-white hover:bg-blue-600",
+        color: "bg-yellow-300 text-black border-yellow-500 hover:bg-yellow-400",
         icon: ""
     },
     [DOCUMENT_STATUS.ERROR]: {
@@ -43,7 +43,7 @@ const statusConfig: Record<string, { color: string; icon: React.ReactNode }> = {
         icon: ""
     },
     [DOCUMENT_STATUS.COMPLETED]: {
-        color: "bg-green-500 text-white hover:bg-green-600",
+        color: "bg-green-300 border-green-700 text-black hover:bg-green-500",
         icon: ""
     },
 };

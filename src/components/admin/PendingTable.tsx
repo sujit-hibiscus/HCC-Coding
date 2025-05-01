@@ -3,12 +3,11 @@
 import { DataTable } from "@/components/common/data-table/data-table";
 import { Loader } from "@/components/ui/Loader";
 import { useRedux } from "@/hooks/use-redux";
+import { analystsData, auditorsData, ChartTab } from "@/lib/types/chartsTypes";
 import { fetchPendingDocuments } from "@/store/slices/table-document-slice";
-import { useEffect } from "react";
+import { parse } from "date-fns";
 import { pendingDocumentColumns } from "./Admin-columns";
 import AssignmentControls from "./Assignment-controls";
-import { analystsData, auditorsData, ChartTab } from "@/lib/types/chartsTypes";
-import { parse } from "date-fns";
 
 export default function PendingDocumentsTable() {
     const { selector, dispatch } = useRedux();
@@ -18,11 +17,9 @@ export default function PendingDocumentsTable() {
     const sortedDocuments = [...pendingDocuments.data].sort((a, b) => {
         const dateA = parse(a.received, "MM-dd-yyyy", new Date());
         const dateB = parse(b.received, "MM-dd-yyyy", new Date());
-        return dateB.getTime() - dateA.getTime(); // Descending
+        return dateB.getTime() - dateA.getTime();
     });
-    useEffect(() => {
-        dispatch(fetchPendingDocuments());
-    }, [dispatch]);
+
 
     const isLoading = pendingDocuments.status === "loading";
 

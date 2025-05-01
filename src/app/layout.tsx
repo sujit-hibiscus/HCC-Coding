@@ -15,7 +15,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <title>HCC Coding</title>
+            <title>HCC Coding Platform</title>
             <body className="custom-scroll">
                 <ReduxProvider>
                     <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>

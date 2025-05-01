@@ -1,6 +1,7 @@
 import { fetchData } from "@/lib/api/api-client";
+import { formatToMMDDYYYYIfNeeded } from "@/lib/utils";
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { format, isValid, parseISO, differenceInDays } from "date-fns";
+import { differenceInDays, format, isValid, parseISO } from "date-fns";
 import toast from "react-hot-toast";
 
 // Document Types
@@ -166,7 +167,7 @@ const initialState: DocumentState = {
 };
 
 // Mock data for development
-const mockPendingDocuments: PendingDocument[] = [
+/* const mockPendingDocuments: PendingDocument[] = [
     {
         id: "SL001",
         title: "Medical Report 2025",
@@ -191,7 +192,7 @@ const mockPendingDocuments: PendingDocument[] = [
         category: "Medical",
         status: DOCUMENT_STATUS.PENDING,
     },
-];
+]; */
 
 const mockAssignedDocuments: AssignedDocument[] = [
     {
@@ -299,22 +300,57 @@ const processedCompletedDocuments = mockCompletedDocuments.map((doc) => ({
     age: calculateAge(doc.startDate, doc.endDate),
 }));
 
+interface pendingItem {
+    "id": number | string,
+    "title": string,
+    "file_size": number,
+    "status": number,
+    "received_date": string
+}
+interface pendingApiResponse {
+    data: pendingItem[]
+    status: "Success" | "Not Found" | "Error"
+    message: string
+}
+
+const statusByIndex: DOCUMENT_STATUS[] = [
+    DOCUMENT_STATUS.PENDING,
+    DOCUMENT_STATUS.IN_PROGRESS,
+    DOCUMENT_STATUS.ON_HOLD,
+    DOCUMENT_STATUS.COMPLETED,
+    DOCUMENT_STATUS.ERROR,
+];
+
+const getDocumentStatusFromNumber = (num: number): DOCUMENT_STATUS | undefined => {
+    return statusByIndex[num];
+};
+
 // Async Thunks
 export const fetchPendingDocuments = createAsyncThunk<PendingDocument[], void, { rejectValue: string }>(
     "documents/fetchPendingDocuments",
     async (_, { rejectWithValue }) => {
         try {
             // For development, return mock data
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            return mockPendingDocuments;
+            const pendingData = await fetchData("admin_pending_charts/");
+            const apiRes = pendingData.data as pendingApiResponse;
+            console.log(apiRes, "apiRes");
 
-            /*  const response = await fetchData<ApiResponse>("/api/documents/pending")
-                   if (response.data.status === "Success") {
-                       return response.data.data as PendingDocument[]
-                   } else {
-                       toast.error(response.data.message)
-                       return []
-                   } */
+            if (apiRes.status === "Success") {
+                const response = apiRes?.data?.map((item) => {
+                    return {
+                        id: String(item.id),
+                        title: item.title,
+                        received: formatToMMDDYYYYIfNeeded(item.received_date),
+                        fileSize: `${item.file_size} KB`,
+                        category: "Medical",
+                        status: getDocumentStatusFromNumber(item.status) || DOCUMENT_STATUS.PENDING,
+                    };
+                });
+                return response;
+            } else {
+                toast.error(`${apiRes.message}`);
+                return [];
+            }
         } catch (error: unknown) {
             if (error instanceof Error) {
                 return rejectWithValue(error.message);
@@ -324,19 +360,52 @@ export const fetchPendingDocuments = createAsyncThunk<PendingDocument[], void, {
     },
 );
 
+export interface AssignedTo {
+    first_name: string;
+    last_name: string;
+}
+interface assignItem {
+    id: number;
+    title: string;
+    file_size: number;
+    status: number; // or use DOCUMENT_STATUS if you're mapping later
+    received_date: string; // ISO string format
+    assigned_to: AssignedTo;
+    assigned_date: string; // ISO string format
+}
+interface assignApiResponse {
+    data: assignItem[]
+    status: "Success" | "Not Found" | "Error"
+    message: string
+}
+
 export const fetchAssignedDocuments = createAsyncThunk<AssignedDocument[], void, { rejectValue: string }>(
     "documents/fetchAssignedDocuments",
     async (_, { rejectWithValue }) => {
         try {
+
+            const pendingData = await fetchData("admin_assigned_charts/");
+            const apiRes = pendingData.data as assignApiResponse;
+            if (apiRes.status === "Success") {
+                const response = apiRes?.data?.map((item) => {
+                    return {
+                        id: item?.id.toString(),
+                        title: item?.title,
+                        received: formatToMMDDYYYYIfNeeded(item?.received_date),
+                        fileSize: `${item.file_size} KB`,
+                        category: "Medical",
+                        status: getDocumentStatusFromNumber(item.status) || DOCUMENT_STATUS.PENDING,
+                        assignedTo: `${item?.assigned_to?.first_name} ${item?.assigned_to?.last_name}`,
+                        assignedDate: item?.assigned_date ? formatToMMDDYYYYIfNeeded(item?.assigned_date) : "",
+                    };
+                });
+                return response;
+            } else {
+                toast.error(`${apiRes.message}`);
+                return [];
+            }
             await new Promise((resolve) => setTimeout(resolve, 1000));
             return mockAssignedDocuments;
-            /* const response = await fetchData<ApiResponse>("/api/documents/assigned")
-                  if (response.data.status === "Success") {
-                      return response.data.data as AssignedDocument[]
-                  } else {
-                      toast.error(response.data.message)
-                      return []
-                  } */
         } catch (error: unknown) {
             if (error instanceof Error) {
                 return rejectWithValue(error.message);

@@ -14,7 +14,7 @@ import {
     setSelectedPendingAnalyst,
 } from "@/store/slices/table-document-slice";
 import { setSelectedRows } from "@/store/slices/tableFiltersSlice";
-import { X } from "lucide-react";
+import { UserPlus, X } from "lucide-react";
 
 interface AssignmentControlsProps {
     currentTab: string
@@ -177,6 +177,7 @@ export default function AssignmentControls({ currentTab, userType, analysts, aud
                 )}
             </div>
             <Button onClick={handleAssign} disabled={!shouldEnableButton} className={shouldEnableButton ? "" : "opacity-70"}>
+                <UserPlus />
                 {isAssigning ? "Assigning..." : buttonText}
             </Button>
         </div>

@@ -82,7 +82,7 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
             const fileSizeNumber = Number.parseFloat(fileSizeRaw); // extracts 1.2
             const isLargeFile = fileSizeNumber > 2;
 
-            return <div className={cn(isLargeFile ? "text-red-500 font-semibold" : "", "text-center")}>{fileSizeRaw}</div>;
+            return <div className={cn(isLargeFile ? "" : "", "text-center")}>{fileSizeRaw}</div>;
         },
         enableSorting: true,
         isDragable: true,
@@ -90,17 +90,17 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
     {
         accessorKey: "category",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Category" />,
-        cell: ({ row }) => <div className="text-center">{row.getValue("category")}</div>,
+        cell: ({ row }) => <div className="text-start">{row.getValue("category")}</div>,
         enableSorting: true,
         isDragable: true,
     },
-    {
+    /* {
         accessorKey: "action",
         header: () => <div className="text-center">Action</div>,
         cell: () => <div className="text-start">Assign</div>,
         enableSorting: false,
         isDragable: false,
-    },
+    }, */
 ];
 
 // Assigned Documents Columns
@@ -156,7 +156,7 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
             const fileSizeNumber = Number.parseFloat(fileSizeRaw); // extracts 1.2
             const isLargeFile = fileSizeNumber > 2;
 
-            return <div className={cn(isLargeFile ? "text-red-500 font-semibold" : "", "text-center")}>{fileSizeRaw}</div>;
+            return <div className={cn(isLargeFile ? "font-semibold" : "", "text-center")}>{fileSizeRaw}</div>;
         },
         enableSorting: true,
         isDragable: true,
@@ -178,7 +178,7 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
     {
         accessorKey: "category",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Category" />,
-        cell: ({ row }) => <div className="text-center">{row.getValue("category")}</div>,
+        cell: ({ row }) => <div className="text-start">{row.getValue("category")}</div>,
         enableSorting: true,
         isDragable: true,
     },
@@ -251,7 +251,7 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
             const fileSizeNumber = Number.parseFloat(fileSizeRaw); // extracts 1.2
             const isLargeFile = fileSizeNumber > 2;
 
-            return <div className={cn(isLargeFile ? "text-red-500 font-semibold" : "", "text-center")}>{fileSizeRaw}</div>;
+            return <div className={cn(isLargeFile ? "font-semibold" : "", "text-center")}>{fileSizeRaw}</div>;
         },
         enableSorting: true,
         isDragable: true,
@@ -259,7 +259,7 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
     {
         accessorKey: "category",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Category" />,
-        cell: ({ row }) => <div className="text-center">{row.getValue("category")}</div>,
+        cell: ({ row }) => <div className="text-start">{row.getValue("category")}</div>,
         enableSorting: true,
         isDragable: true,
     },
@@ -346,7 +346,7 @@ export const completedDocumentColumns = (): (ColumnDef<CompletedDocument> & { is
             const fileSizeNumber = Number.parseFloat(fileSizeRaw); // extracts 1.2
             const isLargeFile = fileSizeNumber > 2;
 
-            return <div className={cn(isLargeFile ? "text-red-500 font-semibold" : "", "text-center")}>{fileSizeRaw}</div>;
+            return <div className={cn(isLargeFile ? "font-semibold" : "", "text-center")}>{fileSizeRaw}</div>;
         },
         enableSorting: true,
         isDragable: true,
@@ -354,7 +354,7 @@ export const completedDocumentColumns = (): (ColumnDef<CompletedDocument> & { is
     {
         accessorKey: "category",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Category" />,
-        cell: ({ row }) => <div className="text-center">{row.getValue("category")}</div>,
+        cell: ({ row }) => <div className="text-start">{row.getValue("category")}</div>,
         enableSorting: true,
         isDragable: true,
     },

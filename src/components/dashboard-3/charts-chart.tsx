@@ -1,8 +1,8 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import type { DailyData } from "@/lib/types/dashboard";
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 
 interface ChartsChartProps {
   data: DailyData[]
@@ -29,9 +29,9 @@ export function ChartsChart({ data }: ChartsChartProps) {
                 bottom: 5,
               }}
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              {/* <CartesianGrid strokeDasharray="3 3" vertical={false} /> */}
               <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+              {/* <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} /> */}
               <Tooltip
                 formatter={(value) => [`${value}`, "Charts"]}
                 labelFormatter={(label) => `Day ${label}`}
@@ -60,13 +60,13 @@ export function ChartsChart({ data }: ChartsChartProps) {
               <Bar
                 dataKey="charts"
                 name="Charts"
-                fill="#0369a1"
+                fill="#2a9d90"
                 radius={[4, 4, 0, 0]}
                 barSize={20}
                 animationDuration={500}
                 label={{
                   position: "top",
-                  fill: "#0369a1",
+                  fill: "#2a9d90",
                   fontSize: 10,
                   formatter: (value: string) => value,
                 }}

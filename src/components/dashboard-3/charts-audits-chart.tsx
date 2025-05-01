@@ -1,10 +1,10 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import type { DailyData } from "@/lib/types/dashboard";
 import { useRedux } from "@/hooks/use-redux";
+import type { DailyData } from "@/lib/types/dashboard";
 import { toggleChartSeries } from "@/store/slices/dashboard-filters-3";
+import { Bar, BarChart, Legend, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 
 interface ChartsAuditsChartProps {
   data: DailyData[]
@@ -25,10 +25,10 @@ export function ChartsAuditsChart({ data }: ChartsAuditsChartProps) {
   return (
     <Card className="overflow-hidden px-0">
       <CardHeader className="p-0 pt-1">
-        <CardTitle className="text-lg text-center">Daily Charts and Audits</CardTitle>
+        <CardTitle className="text-lg text-center">Daily Reviewed and Audited</CardTitle>
       </CardHeader>
       <CardContent className="p-0 w-full">
-        <div className="h-[320px] w-full">
+        <div className="h-[290px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={chartData}
@@ -39,9 +39,9 @@ export function ChartsAuditsChart({ data }: ChartsAuditsChartProps) {
                 bottom: 5,
               }}
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              {/* <CartesianGrid strokeDasharray="3 3" vertical={false} /> */}
               <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+              {/* <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} /> */}
               <Tooltip
                 formatter={(value, name) => [`${value}`, name]}
                 labelFormatter={(label) => `Day ${label}`}
@@ -51,7 +51,7 @@ export function ChartsAuditsChart({ data }: ChartsAuditsChartProps) {
                   borderRadius: "4px",
                   padding: "8px",
                 }}
-                animationDuration={300}
+                animationDuration={400}
               />
               <Legend
                 onClick={(e) => handleLegendClick(e.dataKey as "charts" | "audits")}
@@ -60,14 +60,14 @@ export function ChartsAuditsChart({ data }: ChartsAuditsChartProps) {
               {activeChartSeries.charts && (
                 <Bar
                   dataKey="charts"
-                  name="Charts"
-                  fill="#0369a1"
+                  name="Reviews"
+                  fill="#e76e50"
                   radius={[4, 4, 0, 0]}
-                  barSize={20}
+                  barSize={10}
                   animationDuration={500}
                   label={{
                     position: "top",
-                    fill: "#0369a1",
+                    fill: "#e76e50",
                     fontSize: 10,
                     formatter: (value: string) => value,
                   }}
@@ -77,13 +77,13 @@ export function ChartsAuditsChart({ data }: ChartsAuditsChartProps) {
                 <Bar
                   dataKey="audits"
                   name="Audits"
-                  fill="#f97316"
+                  fill="#2a9d90"
                   radius={[4, 4, 0, 0]}
-                  barSize={20}
+                  barSize={10}
                   animationDuration={500}
                   label={{
                     position: "top",
-                    fill: "#f97316",
+                    fill: "#2a9d90",
                     fontSize: 10,
                     formatter: (value: string) => value,
                   }}
