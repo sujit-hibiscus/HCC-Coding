@@ -6,30 +6,43 @@ import { Label } from "@/components/ui/label";
 import { Rating } from "@/components/ui/rating";
 import { Textarea } from "@/components/ui/textarea";
 import { useRedux } from "@/hooks/use-redux";
-import { SubmissionFormSchema, type SubmissionFormData } from "@/lib/schemas";
+import { SubmissionFormSchema } from "@/lib/schemas";
 import type { RootState } from "@/store";
 import {
+  completeReviewAuditorWithAPI,
   completeReviewWithAPI,
   fetchDocuments,
+  resetFormData,
   resumeReview,
+  startReviewAuditorWithApi,
   startReviewWithApi,
   updateElapsedTime,
+  updateFormData,
 } from "@/store/slices/documentManagementSlice";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle, Loader2, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
-import PdfUI from "../ui/pdfUI";
 import { PreventSaveProvider } from "../layout/prevent-save-provider";
+import PdfUI from "../ui/pdfUI";
 
 export default function PdfViewer() {
   const { dispatch, selector } = useRedux();
-  const { documents, selectedDocumentId, isRunning } = useSelector((state: RootState) => state.documentManagement);
+  const {
+    documents,
+    selectedDocumentId,
+    isRunning,
+    pdfUrl,
+    pdfLoading,
+    formData: allFormData,
+  } = selector((state: RootState) => state.documentManagement);
   const { userType } = selector((state) => state.user);
 
   const selectedDocument = documents
-    ?.filter((item) => item?.status !== "completed")
-    .find((doc) => doc.id === selectedDocumentId);
+    ?.filter((item: { status: string; }) => item?.status !== "completed")
+    .find((doc: { id: string; }) => doc.id === selectedDocumentId);
+
+  console.log("🚀 ~ PdfViewer ~ pdfUrl:", selectedDocument?.status);
+  const isSidebar = selectedDocument?.status === "in_progress";
 
   const [showControls, setShowControls] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -37,12 +50,9 @@ export default function PdfViewer() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const [showSidebar, setShowSidebar] = useState(false);
-  const [formData, setFormData] = useState<SubmissionFormData>({
-    codesMissed: [],
-    codesCorrected: [],
-    auditRemarks: "",
-    rating: 0,
-  });
+
+  // Get form data for the selected document from Redux store
+  const currentFormData = selectedDocumentId ? allFormData[selectedDocumentId] : null;
 
   const [formErrors, setFormErrors] = useState<{
     codesMissed?: string[]
@@ -69,6 +79,23 @@ export default function PdfViewer() {
       }
     }
   }, [selectedDocumentId, selectedDocument]);
+
+  // Initialize form data for the selected document if it doesn't exist
+  useEffect(() => {
+    if (selectedDocumentId && !allFormData[selectedDocumentId] && userType === "Auditor") {
+      dispatch(
+        updateFormData({
+          documentId: selectedDocumentId,
+          data: {
+            codesMissed: [],
+            codesCorrected: [],
+            auditRemarks: "",
+            rating: 0,
+          },
+        }),
+      );
+    }
+  }, [selectedDocumentId, allFormData, dispatch, userType]);
 
   useEffect(() => {
     if (isRunning && selectedDocument?.status === "in_progress" && !showSidebar) {
@@ -128,16 +155,30 @@ export default function PdfViewer() {
 
   const handleStart = async () => {
     setIsStartingReview(true);
-    try {
-      const resultAction = await dispatch(startReviewWithApi(selectedDocument));
-      if (startReviewWithApi.fulfilled.match(resultAction)) {
-        dispatch(fetchDocuments());
-        setShowControls(true);
+    if (userType === "Auditor") {
+      try {
+        const resultAction = await dispatch(startReviewAuditorWithApi(selectedDocument));
+        if (startReviewAuditorWithApi.fulfilled.match(resultAction)) {
+          dispatch(fetchDocuments());
+          setShowControls(true);
+        }
+      } catch (error) {
+        console.error("Error starting review:", error);
+      } finally {
+        setIsStartingReview(false);
       }
-    } catch (error) {
-      console.error("Error starting review:", error);
-    } finally {
-      setIsStartingReview(false);
+    } else {
+      try {
+        const resultAction = await dispatch(startReviewWithApi(selectedDocument));
+        if (startReviewWithApi.fulfilled.match(resultAction)) {
+          dispatch(fetchDocuments());
+          setShowControls(true);
+        }
+      } catch (error) {
+        console.error("Error starting review:", error);
+      } finally {
+        setIsStartingReview(false);
+      }
     }
   };
 
@@ -163,7 +204,9 @@ export default function PdfViewer() {
   };
 
   const validateForm = () => {
-    const result = SubmissionFormSchema.safeParse(formData);
+    if (!currentFormData) return false;
+
+    const result = SubmissionFormSchema.safeParse(currentFormData);
 
     if (!result.success) {
       const formattedErrors = result.error.format();
@@ -195,6 +238,21 @@ export default function PdfViewer() {
     }
   };
 
+  const submitChartAuditorApiCall = async () => {
+    setIsCompletingReview(true);
+    try {
+      const resultAction = await dispatch(completeReviewAuditorWithAPI(selectedDocument));
+      if (completeReviewAuditorWithAPI.fulfilled.match(resultAction)) {
+        dispatch(fetchDocuments());
+        setShowControls(false);
+      }
+    } catch (error) {
+      console.error("Error completing review:", error);
+    } finally {
+      setIsCompletingReview(false);
+    }
+  };
+
   const submitReview = () => {
     setIsSubmitting(true);
 
@@ -203,20 +261,25 @@ export default function PdfViewer() {
       return;
     }
 
-    submitChartApiCall();
+    submitChartAuditorApiCall();
 
-    setFormData({
-      codesMissed: [],
-      codesCorrected: [],
-      auditRemarks: "",
-      rating: 0,
-    });
+    if (selectedDocumentId) {
+      dispatch(resetFormData(selectedDocumentId));
+    }
 
     setShowSidebar(false);
     setIsSubmitting(false);
   };
 
-  const pdfUrl = selectedDocument.url || "/pdf/medical_report_user_1.pdf";
+  // Create a default empty form data object if currentFormData is null
+  const formData = currentFormData || {
+    codesMissed: [],
+    codesCorrected: [],
+    auditRemarks: "",
+    rating: 0,
+  };
+
+  console.log("Current form data for document:", selectedDocumentId, formData);
 
   return (
     <div className="h-full flex flex-col">
@@ -226,10 +289,17 @@ export default function PdfViewer() {
           className={`${userType === "Auditor" && showSidebar ? "w-full md:w-full" : "w-full"
             } h-full bg-gray-100 relative transition-all duration-300`}
         >
-          <div className={`h-full overflow-auto ${userType === "Auditor" ? "" : "max-h-[89.2vh]"}`}>
-            <PreventSaveProvider>
-              <PdfUI url={pdfUrl} />
-            </PreventSaveProvider>
+          <div className={`h-full overflow-auto ${userType === "Auditor" ? "max-h-[89.2vh]" : "max-h-[89.2vh]"}`}>
+            {pdfLoading && selectedDocument.status === "in_progress" ? (
+              <div className="flex items-center justify-center h-full">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <span className="ml-2 text-lg font-medium">Loading PDF...</span>
+              </div>
+            ) : (
+              <PreventSaveProvider>
+                <PdfUI url={pdfUrl as string} />
+              </PreventSaveProvider>
+            )}
           </div>
 
           <AnimatePresence>
@@ -304,7 +374,7 @@ export default function PdfViewer() {
 
         {/* Right-side Review Panel for Auditors */}
         <AnimatePresence>
-          {userType === "Auditor" && showSidebar && (
+          {userType === "Auditor" && isSidebar && (
             <motion.div
               className="w-full flex flex-col md:w-[32rem] h-full border-t md:border-t-0 md:border-l overflow-y-auto bg-white p-2"
               initial={{ x: "100%", opacity: 0 }}
@@ -329,12 +399,16 @@ export default function PdfViewer() {
                       isMulti
                       placeholder="Add codes that were missed..."
                       value={formData.codesMissed}
-                      onChange={(newValue) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          codesMissed: newValue as { value: string; label: string }[],
-                        }))
-                      }
+                      onChange={(newValue) => {
+                        if (selectedDocumentId) {
+                          dispatch(
+                            updateFormData({
+                              documentId: selectedDocumentId,
+                              data: { codesMissed: newValue as { value: string; label: string }[] },
+                            }),
+                          );
+                        }
+                      }}
                     />
                     {formErrors.codesMissed && !(formData.codesMissed?.length > 0) && (
                       <p className="text-xs text-red-500 mt-1">{formErrors.codesMissed}</p>
@@ -348,12 +422,16 @@ export default function PdfViewer() {
                       isMulti
                       placeholder="Add codes that were corrected..."
                       value={formData.codesCorrected}
-                      onChange={(newValue) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          codesCorrected: newValue as { value: string; label: string }[],
-                        }))
-                      }
+                      onChange={(newValue) => {
+                        if (selectedDocumentId) {
+                          dispatch(
+                            updateFormData({
+                              documentId: selectedDocumentId,
+                              data: { codesCorrected: newValue as { value: string; label: string }[] },
+                            }),
+                          );
+                        }
+                      }}
                     />
                     {formErrors.codesCorrected && !(formData.codesCorrected?.length > 0) && (
                       <p className="text-xs text-red-500 mt-1">{formErrors.codesCorrected}</p>
@@ -366,7 +444,16 @@ export default function PdfViewer() {
                       id="audit-remarks"
                       placeholder="Enter your audit remarks here..."
                       value={formData.auditRemarks}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, auditRemarks: e.target.value }))}
+                      onChange={(e) => {
+                        if (selectedDocumentId) {
+                          dispatch(
+                            updateFormData({
+                              documentId: selectedDocumentId,
+                              data: { auditRemarks: e.target.value },
+                            }),
+                          );
+                        }
+                      }}
                       rows={4}
                     />
                     {formErrors.auditRemarks && !(formData.auditRemarks?.length >= 10) && (
@@ -379,8 +466,19 @@ export default function PdfViewer() {
                       Quality Rating (Required)
                     </Label>
                     <Rating
+                      key={`rating-${selectedDocumentId}`}
                       value={formData.rating || 0}
-                      onChange={(value) => setFormData((prev) => ({ ...prev, rating: value }))}
+                      onChange={(value) => {
+                        if (selectedDocumentId) {
+                          console.log("Setting rating to:", value);
+                          dispatch(
+                            updateFormData({
+                              documentId: selectedDocumentId,
+                              data: { rating: value },
+                            }),
+                          );
+                        }
+                      }}
                       allowHalf={true}
                     />
                     {formErrors.rating && <p className="text-xs text-red-500 mt-1">{formErrors.rating}</p>}

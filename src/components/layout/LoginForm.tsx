@@ -54,9 +54,9 @@ export default function LoginForm() {
                     );
 
                     const initialTab = response.userType?.toLowerCase()?.includes("admin") ? {
-                        "id": "pending",
-                        "title": "Charts",
-                        "href": "/dashboard/charts/pending",
+                        "id": "dashboard",
+                        "title": "Dashboard",
+                        "href": "/dashboard",
                         "active": true
                     } : {
                         "id": "dashboard",
@@ -69,7 +69,8 @@ export default function LoginForm() {
                         loginApi("Login", response.userType as "Analyst" | "Auditor" | "Admin");
                     }); */
                     setTimeout(() => {
-                        router.push(response.userType?.toLowerCase()?.includes("admin") ? "/dashboard/charts/pending" : "/dashboard");
+                        router.push(response.userType?.toLowerCase()?.includes("admin") ? "/dashboard" : "/dashboard");
+                        // router.push(response.userType?.toLowerCase()?.includes("admin") ? "/dashboard/charts/pending" : "/dashboard");
                         resolve();
                         getLoginMasterData();
                     }, 500);

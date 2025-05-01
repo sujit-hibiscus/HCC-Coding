@@ -10,12 +10,11 @@ export interface Document {
     url: string
     status: "pending" | "in_progress" | "on_hold" | "completed"
     assignedAt: string
-    assignId: string;
+    assignId: string
     timeSpent: number
     startTime?: number
     pauseTimes?: { start: number; end: number }[]
 }
-
 
 export interface FormData {
     codesMissed: Array<{ value: string; label: string }>
@@ -30,6 +29,9 @@ interface DocumentManagementState {
     error: string | null
 
     selectedDocumentId: string | null
+    pdfUrl: string | null
+    pdfLoading: boolean
+    fetchedPdfPaths: string[] // Add this to track fetched PDF paths
 
     isRunning: boolean
     elapsedTime: number
@@ -39,54 +41,55 @@ interface DocumentManagementState {
     formData: Record<string, FormData>
 }
 
-
-
 type AnalystAssignment = {
-    id: number;
-    assigned_date: string;
-    chart_start: string;
-};
-
-type DataItem = {
-    id: number;
-    title: string;
-    file_size: number;
-    file_path: string;
-    status: number;
-    analyst_assignments: AnalystAssignment[];
-};
-
-interface ApiResponse {
-    data: DataItem[],
-    status: "Success" | "Not Found" | "Error";
-    message: string;
+    id: number
+    assigned_date: string
+    chart_start: string
+}
+type auditor_assignments = {
+    id: number
+    assigned_date: string
+    chart_start: string
 }
 
+type DataItem = {
+    id: number
+    title: string
+    file_size: number
+    file_path: string
+    status: number
+    analyst_assignments?: AnalystAssignment[]
+    auditor_assignments?: auditor_assignments[]
+}
+
+interface ApiResponse {
+    data: DataItem[]
+    status: "Success" | "Not Found" | "Error"
+    message: string
+}
 
 // Async thunks
 export const fetchDocuments = createAsyncThunk("documentManagement/fetchDocuments", async (_, { getState }) => {
-    const state = getState() as { documentManagement: DocumentManagementState, user: { userType: "Analyst" | "Auditor" } };
+    const state = getState() as { documentManagement: DocumentManagementState; user: { userType: "Analyst" | "Auditor" } };
     const userType = state.user.userType;
 
-    const api = await postData("api/get_charts/", {
-        "id": 3,
-        "role": userType
-    }
-    );
+    const api = await postData("get_charts/", {
+        id: userType === "Analyst" ? 3 : 4,
+        role: userType,
+    });
     const apiRes = api.data as ApiResponse;
 
     if (apiRes.status === "Success") {
-        const response = apiRes?.data?.map(item => {
+        const response = apiRes?.data?.map((item) => {
+            console.log("🚀 ~ response ~ item:", item);
             const { id = "", title = "", file_path = "", status } = item;
-            console.info("🚀 ~ fetchDocuments ~ file_path:", file_path);
             return {
                 id,
                 name: maskFileName(title),
-                // url: file_path,
-                url: "/pdf/medical_report_user_3.pdf",
-                assignId: item?.analyst_assignments[0]?.id || "",
-                status: status === 1 ? "pending" : status === 2 ? "in_progress" : "completed",
-                assignedAt: formatToMMDDYYYYIfNeeded(item?.analyst_assignments[0]?.assigned_date || ""),
+                url: file_path,
+                assignId: userType === "Analyst" ? item.analyst_assignments?.[0]?.id ?? "" : item.auditor_assignments?.[0]?.id ?? "",
+                status: status === (userType === "Analyst" ? 1 : 3) ? "pending" : status === (userType === "Analyst" ? 2 : 4) ? "in_progress" : "completed",
+                assignedAt: formatToMMDDYYYYIfNeeded(userType === "Analyst" ? item.analyst_assignments?.[0]?.assigned_date ?? "" : item?.auditor_assignments?.[0]?.assigned_date ?? ""),
                 timeSpent: 0,
             } as Document;
         });
@@ -95,35 +98,32 @@ export const fetchDocuments = createAsyncThunk("documentManagement/fetchDocument
         toast.error(`${apiRes.message}`);
         return [];
     }
-
-
-
 });
 export const startReviewWithApi = createAsyncThunk(
     "documentManagement/startReviewWithApi",
     async (document: Document, { rejectWithValue }) => {
         try {
-            const response = await postData("api/update_analyst_charts/", {
+            const response = await postData("update_analyst_charts/", {
                 id: document.id,
                 assignment_id: document.assignId || "",
                 status: 2,
                 start_time: "True",
                 end_time: "False",
             });
-            console.log("🚀 ~ response:", response);
+            return response;
 
             // Check if the response indicates success
             /*  if (response.status === "Success") {
-                 // You can return any data you want to use in the reducer
-                 return {
-                     documentId: document.id,
-                     timestamp: Date.now(),
-                 };
-             } else {
-                 // If the API returns an error status
-                 toast.error(response.message || "Failed to start review");
-                 return rejectWithValue(response.message || "Failed to start review");
-             } */
+                       // You can return any data you want to use in the reducer
+                       return {
+                           documentId: document.id,
+                           timestamp: Date.now(),
+                       };
+                   } else {
+                       // If the API returns an error status
+                       toast.error(response.message || "Failed to start review");
+                       return rejectWithValue(response.message || "Failed to start review");
+                   } */
         } catch (error) {
             // Handle any exceptions during the API call
             const errorMessage = error instanceof Error ? error.message : "Failed to start review";
@@ -136,7 +136,7 @@ export const completeReviewWithAPI = createAsyncThunk(
     "documentManagement/completeReviewWithApi",
     async (document: Document, { rejectWithValue }) => {
         try {
-            const response = await postData("api/update_analyst_charts/", {
+            const response = await postData("update_analyst_charts/", {
                 id: document.id,
                 assignment_id: document.assignId || "",
                 status: 3,
@@ -148,16 +148,16 @@ export const completeReviewWithAPI = createAsyncThunk(
 
             // Check if the response indicates success
             /*  if (response.status === "Success") {
-                 // You can return any data you want to use in the reducer
-                 return {
-                     documentId: document.id,
-                     timestamp: Date.now(),
-                 };
-             } else {
-                 // If the API returns an error status
-                 toast.error(response.message || "Failed to start review");
-                 return rejectWithValue(response.message || "Failed to start review");
-             } */
+                       // You can return any data you want to use in the reducer
+                       return {
+                           documentId: document.id,
+                           timestamp: Date.now(),
+                       };
+                   } else {
+                       // If the API returns an error status
+                       toast.error(response.message || "Failed to start review");
+                       return rejectWithValue(response.message || "Failed to start review");
+                   } */
         } catch (error) {
             // Handle any exceptions during the API call
             const errorMessage = error instanceof Error ? error.message : "Failed to start review";
@@ -166,33 +166,124 @@ export const completeReviewWithAPI = createAsyncThunk(
         }
     },
 );
-export const autoAssign = createAsyncThunk(
-    "documentManagement/assign",
-    async (_, { rejectWithValue }) => {
+export const startReviewAuditorWithApi = createAsyncThunk(
+    "documentManagement/startReviewWithApi",
+    async (document: Document, { rejectWithValue }) => {
         try {
-            const response = await postData("api/assign_charts_analyst/");
-            const responseData = response.data as { status: string, message: string };
-            if (responseData.status === "Success") {
-                toast.success(responseData?.message);
-            } else {
-                toast.error(responseData?.message);
+            await postData("update_auditor_charts/", {
+                id: document.id,
+                assignment_id: document.assignId || "",
+                status: 4,
+                start_time: "True",
+                end_time: "False",
+            });
+
+            // Check if the response indicates success
+            /*  if (response.status === "Success") {
+                             // You can return any data you want to use in the reducer
+                             return {
+                                 documentId: document.id,
+                                 timestamp: Date.now(),
+                             };
+                         } else {
+                             // If the API returns an error status
+                             toast.error(response.message || "Failed to start review");
+                             return rejectWithValue(response.message || "Failed to start review");
+                         } */
+        } catch (error) {
+            // Handle any exceptions during the API call
+            const errorMessage = error instanceof Error ? error.message : "Failed to start review";
+            toast.error(errorMessage);
+            return rejectWithValue(errorMessage);
+        }
+    },
+);
+export const completeReviewAuditorWithAPI = createAsyncThunk(
+    "documentManagement/completeReviewWithApi",
+    async (document: Document, { rejectWithValue }) => {
+        try {
+            const response = await postData("update_auditor_charts/", {
+                id: document.id,
+                assignment_id: document.assignId || "",
+                status: 5,
+                start_time: "False",
+                end_time: "True",
+            });
+            const apiRes = response.data as ApiResponse;
+            return apiRes;
+
+            // Check if the response indicates success
+            /*  if (response.status === "Success") {
+                             // You can return any data you want to use in the reducer
+                             return {
+                                 documentId: document.id,
+                                 timestamp: Date.now(),
+                             };
+                         } else {
+                             // If the API returns an error status
+                             toast.error(response.message || "Failed to start review");
+                             return rejectWithValue(response.message || "Failed to start review");
+                         } */
+        } catch (error) {
+            // Handle any exceptions during the API call
+            const errorMessage = error instanceof Error ? error.message : "Failed to start review";
+            toast.error(errorMessage);
+            return rejectWithValue(errorMessage);
+        }
+    },
+);
+
+// Update fetchPdfFile to check if we've already fetched this PDF
+export const fetchPdfFile = createAsyncThunk<string, string>(
+    "pdf/fetchPdfFile",
+    async (pdfFilePath, { rejectWithValue, getState }) => {
+        try {
+            // Check if we've already fetched this PDF
+            const state = getState() as { documentManagement: DocumentManagementState };
+            const { fetchedPdfPaths } = state.documentManagement;
+
+            // If we've already fetched this PDF, return the existing URL
+            if (fetchedPdfPaths.includes(pdfFilePath) && state.documentManagement.pdfUrl) {
+                return state.documentManagement.pdfUrl;
             }
 
-        } catch (error) {
-            // Handle any exceptions during the API call
-            const errorMessage = error instanceof Error ? error.message : "Failed to start review";
-            toast.error(errorMessage);
-            return rejectWithValue(errorMessage);
+            const response = await postData<Blob>("view_pdf/", { file_path: pdfFilePath }, { responseType: "blob" });
+            const blobUrl = `${URL.createObjectURL(response.data)}__${pdfFilePath}`;
+            return blobUrl;
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                return rejectWithValue(error.message);
+            }
+            return rejectWithValue("Something went wrong");
         }
     },
 );
 
+export const autoAssign = createAsyncThunk("documentManagement/assign", async (_, { rejectWithValue }) => {
+    try {
+        const response = await postData("assign_charts_analyst/");
+        const responseData = response.data as { status: string; message: string };
+        if (responseData.status === "Success") {
+            toast.success(responseData?.message);
+        } else {
+            toast.error(responseData?.message);
+        }
+    } catch (error) {
+        // Handle any exceptions during the API call
+        const errorMessage = error instanceof Error ? error.message : "Failed to start review";
+        toast.error(errorMessage);
+        return rejectWithValue(errorMessage);
+    }
+});
 
 const initialState: DocumentManagementState = {
     documents: [],
     loading: false,
     error: null,
     selectedDocumentId: null,
+    pdfUrl: null,
+    pdfLoading: false,
+    fetchedPdfPaths: [], // Initialize the array to track fetched PDFs
     isRunning: false,
     elapsedTime: 0,
     startTime: null,
@@ -204,12 +295,12 @@ const documentManagementSlice = createSlice({
     initialState,
     reducers: {
         /*  startReview: (state, action: PayloadAction<string>) => {
-             const document = state.documents.find((doc) => doc.id === action.payload);
-             if (document) {
-                 document.status = "in_progress";
-                 document.startTime = Date.now();
-             }
-         }, */
+                 const document = state.documents.find((doc) => doc.id === action.payload);
+                 if (document) {
+                     document.status = "in_progress";
+                     document.startTime = Date.now();
+                 }
+             }, */
         pauseReview: (state, action: PayloadAction<string>) => {
             const document = state.documents.find((doc) => doc.id === action.payload);
             if (document && document.startTime) {
@@ -331,6 +422,27 @@ const documentManagementSlice = createSlice({
             .addCase(fetchDocuments.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message || "Failed to fetch documents";
+            })
+            .addCase(fetchPdfFile.pending, (state) => {
+                state.pdfLoading = true;
+                state.error = null;
+            })
+            .addCase(fetchPdfFile.fulfilled, (state, action) => {
+                state.pdfLoading = false;
+                state.pdfUrl = action.payload;
+
+                // Get the PDF path from the action payload
+                const pdfPath = action.meta.arg;
+
+                // Add this path to our tracking array if it's not already there
+                if (!state.fetchedPdfPaths.includes(pdfPath)) {
+                    state.fetchedPdfPaths.push(pdfPath);
+                }
+            })
+            .addCase(fetchPdfFile.rejected, (state, action) => {
+                state.pdfLoading = false;
+                state.error = action.error.message || "Failed to fetch PDF file";
+                toast.error("Failed to load PDF file");
             });
     },
 });

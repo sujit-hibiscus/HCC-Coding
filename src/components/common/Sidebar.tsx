@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ChevronRight, Key, Laptop, LayoutDashboard, LogOut, Moon, Settings, Sun, Table, User, UserPlus } from "lucide-react";
+import { ChevronRight, FileText, Key, Laptop, LayoutDashboard, LogOut, Moon, Settings, Sun, Table, User, UserPlus } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import type * as React from "react";
 
@@ -54,9 +54,10 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
     const adminMenuOptions = userType?.toLowerCase().includes("admin") ? [
         { icon: Table, label: "Charts", href: "/dashboard/charts/pending" },
     ] : [];
-    const OtherMenuOptionOptions = userType?.toLowerCase().includes("admin") ? [] : [{ icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },];
+    const OtherMenuOptionOptions = userType?.toLowerCase().includes("admin") ? [] : [{ icon: FileText, label: "Documents", href: "/dashboard/document" },];
 
     const menuItems: MenuItem[] = [
+        { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
         ...OtherMenuOptionOptions,
         ...adminMenuOptions
     ];

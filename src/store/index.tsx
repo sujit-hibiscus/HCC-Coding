@@ -7,6 +7,7 @@ import documentTableSlice from "@/store/slices/table-document-slice";
 import tableFiltersReducer from "@/store/slices/tableFiltersSlice";
 import userForm from "@/store/slices/user-form-slice";
 import userSlice from "@/store/slices/user-slice";
+import dashboardFilters3Reducer from "./slices/dashboard-filters-3";
 
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { type TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
@@ -25,6 +26,7 @@ const appReducer = combineReducers({
     pdfFilters: pdfFilters,
     userForm: userForm,
     documentTable: documentTableSlice,
+    dashboardFilters3: dashboardFilters3Reducer,
 });
 
 
@@ -49,6 +51,7 @@ const persistConfig = {
         "pdfFilters",
         "userForm",
         "documentTable",
+        "dashboardFilters2",
     ],
 };
 

@@ -16,6 +16,7 @@ interface PdfViewerProps {
 
 const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true }) => {
   const [url] = urlData.split("__");
+
   const { dispatch, selector } = useRedux();
 
   const savedFilters = selector((state) => state.pdfFilters[url]);
@@ -225,7 +226,7 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
       {isViewer ? (
         <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
           <Viewer
-            fileUrl={urlData}
+            fileUrl={url}
             initialPage={savedFilters?.currentPage ? savedFilters.currentPage - 1 : 0}
             defaultScale={savedFilters?.zoom ? savedFilters.zoom / 100 : 1}
             renderLoader={(percentages: number) => (
