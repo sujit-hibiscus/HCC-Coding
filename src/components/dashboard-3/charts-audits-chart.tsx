@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRedux } from "@/hooks/use-redux";
 import type { DailyData } from "@/lib/types/dashboard";
-import { toggleChartSeries } from "@/store/slices/dashboard-filters-3";
+import { toggleChartSeries } from "@/store/slices/dashboard-filters";
 import { Bar, BarChart, Legend, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 
 interface ChartsAuditsChartProps {

@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useRedux } from "@/hooks/use-redux";
-import { loadDashboardData, resetDashboard, setDashboardData, setDateRange } from "@/store/slices/dashboard-filters-3";
+import { loadDashboardData, resetDashboard, setDashboardData, setDateRange } from "@/store/slices/dashboard-filters";
 import { motion } from "framer-motion";
 import { toPng } from "html-to-image";
 import { Download, RefreshCw, X } from "lucide-react";
