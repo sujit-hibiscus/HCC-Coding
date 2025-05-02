@@ -37,6 +37,27 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
     );
   }, [currentPage, zoom, url, dispatch, isDarkTheme]);
 
+  // Add CSS to disable text selection
+  useEffect(() => {
+    // Add a style tag to disable text selection in the PDF viewer
+    const style = document.createElement("style");
+    style.innerHTML = `
+      .rpv-core__text-layer {
+        user-select: none !important;
+        pointer-events: none !important;
+      }
+      .rpv-core__text-layer span {
+        user-select: none !important;
+        pointer-events: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   const renderToolbar = (Toolbar: (props: { children: (slots: ToolbarSlot) => ReactElement }) => ReactElement) => (
     <Toolbar>
       {(slots: ToolbarSlot) => {
@@ -55,35 +76,6 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
           GoToLastPage,
           GoToFirstPage,
         } = slots;
-
-        /*    const handleDownload = async () => {
-             try {
-               const response = await fetch(url);
-               const pdfBytes = await response.arrayBuffer();
-   
-               if (isFlattened) {
-                 const pdfDoc = await PDFDocument.load(pdfBytes);
-                 const pages = pdfDoc.getPages();
-                 pages.forEach((page) => {
-                   page.setFontSize(12);
-                 });
-                 const flattenedPdfBytes = await pdfDoc.save({ useObjectStreams: false });
-                 const blob = new Blob([flattenedPdfBytes], { type: "application/pdf" });
-                 const link = document.createElement("a");
-                 link.href = URL.createObjectURL(blob);
-                 link.download = name;
-                 link.click();
-               } else {
-                 const blob = new Blob([pdfBytes], { type: "application/pdf" });
-                 const link = document.createElement("a");
-                 link.href = URL.createObjectURL(blob);
-                 link.download = name;
-                 link.click();
-               }
-             } catch (error) {
-               console.error("Error downloading PDF:", error);
-             }
-           }; */
 
         return (
           <div className="flex items-center w-full px-2">
@@ -115,10 +107,6 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
                   </TooltipContent>
                 </Tooltip>
               </div>
-
-              {/*  <Typography variant="description" className="pl-2">
-                {name}
-              </Typography> */}
 
               <div className="flex items-center gap-2 ml-auto">
                 <Tooltip>
@@ -196,17 +184,6 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
                     Fullscreen
                   </TooltipContent>
                 </Tooltip>
-
-                {/*  <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="cursor-pointer" onClick={handleDownload}>
-                      <Download className="w-5 h-5 text-[#777777]" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="left" align="center">
-                    Download PDF
-                  </TooltipContent>
-                </Tooltip> */}
               </div>
             </TooltipProvider>
           </div>
@@ -220,6 +197,15 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
     sidebarTabs: (defaultTabs) => [defaultTabs[0]],
     renderToolbar,
   });
+
+  // Create a character map that prevents text selection
+  const characterMap = React.useMemo(() => {
+    return {
+      isCompressed: false,
+      url: "",
+      get: () => "",
+    };
+  }, []);
 
   return (
     <div className={`w-full border-none h-full rounded-md ${isDarkTheme ? "dark-theme" : "light-theme"}`}>
@@ -236,9 +222,7 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
             )}
             renderError={() => (
               <div className="flex items-center h-full justify-center min-h-[100px] text-center">
-                <h2 className="text-xl font-semibold text-gray-800">
-                  Please select a document
-                </h2>
+                <h2 className="text-xl font-semibold text-gray-800">Please select a document</h2>
               </div>
             )}
             theme={isDarkTheme ? "dark" : "light"}
@@ -252,14 +236,23 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
             onSwitchTheme={(theme) => {
               setIsDarkTheme(theme === "dark");
             }}
+            characterMap={characterMap}
           />
+          {/* Add a class to disable text selection */}
+          <div className="disable-text-selection"></div>
         </Worker>
       ) : (
-        <iframe title="pdf-viewer" src={url} width="100%" height="100%" loading="lazy" />
+        <iframe
+          title="pdf-viewer"
+          src={url}
+          width="100%"
+          height="100%"
+          loading="lazy"
+          style={{ pointerEvents: "none" }} // Disable interactions for iframe mode
+        />
       )}
     </div>
   );
 };
 
 export default PdfUI;
-

@@ -275,3 +275,35 @@ td.p-4.align-middle .truncate {
   width: 100%;
   text-align: center;
 }
+
+
+/* Add this to your global CSS or import it where needed */
+.disable-text-selection {
+  -webkit-touch-callout: none;
+  /* iOS Safari */
+  -webkit-user-select: none;
+  /* Safari */
+  -khtml-user-select: none;
+  /* Konqueror HTML */
+  -moz-user-select: none;
+  /* Firefox */
+  -ms-user-select: none;
+  /* Internet Explorer/Edge */
+  user-select: none;
+  /* Non-prefixed version, currently supported by Chrome and Opera */
+}
+
+.rpv-core__text-layer {
+  user-select: none !important;
+  pointer-events: none !important;
+}
+
+.rpv-core__text-layer span {
+  user-select: none !important;
+  pointer-events: none !important;
+}
+
+/* For the iframe mode */
+iframe {
+  pointer-events: none;
+}
