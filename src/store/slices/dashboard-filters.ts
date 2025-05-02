@@ -36,7 +36,7 @@ const dashboardFilters3Slice = createSlice({
     initialState,
     reducers: {
         setDateRange: (state, action: PayloadAction<[Date | null, Date | null]>) => {
-            if (action.payload[0] && action.payload[1]) {
+            if (action.payload[0]) {
                 state.dateRange = action.payload;
                 state.isDirty = true;
                 state.filtersApplied = true;

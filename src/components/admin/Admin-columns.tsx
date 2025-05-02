@@ -278,13 +278,13 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
         enableSorting: true,
         isDragable: true,
     },
-    {
-        accessorKey: "endDate",
-        header: ({ column }) => <DataTableColumnHeader searchType="date" column={column} title="End Date" />,
-        cell: ({ row }) => <div className="text-center">{row.getValue("endDate")}</div>,
-        enableSorting: true,
-        isDragable: true,
-    },
+    /*  {
+         accessorKey: "endDate",
+         header: ({ column }) => <DataTableColumnHeader searchType="date" column={column} title="End Date" />,
+         cell: ({ row }) => <div className="text-center">{row.getValue("endDate")}</div>,
+         enableSorting: true,
+         isDragable: true,
+     }, */
     {
         accessorKey: "status",
         header: ({ column }) => <StatusFilter column={column} title="Status" statusEnum={AUDIT_STATUSES} />,

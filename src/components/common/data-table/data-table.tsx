@@ -85,10 +85,7 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(storedFilters?.columnFilters || []);
   const [sorting, setSorting] = React.useState<SortingState>(storedFilters?.sorting || []);
   const [dateRange, setDateRange] = React.useState<[Date | null, Date | null]>(storedFilters?.dateRange || [StartDateFilter, EndDateFilter]);
-  const [columnsOrder, setColumnOrder] = React.useState<string[]>(() =>
-    columns.map((col) => (typeof col.id === "string" ? col.id : "")),
-  );
-  console.info("🚀 ~ columnsOrder:", columnsOrder);
+
   const { fullPath: urlKey = "default" } = useFullPath();
   const columnOrder = selector((state) => state.dashboard.columnOrders[urlKey || "default"]);
 
@@ -194,7 +191,6 @@ export function DataTable<TData, TValue>({
       newIndex,
     );
 
-    setColumnOrder(newColumnOrder);
     dispatch(setStoreColumnOrder({ key: urlKey, order: newColumnOrder }));
   };
 
@@ -216,7 +212,7 @@ export function DataTable<TData, TValue>({
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    onColumnOrderChange: setColumnOrder,
+    // onColumnOrderChange: setColumnOrder,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),

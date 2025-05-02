@@ -22,9 +22,7 @@ export function AdminDashboard() {
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Only load data when isLoading is true (triggered by Load button)
     if (isLoading && dateRange[0] && dateRange[1]) {
-      // Validate dates before generating data
       if (!isNaN(dateRange[0].getTime()) && !isNaN(dateRange[1].getTime())) {
         const newData = generateDashboardData(dateRange[0], dateRange[1]);
         dispatch(setDashboardData(newData));
@@ -35,6 +33,7 @@ export function AdminDashboard() {
   const handleDateRangeChange = (range: [Date | null, Date | null]) => {
     dispatch(setDateRange(range));
   };
+
 
   const handleLoadData = () => {
     dispatch(loadDashboardData());

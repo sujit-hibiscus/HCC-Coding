@@ -4,7 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRedux } from "@/hooks/use-redux";
 import type { DailyData } from "@/lib/types/dashboard";
 import { toggleChartSeries } from "@/store/slices/dashboard-filters";
-import { Bar, BarChart, Legend, ResponsiveContainer, Tooltip, XAxis } from "recharts";
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
+import { ChartLegendItem } from "./custom-chart-legend";
+import { useEffect } from "react";
 
 interface ChartsAuditsChartProps {
   data: DailyData[]
@@ -17,11 +19,19 @@ export function ChartsAuditsChart({ data }: ChartsAuditsChartProps) {
   const seriesCount = (activeChartSeries.charts ? 1 : 0) + (activeChartSeries.audits ? 1 : 0);
   const dynamicBarSize = Math.max(10, Math.min(400, 400 / (chartData.length * Math.max(seriesCount, 1))));
 
-  // const dynamicBarSize = Math.max(20, Math.min(700, 700 / chartData.length));
 
-  const handleLegendClick = (dataKey: "charts" | "audits") => {
-    dispatch(toggleChartSeries(dataKey));
+  const handleLegendClick = (dataKey: keyof typeof chartConfig) => {
+    dispatch(toggleChartSeries(dataKey as "charts" | "audits"));
   };
+
+  useEffect(() => {
+    if (Object?.values(activeChartSeries)?.every(item => item === false)) {
+      dispatch(toggleChartSeries("charts"));
+      dispatch(toggleChartSeries("audits"));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeChartSeries]);
+
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -50,13 +60,30 @@ export function ChartsAuditsChart({ data }: ChartsAuditsChartProps) {
     return null;
   };
 
+
+
+
+
+  const chartConfig = {
+    charts: {
+      label: "Reviews",
+      color: "#e76e50",
+    },
+    audits: {
+      label: "Audits",
+      color: "#2a9d90",
+    },
+  } satisfies Record<"charts" | "audits", { label: string; color: string }>;
+
+
   return (
     <Card className="overflow-hidden px-0">
       <CardHeader className="p-0 pt-1">
         <CardTitle className="text-lg text-center">Daily Reviewed and Audited</CardTitle>
       </CardHeader>
+
       <CardContent className="p-0 w-full">
-        <div className="h-[280px] w-full">
+        <div className="h-[250px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={chartData}
@@ -67,12 +94,9 @@ export function ChartsAuditsChart({ data }: ChartsAuditsChartProps) {
                 bottom: 5,
               }}
             >
+
               <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
               <Tooltip content={<CustomTooltip />} cursor={false} />
-              <Legend
-                onClick={(e) => handleLegendClick(e.dataKey as "charts" | "audits")}
-                wrapperStyle={{ cursor: "pointer" }}
-              />
               {activeChartSeries.charts && (
                 <Bar
                   dataKey="charts"
@@ -107,6 +131,17 @@ export function ChartsAuditsChart({ data }: ChartsAuditsChartProps) {
               )}
             </BarChart>
           </ResponsiveContainer>
+        </div>
+        <div className="flex w-full flex-wrap gap-1.5 pb-1 justify-center">
+          {Object.entries(chartConfig).map(([key, config]) => (
+            <ChartLegendItem
+              key={key}
+              label={config.label}
+              color={config.color}
+              isActive={activeChartSeries[key as "charts" | "audits"] === true}
+              onClick={() => handleLegendClick(key as keyof typeof chartConfig)}
+            />
+          ))}
         </div>
       </CardContent>
     </Card>
