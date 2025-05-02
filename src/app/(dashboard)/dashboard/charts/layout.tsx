@@ -12,6 +12,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, Clock, FileEdit } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useApiCall } from "@/components/common/ApiCall";
 
 const tabVariants = {
     hidden: { opacity: 0, y: 0 },
@@ -32,7 +33,7 @@ export default function ChartLayout({
     const { userType = "", appointmentCounts } = selector((state) => state.user);
     const chartsCounts = appointmentCounts?.data?.charts;
     const tabCountLoading = appointmentCounts?.status;
-
+    const { getChartApi } = useApiCall();
 
     const { pendingDocuments, assignedDocuments, auditDocuments, completedDocuments } = selector((state) => state.documentTable);
 
@@ -74,7 +75,10 @@ export default function ChartLayout({
         const targetTab = (storedTabs as Tab[])?.map((item) => (item?.active ? { ...item, href: targetHref } : item));
 
         setTimeout(() => {
-            // chartsData(value as charts);
+            const targetTab = tabs?.find((item) => item.value === value);
+            if (!(targetTab?.count ?? 0 > 0)) {
+                getChartApi(value as "pending" | "assigned" | "audit" | "completed");
+            }
         });
 
         dispatch(updateTab(targetTab));

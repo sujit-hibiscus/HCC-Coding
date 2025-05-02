@@ -14,6 +14,7 @@ import { LoaderCircle, RefreshCw, Sparkles, X } from "lucide-react";
 import { CalendarDateRangePicker } from "./CalendarDateRangePicker";
 import { TasksTableToolbarActions } from "./tasks-table-toolbar-actions";
 import { autoAssign } from "@/store/slices/documentManagementSlice";
+import { useApiCall } from "../ApiCall";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
@@ -42,6 +43,7 @@ function DataTableToolbarComponent<TData>({
   const pageSize = storedFilters?.pagination?.pageSize;
   const pageIndex = storedFilters?.pagination?.pageIndex;
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { getChartApi } = useApiCall();
 
   const isChangePage = pageSize ? pageSize !== 20 : false || pageIndex ? pageIndex !== 0 : false;
   const isSort = storedFilters?.sorting;
@@ -106,6 +108,8 @@ function DataTableToolbarComponent<TData>({
     const resultAction = await dispatch(autoAssign());;
     if (autoAssign.fulfilled.match(resultAction)) {
       setIsSubmitting(false);
+      getChartApi(target as "pending" | "assigned" | "audit" | "completed");
+
     }
     /* setTimeout(() => {
         setIsSubmitting(false);

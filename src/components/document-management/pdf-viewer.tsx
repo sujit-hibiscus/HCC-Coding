@@ -41,7 +41,6 @@ export default function PdfViewer() {
     ?.filter((item: { status: string; }) => item?.status !== "completed")
     .find((doc: { id: string; }) => doc.id === selectedDocumentId);
 
-  console.log("🚀 ~ PdfViewer ~ pdfUrl:", selectedDocument?.status);
   const isSidebar = selectedDocument?.status === "in_progress";
 
   const [showControls, setShowControls] = useState(false);
@@ -266,8 +265,6 @@ export default function PdfViewer() {
   };
 
   const submitReview = () => {
-    console.log(formData, "daxfk");
-
     setIsSubmitting(true);
 
     if (!validateForm()) {
@@ -292,8 +289,6 @@ export default function PdfViewer() {
     auditRemarks: "",
     rating: 0,
   };
-
-  console.log("Current form data for document:", selectedDocumentId, formData);
 
   return (
     <div className="h-full flex flex-col">
@@ -484,7 +479,6 @@ export default function PdfViewer() {
                       value={formData.rating || 0}
                       onChange={(value) => {
                         if (selectedDocumentId) {
-                          console.log("Setting rating to:", value);
                           dispatch(
                             updateFormData({
                               documentId: selectedDocumentId,

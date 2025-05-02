@@ -10,20 +10,16 @@ import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { useRedux } from "@/hooks/use-redux";
 import useToast from "@/hooks/use-toast";
+import { addTab } from "@/store/slices/DashboardSlice";
 import { setError, setLoading, setUser } from "@/store/slices/user-slice";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useApiCall } from "../common/ApiCall";
 import { ForgotPassword } from "../common/user/forgot-password";
-import { addTab } from "@/store/slices/DashboardSlice";
-import { fetchDocuments } from "@/store/slices/documentManagementSlice";
-import { fetchAssignedDocuments, fetchAuditDocuments, fetchPendingDocuments } from "@/store/slices/table-document-slice";
 
 export default function LoginForm() {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const { getLoginMasterData } = useApiCall();
     const router = useRouter();
     const { error } = useToast();
     const { dispatch } = useRedux();
@@ -66,25 +62,10 @@ export default function LoginForm() {
                         "active": true
                     };
                     dispatch(addTab(initialTab));
-                    /* setTimeout(() => {
-                        loginApi("Login", response.userType as "Analyst" | "Auditor" | "Admin");
-                    }); */
                     setTimeout(() => {
                         router.push(response.userType?.toLowerCase()?.includes("admin") ? "/dashboard" : "/dashboard");
-                        // router.push(response.userType?.toLowerCase()?.includes("admin") ? "/dashboard/charts/pending" : "/dashboard");
                         resolve();
-                        getLoginMasterData();
                     }, 500);
-
-                    if (response.userType?.toLowerCase()?.includes("admin")) {
-                        /* Get All different stages charts */
-                        dispatch(fetchPendingDocuments());
-                        dispatch(fetchAssignedDocuments());
-                        dispatch(fetchAuditDocuments());
-
-                    } else {
-                        dispatch(fetchDocuments());
-                    }
                 } else {
                     dispatch(setError(response.error || "Login failed"));
                     reject(new Error(response.error || "Invalid email or password. Please try again."));
@@ -99,12 +80,6 @@ export default function LoginForm() {
             }
         });
         console.info(loginPromise, "loginPromise");
-
-        /*  showPromiseToast({
-             promise: loginPromise,
-             loading: "Logging in...",
-             error: "Login failed. Please try again.",
-         }); */
     }
 
 

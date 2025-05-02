@@ -12,6 +12,8 @@ export enum USERTYPES {
     ANALYST = "Analyst",
 }
 
+export const targetTabs = ["pending", "assigned", "audit", "completed", "document"];
+
 type ProfileType = "Analyst" | "Provider"
 
 export interface UserTypes {

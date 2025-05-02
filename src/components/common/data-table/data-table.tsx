@@ -42,7 +42,7 @@ import { useEffect, useState } from "react";
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar } from "./data-table-toolbar";
 import { SortableHeader } from "./sortable-header";
-import { EndDateFilter, StartDateFilter } from "@/lib/utils";
+import { cn, EndDateFilter, StartDateFilter } from "@/lib/utils";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -262,7 +262,6 @@ export function DataTable<TData, TValue>({
     setFilteredData(filtered);
   };
 
-  // Update filtered data when data or date range changes
   useEffect(() => {
     if (dateKey && (dateRange[0] || dateRange[1])) {
       filterTableByDateRange(dateRange);
@@ -319,25 +318,32 @@ export function DataTable<TData, TValue>({
 
                 <TableBody>
                   {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map((row, index) => (
-                      <TableRow
-                        key={row.id + index}
-                        data-state={row.getIsSelected() && "selected"}
-                        className={`
+                    table.getRowModel().rows.map((row, index) => {
+                      const fileSizeRaw = row.getValue<string>("fileSize");
+                      const fileSizeNumber = Number.parseFloat(fileSizeRaw);
+                      const isLargeFile = fileSizeNumber > 500;
+                      return (
+                        <TableRow
+                          key={row.id + index}
+                          data-state={row.getIsSelected() && "selected"}
+                          className={cn(`
                           hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-900
                           ${row.getIsSelected() ? "bg-gray-100 dark:bg-gray-800" : ""}
-                        `}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
-                            {flexRender(cell.column.columnDef.cell, {
-                              ...cell.getContext(),
-                              onAction: (action: string) => onAction(action, row.original),
-                            })}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
+                        `, isLargeFile &&
+                          `bg-[#fcff00]/50 hover:bg-[#fcff00]/80 dark:bg-[#fcff00] ${row.getIsSelected() ? "!bg-[#fcff00]" : ""
+                          }`)}
+                        >
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell key={cell.id}>
+                              {flexRender(cell.column.columnDef.cell, {
+                                ...cell.getContext(),
+                                onAction: (action: string) => onAction(action, row.original),
+                              })}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      );
+                    })
                   ) : (
                     <TableRow>
                       <TableCell colSpan={table.getAllColumns().length} className="text-center h-[70vh]">

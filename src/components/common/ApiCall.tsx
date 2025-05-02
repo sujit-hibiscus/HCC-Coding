@@ -3,6 +3,8 @@
 import useFullPath from "@/hooks/use-fullpath";
 import { useRedux } from "@/hooks/use-redux";
 import useToast from "@/hooks/use-toast";
+import { fetchDocuments } from "@/store/slices/documentManagementSlice";
+import { fetchAssignedDocuments, fetchAuditDocuments, fetchPendingDocuments } from "@/store/slices/table-document-slice";
 
 
 import { getAllUsers } from "@/store/slices/user-slice";
@@ -10,15 +12,13 @@ import { useRef } from "react";
 
 export function useApiCall() {
     const isProcessingRef = useRef(false);
-    const { dispatch } = useRedux();
+    const { dispatch, selector } = useRedux();
     const { fullPath = "" } = useFullPath();
+    const { pendingDocuments, assignedDocuments, auditDocuments } = selector((state) => state.documentTable);
+    const { documents } = selector((state) => state.documentManagement);
 
     const { showPromiseToast, success } = useToast();
 
-    const sidebarApiCall = async (id: string) => {
-        console.info("🚀 ~ sidebarApiCall ~ id:", id);
-
-    };
     const getUserApiCall = async (target: string) => {
         if (fullPath !== target) {
             showPromiseToast({
@@ -38,37 +38,37 @@ export function useApiCall() {
 
     };
 
+    const getChartApi = (target: "pending" | "assigned" | "audit" | "completed" | "document") => {
+        if (target === "pending") {
+            if (pendingDocuments?.data?.length === 0) {
+                dispatch(fetchPendingDocuments());
+            }
+        } else if (target === "assigned") {
+            if (assignedDocuments?.data?.length === 0) {
+                dispatch(fetchAssignedDocuments());
+            }
+        } else if (target === "audit") {
+            if (auditDocuments?.data?.length === 0) {
+                dispatch(fetchAuditDocuments());
+            }
+        } else if (target === "document") {
+            if (documents?.length === 0) {
+                dispatch(fetchDocuments());
+            }
 
-
-
-
-
-    const loginApi = async () => {
-        /*  if (target === "Login") {
-             callBulkApi(userType);
-         } else if (target === "Sidebar") {
- 
-         } */
-
+        }
     };
-
     const getBasePath = (userType: string) => {
         return userType === "Auditor" ? "/dashboard" :
             userType === "Analyst" ? "/dashboard" :
                 userType === "Admin" ? "/dashboard" : "";
     };
 
-    const getLoginMasterData = () => {
-        // /dispatch(getHccMasterData());
-    };
-
     return {
-        sidebarApiCall,
-        loginApi,
         getBasePath,
         getUserApiCall,
         isLoading: isProcessingRef.current,
-        getLoginMasterData
+        getChartApi
     };
 }
 

@@ -29,6 +29,8 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { useState } from "react";
 import { ChangePassword } from "./user/change-password";
+import { targetTabs } from "@/lib/types/chartsTypes";
+import { useApiCall } from "./ApiCall";
 
 interface MenuItem {
     icon: React.ElementType
@@ -51,6 +53,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
     const { resetReduxStore, selector } = useRedux();
     const { userType } = selector(state => state.user);
     const [isOpen, setIsOpen] = useState(false);
+    const { getChartApi } = useApiCall();
 
     const adminMenuOptions = userType?.toLowerCase().includes("admin") ? [
         { icon: Table, label: "Charts", href: "/dashboard/charts/pending" },
@@ -66,6 +69,9 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
 
     const handleNavigation = (href: string, label: string) => {
         const id = href.split("/").pop() || href;
+        if (targetTabs.some(status => id.includes(status))) {
+            getChartApi(id as "pending" | "assigned" | "audit" | "completed" | "document");
+        }
 
         if (onNavigate) {
             onNavigate(id, label, href);

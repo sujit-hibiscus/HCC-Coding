@@ -9,7 +9,7 @@ interface MetricsPanelProps {
 
 export function MetricsPanel({ metrics }: MetricsPanelProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
       <MetricCard
         title="Total Volume"
         value={metrics.totalVolume.toLocaleString()}

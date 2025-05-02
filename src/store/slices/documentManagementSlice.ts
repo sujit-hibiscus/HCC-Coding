@@ -81,7 +81,6 @@ export const fetchDocuments = createAsyncThunk("documentManagement/fetchDocument
 
     if (apiRes.status === "Success") {
         const response = apiRes?.data?.map((item) => {
-            console.log("🚀 ~ response ~ item:", item);
             const { id = "", title = "", file_path = "", status } = item;
             return {
                 id,

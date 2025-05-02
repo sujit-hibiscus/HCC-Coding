@@ -333,8 +333,6 @@ export const fetchPendingDocuments = createAsyncThunk<PendingDocument[], void, {
             // For development, return mock data
             const pendingData = await fetchData("admin_pending_charts/");
             const apiRes = pendingData.data as pendingApiResponse;
-            console.log(apiRes, "apiRes");
-
             if (apiRes.status === "Success") {
                 const response = apiRes?.data?.map((item) => {
                     return {
@@ -467,7 +465,6 @@ export const fetchAuditDocuments = createAsyncThunk<AuditDocument[], void, { rej
 
             if (apiRes.status === "Success") {
                 const response = apiRes.data.map((item) => {
-                    console.log("🚀 ~ response ~ item:", item);
                     return {
                         id: item?.id.toString(),
                         title: item?.title?.replace(/^dev-/, ""),

@@ -21,5 +21,5 @@ export default function Dashboard3Page() {
         }
     };
 
-    return <div className="mx-auto px-3 py-2">{renderDashboard()}</div>;
+    return <div className="mx-auto px-3 pb-2">{renderDashboard()}</div>;
 }

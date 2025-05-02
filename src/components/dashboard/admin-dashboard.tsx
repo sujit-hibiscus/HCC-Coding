@@ -7,13 +7,13 @@ import { motion } from "framer-motion";
 import { toPng } from "html-to-image";
 import { Download, RefreshCw, X } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { CalendarDateRangePicker } from "../common/data-table/CalendarDateRangePicker";
+import { Loader } from "../ui/Loader";
 import { AnalystTable } from "./analyst-table";
 import { ChartsAuditsChart } from "./charts-audits-chart";
 import { generateDashboardData } from "./data-generator";
-import { DateRangePicker } from "./date-range-picker";
 import { MetricsPanel } from "./metrics-panel";
 import { PeriodComparisonPanel } from "./period-comparison-panel";
-import { Loader } from "../ui/Loader";
 
 export function AdminDashboard() {
   const { selector, dispatch } = useRedux();
@@ -75,7 +75,7 @@ export function AdminDashboard() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1">
         <h1 className="text-2xl font-bold">{userType} Dashboard</h1>
         <div className="flex flex-wrap items-center gap-2">
           {filtersApplied && (
@@ -84,7 +84,8 @@ export function AdminDashboard() {
               <X className="md:ml-2 h-4 w-4" />
             </Button>
           )}
-          <DateRangePicker dateRange={dateRange} onChange={handleDateRangeChange} />
+          {/* <DateRangePicker dateRange={dateRange} onChange={handleDateRangeChange} /> */}
+          <CalendarDateRangePicker dateRange={dateRange} setDateRange={handleDateRangeChange} />
           <Button
             onClick={handleLoadData}
             className="px-6 rounded-sm flex items-center gap-2"

@@ -7,12 +7,12 @@ import { motion } from "framer-motion";
 import { toPng } from "html-to-image";
 import { Download, RefreshCw, X } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { CalendarDateRangePicker } from "../common/data-table/CalendarDateRangePicker";
+import { Loader } from "../ui/Loader";
 import { ChartsChart } from "./charts-chart";
 import { generateDashboardData } from "./data-generator";
-import { DateRangePicker } from "./date-range-picker";
 import { MinutesChart } from "./minutes-chart";
 import { PeriodComparisonPanel } from "./period-comparison-panel";
-import { Loader } from "../ui/Loader";
 
 export function AnalystDashboard() {
   const { selector, dispatch } = useRedux();
@@ -83,7 +83,8 @@ export function AnalystDashboard() {
               <X className="md:ml-2 h-4 w-4" />
             </Button>
           )}
-          <DateRangePicker dateRange={dateRange} onChange={handleDateRangeChange} />
+
+          <CalendarDateRangePicker dateRange={dateRange} setDateRange={handleDateRangeChange} />
           <Button
             onClick={handleLoadData}
             className="px-6 rounded-sm flex items-center gap-2"

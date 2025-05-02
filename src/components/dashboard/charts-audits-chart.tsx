@@ -15,7 +15,9 @@ export function ChartsAuditsChart({ data }: ChartsAuditsChartProps) {
   const { activeChartSeries } = selector((state) => state.dashboardFilters3);
   const chartData = [...data].reverse();
   const seriesCount = (activeChartSeries.charts ? 1 : 0) + (activeChartSeries.audits ? 1 : 0);
-  const dynamicBarSize = Math.max(10, Math.min(20, 300 / (chartData.length * Math.max(seriesCount, 1))));
+  const dynamicBarSize = Math.max(10, Math.min(400, 400 / (chartData.length * Math.max(seriesCount, 1))));
+
+  // const dynamicBarSize = Math.max(20, Math.min(700, 700 / chartData.length));
 
   const handleLegendClick = (dataKey: "charts" | "audits") => {
     dispatch(toggleChartSeries(dataKey));
@@ -54,7 +56,7 @@ export function ChartsAuditsChart({ data }: ChartsAuditsChartProps) {
         <CardTitle className="text-lg text-center">Daily Reviewed and Audited</CardTitle>
       </CardHeader>
       <CardContent className="p-0 w-full">
-        <div className="h-[290px] w-full">
+        <div className="h-[280px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={chartData}
