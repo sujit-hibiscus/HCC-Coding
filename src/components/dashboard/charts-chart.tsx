@@ -9,8 +9,30 @@ interface ChartsChartProps {
 }
 
 export function ChartsChart({ data }: ChartsChartProps) {
-  // Reverse the data to show days in ascending order (oldest to newest)
   const chartData = [...data].reverse();
+
+  const dynamicBarSize = Math.max(20, Math.min(700, 700 / chartData.length));
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white rounded-sm shadow-xl border border-gray-400 px-4 py-1.5">
+          <p className="font-semibold text-black  mb-2">{label}</p>
+          {payload.map((
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            entry: any, index: number) => (
+            <div key={`item-${index}`} className="flex items-center mb-1 last:mb-0">
+              <div className="w-2 h-4 mr-2" style={{ backgroundColor: entry.color || "#2a9d90" }} />
+              <span className="text-gray-700 mr-2">Charts</span>
+              <span className="font-medium ml-auto">{entry.value}</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <Card className="overflow-hidden px-0">
@@ -29,40 +51,14 @@ export function ChartsChart({ data }: ChartsChartProps) {
                 bottom: 5,
               }}
             >
-              {/* <CartesianGrid strokeDasharray="3 3" vertical={false} /> */}
               <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-              {/* <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} /> */}
-              <Tooltip
-                formatter={(value) => [`${value}`, "Charts"]}
-                labelFormatter={(label) => `Day ${label}`}
-                contentStyle={{
-                  backgroundColor: "#ffffff",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "8px",
-                  padding: "12px 16px",
-                  boxShadow: "0 4px 10px rgba(0, 0, 0, 0.05)",
-                  fontSize: "14px",
-                  color: "#2d3748", // gray-700
-                }}
-                itemStyle={{
-                  color: "#3182ce", // blue-600
-                  fontWeight: 500,
-                  marginBottom: "4px",
-                }}
-                labelStyle={{
-                  color: "#4a5568", // gray-600
-                  fontWeight: 600,
-                  marginBottom: "6px",
-                }}
-                animationDuration={300}
-              />
-
+              <Tooltip content={<CustomTooltip />} cursor={false} />
               <Bar
                 dataKey="charts"
                 name="Charts"
                 fill="#2a9d90"
                 radius={[4, 4, 0, 0]}
-                barSize={20}
+                barSize={dynamicBarSize}
                 animationDuration={500}
                 label={{
                   position: "top",

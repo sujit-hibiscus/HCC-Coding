@@ -13,13 +13,39 @@ interface ChartsAuditsChartProps {
 export function ChartsAuditsChart({ data }: ChartsAuditsChartProps) {
   const { selector, dispatch } = useRedux();
   const { activeChartSeries } = selector((state) => state.dashboardFilters3);
-  console.log("🚀 ~ ChartsAuditsChart ~ activeChartSeries:", activeChartSeries);
-
-  // Reverse the data to show days in ascending order (oldest to newest)
   const chartData = [...data].reverse();
+  const seriesCount = (activeChartSeries.charts ? 1 : 0) + (activeChartSeries.audits ? 1 : 0);
+  const dynamicBarSize = Math.max(10, Math.min(20, 300 / (chartData.length * Math.max(seriesCount, 1))));
 
   const handleLegendClick = (dataKey: "charts" | "audits") => {
     dispatch(toggleChartSeries(dataKey));
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white rounded-sm shadow-xl border border-gray-400 px-4 py-1.5">
+          <p className="font-semibold text-black  mb-2">{label}</p>
+          {payload.map((
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            entry: any,
+            index: number) => {
+            const color = entry.dataKey === "charts" ? "#e76e50" : "#2a9d90";
+            const name = entry.dataKey === "charts" ? "Reviews" : "Audits";
+
+            return (
+              <div key={`item-${index}`} className="flex items-center mb-1 last:mb-0">
+                <div className="w-2 h-4 mr-2" style={{ backgroundColor: color }} />
+                <span className="text-gray-700 mr-2">{name}</span>
+                <span className="font-medium ml-auto">{entry.value}</span>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
@@ -39,20 +65,8 @@ export function ChartsAuditsChart({ data }: ChartsAuditsChartProps) {
                 bottom: 5,
               }}
             >
-              {/* <CartesianGrid strokeDasharray="3 3" vertical={false} /> */}
               <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-              {/* <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} /> */}
-              <Tooltip
-                formatter={(value, name) => [`${value}`, name]}
-                labelFormatter={(label) => `Day ${label}`}
-                contentStyle={{
-                  backgroundColor: "white",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "4px",
-                  padding: "8px",
-                }}
-                animationDuration={400}
-              />
+              <Tooltip content={<CustomTooltip />} cursor={false} />
               <Legend
                 onClick={(e) => handleLegendClick(e.dataKey as "charts" | "audits")}
                 wrapperStyle={{ cursor: "pointer" }}
@@ -63,7 +77,7 @@ export function ChartsAuditsChart({ data }: ChartsAuditsChartProps) {
                   name="Reviews"
                   fill="#e76e50"
                   radius={[4, 4, 0, 0]}
-                  barSize={10}
+                  barSize={dynamicBarSize}
                   animationDuration={500}
                   label={{
                     position: "top",
@@ -79,7 +93,7 @@ export function ChartsAuditsChart({ data }: ChartsAuditsChartProps) {
                   name="Audits"
                   fill="#2a9d90"
                   radius={[4, 4, 0, 0]}
-                  barSize={10}
+                  barSize={dynamicBarSize}
                   animationDuration={500}
                   label={{
                     position: "top",

@@ -2,16 +2,35 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { DailyData } from "@/lib/types/dashboard";
+import { formatMinutes } from "@/lib/utils";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
 
 interface MinutesChartProps {
   data: DailyData[]
 }
 
-
 export function MinutesChart({ data }: MinutesChartProps) {
-  // Reverse the data to show days in ascending order (oldest to newest)
   const chartData = [...data].reverse();
+  const dynamicBarSize = Math.max(20, Math.min(700, 700 / chartData.length));
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white rounded-sm shadow-xl border border-gray-400 px-4 py-1.5">
+          <p className="font-semibold text-black  mb-2">{label}</p>
+          {payload.map((entry: unknown, index: number) => (
+            <div key={`item-${index}`} className="flex items-center mb-1 last:mb-0">
+              <div className="w-2 h-4 mr-2" style={{ backgroundColor: "#005A9C" }} />
+              <span className="text-gray-700 mr-3">Duration</span>
+              <span className="font-medium text-gray-900 ml-auto">{formatMinutes((entry as { value: number }).value)}</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <Card className="overflow-hidden px-0">
@@ -30,40 +49,14 @@ export function MinutesChart({ data }: MinutesChartProps) {
                 bottom: 5,
               }}
             >
-              {/* <CartesianGrid strokeDasharray="3 3" vertical={false} /> */}
               <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-              {/* <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} /> */}
-              <Tooltip
-                formatter={(value) => [`${value} min`, "Duration"]}
-                labelFormatter={(label) => `Day ${label}`}
-                contentStyle={{
-                  backgroundColor: "#ffffff",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "8px",
-                  padding: "12px 16px",
-                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                  fontSize: "14px",
-                  color: "#2d3748",
-                }}
-                itemStyle={{
-                  color: "#2b6cb0",
-                  fontWeight: 500,
-                  marginBottom: "6px",
-                }}
-                labelStyle={{
-                  color: "#4a5568",
-                  fontWeight: 600,
-                  marginBottom: "4px",
-                }}
-                animationDuration={300}
-              />
-
+              <Tooltip content={<CustomTooltip />} cursor={false} />
               <Bar
                 dataKey="minutes"
                 name="Duration"
                 fill="#005A9C"
                 radius={[4, 4, 0, 0]}
-                barSize={20}
+                barSize={dynamicBarSize}
                 animationDuration={500}
                 label={{
                   position: "top",

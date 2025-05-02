@@ -86,3 +86,12 @@ export const DateToFormattedDate = (date: Date): string => {
   }
 };
 
+export const formatMinutes = (minutes: number): string => {
+  if (minutes < 60) return `${minutes} min`;
+
+  const hrs = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+
+  return mins > 0 ? `${hrs} hr ${mins} min` : `${hrs} hr`;
+};
+
