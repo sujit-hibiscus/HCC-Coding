@@ -1,8 +1,10 @@
 "use client";
-
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export function usePreventSave(): void {
+    const router = useRouter();
+
     useEffect(() => {
         const handleContextMenu = (e: MouseEvent): void => {
             e.preventDefault();
@@ -33,10 +35,9 @@ export function usePreventSave(): void {
                 outerHeight - innerHeight > heightThreshold
             );
         };
-
         const interval = setInterval(() => {
             if (detectDevTools()) {
-                window.location.href = "/unauthorized";
+                router.push("/unauthorized");
             }
         }, 1000);
 
@@ -48,5 +49,5 @@ export function usePreventSave(): void {
             document.removeEventListener("contextmenu", handleContextMenu);
             document.removeEventListener("keydown", handleKeyDown);
         };
-    }, []);
+    }, [router]);
 }

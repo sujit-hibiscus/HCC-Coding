@@ -8,6 +8,13 @@ import { redirect, useRouter } from "next/navigation";
 export default function NotFound() {
     const router = useRouter();
     const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
+    const isUnauthorized = currentPath === "/unauthorized";
+    const code = isUnauthorized ? "401" : "404";
+
+    const title = isUnauthorized ? "Unauthorized" : "Page Not Found";
+    const description = isUnauthorized
+        ? "You are not authorized to view this page. Please check your permissions or contact the administrator."
+        : "We couldn't find the page you're looking for. The path below doesn't exist.";
 
     return (
         <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -27,16 +34,19 @@ export default function NotFound() {
                     transition={{ delay: 0.2 }}
                     className="space-y-4"
                 >
-                    <h1 className="text-4xl md:text-6xl font-bold text-selectedText">404</h1>
-                    <h2 className="text-2xl md:text-3xl font-semibold text-foreground">
-                        Page Not Found
-                    </h2>
+                    <h1 className="text-4xl md:text-6xl font-bold text-selectedText">{code}</h1>
+                    <h2 className="text-2xl md:text-3xl font-semibold text-foreground">{title}</h2>
                     <p className="text-muted-foreground text-lg max-w-lg mx-auto">
-                        We couldn&apos;t find the page you&apos;re looking for. The path{" "}
-                        <span className="font-mono bg-secondary px-2 py-1 rounded">
-                            {currentPath}
-                        </span>{" "}
-                        doesn&apos;t exist.
+                        {description}
+                        {!isUnauthorized && (
+                            <>
+                                {" The path "}
+                                <span className="font-mono bg-secondary px-2 py-1 rounded">
+                                    {currentPath}
+                                </span>{" "}
+                                doesn&apos;t exist.
+                            </>
+                        )}
                     </p>
                 </motion.div>
 

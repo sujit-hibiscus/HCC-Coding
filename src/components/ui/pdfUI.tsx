@@ -7,6 +7,7 @@ import "@react-pdf-viewer/core/lib/styles/index.css";
 import { defaultLayoutPlugin, type ToolbarSlot } from "@react-pdf-viewer/default-layout";
 import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import React, { type ReactElement, useEffect } from "react";
+import { PreventSaveProvider } from "../layout/prevent-save-provider";
 
 interface PdfViewerProps {
   url: string
@@ -208,50 +209,52 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
   }, []);
 
   return (
-    <div className={`w-full border-none h-full rounded-md ${isDarkTheme ? "dark-theme" : "light-theme"}`}>
-      {isViewer ? (
-        <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-          <Viewer
-            fileUrl={url}
-            initialPage={savedFilters?.currentPage ? savedFilters.currentPage - 1 : 0}
-            defaultScale={savedFilters?.zoom ? savedFilters.zoom / 100 : 1}
-            renderLoader={(percentages: number) => (
-              <div className="w-[240px]">
-                <ProgressBar progress={Math.round(percentages)} />
-              </div>
-            )}
-            renderError={() => (
-              <div className="flex items-center h-full justify-center min-h-[100px] text-center">
-                <h2 className="text-xl font-semibold text-gray-800">Please select a document</h2>
-              </div>
-            )}
-            theme={isDarkTheme ? "dark" : "light"}
-            plugins={[defaultLayoutPluginInstance]}
-            onPageChange={(page) => {
-              setCurrentPage(page.currentPage + 1);
-            }}
-            onZoom={(newZoom) => {
-              setZoom(newZoom?.scale * 100);
-            }}
-            onSwitchTheme={(theme) => {
-              setIsDarkTheme(theme === "dark");
-            }}
-            characterMap={characterMap}
+    <PreventSaveProvider>
+      <div className={`w-full border-none h-full rounded-md ${isDarkTheme ? "dark-theme" : "light-theme"}`}>
+        {isViewer ? (
+          <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+            <Viewer
+              fileUrl={url}
+              initialPage={savedFilters?.currentPage ? savedFilters.currentPage - 1 : 0}
+              defaultScale={savedFilters?.zoom ? savedFilters.zoom / 100 : 1}
+              renderLoader={(percentages: number) => (
+                <div className="w-[240px]">
+                  <ProgressBar progress={Math.round(percentages)} />
+                </div>
+              )}
+              renderError={() => (
+                <div className="flex items-center h-full justify-center min-h-[100px] text-center">
+                  <h2 className="text-xl font-semibold text-gray-800">Please select a document</h2>
+                </div>
+              )}
+              theme={isDarkTheme ? "dark" : "light"}
+              plugins={[defaultLayoutPluginInstance]}
+              onPageChange={(page) => {
+                setCurrentPage(page.currentPage + 1);
+              }}
+              onZoom={(newZoom) => {
+                setZoom(newZoom?.scale * 100);
+              }}
+              onSwitchTheme={(theme) => {
+                setIsDarkTheme(theme === "dark");
+              }}
+              characterMap={characterMap}
+            />
+            {/* Add a class to disable text selection */}
+            <div className="disable-text-selection"></div>
+          </Worker>
+        ) : (
+          <iframe
+            title="pdf-viewer"
+            src={url}
+            width="100%"
+            height="100%"
+            loading="lazy"
+            style={{ pointerEvents: "none" }} // Disable interactions for iframe mode
           />
-          {/* Add a class to disable text selection */}
-          <div className="disable-text-selection"></div>
-        </Worker>
-      ) : (
-        <iframe
-          title="pdf-viewer"
-          src={url}
-          width="100%"
-          height="100%"
-          loading="lazy"
-          style={{ pointerEvents: "none" }} // Disable interactions for iframe mode
-        />
-      )}
-    </div>
+        )}
+      </div>
+    </PreventSaveProvider>
   );
 };
 
