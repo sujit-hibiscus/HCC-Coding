@@ -4,7 +4,7 @@ import useFullPath from "@/hooks/use-fullpath";
 import { useRedux } from "@/hooks/use-redux";
 import useToast from "@/hooks/use-toast";
 import { fetchDocuments } from "@/store/slices/documentManagementSlice";
-import { fetchAssignedDocuments, fetchAuditDocuments, fetchPendingDocuments } from "@/store/slices/table-document-slice";
+import { fetchAssignedDocuments, fetchAuditDocuments, fetchCompletedDocuments, fetchPendingDocuments } from "@/store/slices/table-document-slice";
 
 
 import { getAllUsers } from "@/store/slices/user-slice";
@@ -14,7 +14,7 @@ export function useApiCall() {
     const isProcessingRef = useRef(false);
     const { dispatch, selector } = useRedux();
     const { fullPath = "" } = useFullPath();
-    const { pendingDocuments, assignedDocuments, auditDocuments } = selector((state) => state.documentTable);
+    const { pendingDocuments, assignedDocuments, completedDocuments, auditDocuments } = selector((state) => state.documentTable);
     const { documents } = selector((state) => state.documentManagement);
 
     const { showPromiseToast, success } = useToast();
@@ -50,6 +50,10 @@ export function useApiCall() {
         } else if (target === "audit") {
             if (auditDocuments?.data?.length === 0) {
                 dispatch(fetchAuditDocuments());
+            }
+        } else if (target === "completed") {
+            if (completedDocuments?.data?.length === 0) {
+                dispatch(fetchCompletedDocuments());
             }
         } else if (target === "document") {
             if (documents?.length === 0) {

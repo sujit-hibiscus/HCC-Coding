@@ -1,7 +1,7 @@
 import { fetchData } from "@/lib/api/api-client";
 import { formatToMMDDYYYYIfNeeded } from "@/lib/utils";
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { differenceInDays, format, isValid, parseISO } from "date-fns";
+import { differenceInDays, format, isValid, parse, parseISO } from "date-fns";
 import toast from "react-hot-toast";
 
 // Document Types
@@ -105,22 +105,14 @@ export const formatDate = (date: string): string => {
     return date?.replace(/\//g, "-") || "";
 };
 
-// Calculate age helper
 export const calculateAge = (startDate: string, endDate: string): string => {
     if (!startDate || !endDate) return "N/A";
 
     try {
-        // Convert dates to standard format if they're in MM-DD-YYYY format
-        const standardizeDate = (dateStr: string) => {
-            if (dateStr.includes("-")) {
-                const [month, day, year] = dateStr.split("-");
-                return `${year}-${month}-${day}`;
-            }
-            return dateStr;
-        };
+        const format = "MM-dd-yyyy";
 
-        const start = parseISO(standardizeDate(startDate));
-        const end = parseISO(standardizeDate(endDate));
+        const start = parse(startDate, format, new Date());
+        const end = parse(endDate, format, new Date());
 
         if (!isValid(start) || !isValid(end)) return "N/A";
 
@@ -131,6 +123,7 @@ export const calculateAge = (startDate: string, endDate: string): string => {
         return "N/A";
     }
 };
+
 
 // Initial State
 const initialState: DocumentState = {
@@ -241,64 +234,6 @@ const mockAssignedDocuments: AssignedDocument[] = [
         auditor: "Mike Wilson",
     },
 ]; */
-
-const mockCompletedDocuments: CompletedDocument[] = [
-    {
-        id: "SL008",
-        title: "Annual Physical Examination",
-        received: "04-28-2025",
-        fileSize: "1500 KB",
-        category: "Medical",
-        status: DOCUMENT_STATUS.COMPLETED,
-        startDate: "04-22-2025",
-        endDate: "04-25-2025",
-        auditor: "Michael Thompson",
-        Assign: "",
-    },
-    {
-        id: "SL009",
-        title: "Cardiology Consultation",
-        received: "04-29-2025",
-        fileSize: "450 KB",
-        category: "Cardiology",
-        status: DOCUMENT_STATUS.COMPLETED,
-        startDate: "04-23-2025",
-        endDate: "04-26-2025",
-        auditor: "Mike Wilson",
-        Assign: "Daniel Martinez",
-    },
-    {
-        id: "SL010",
-        title: "Diabetes Management Plan",
-        received: "04-30-2025",
-        fileSize: "800 KB",
-        category: "Endocrinology",
-        status: DOCUMENT_STATUS.COMPLETED,
-        startDate: "04-24-2025",
-        endDate: "",
-        auditor: "Ashley Davis",
-        Assign: "",
-    },
-    {
-        id: "SL011",
-        title: "Orthopedic Surgery Report",
-        received: "05-01-2025",
-        fileSize: "320 KB",
-        category: "Orthopedics",
-        status: DOCUMENT_STATUS.COMPLETED,
-        startDate: "04-25-2025",
-        endDate: "04-28-2025",
-        auditor: "Sarah Johnson",
-        Assign: "Sarah Robinson",
-    },
-];
-
-
-// Process completed documents to add age
-const processedCompletedDocuments = mockCompletedDocuments.map((doc) => ({
-    ...doc,
-    age: calculateAge(doc.startDate, doc.endDate),
-}));
 
 interface pendingItem {
     "id": number | string,
@@ -423,6 +358,8 @@ export interface Assignment {
     first_name: string;
     last_name: string;
     assigned_date: string; // ISO timestamp string
+    chart_end?: string
+    chart_start?: string
 }
 
 interface auditItem {
@@ -497,21 +434,34 @@ export const fetchCompletedDocuments = createAsyncThunk<CompletedDocument[], voi
     "documents/fetchCompletedDocuments",
     async (_, { rejectWithValue }) => {
         try {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            return processedCompletedDocuments;
 
-            /* const response = await fetchData<ApiResponse>("/api/documents/completed")
-                  if (response.data.status === "Success") {
-                      const documents = response.data.data as CompletedDocument[]
-                      // Process documents to add age
-                      return documents.map(doc => ({
-                        ...doc,
-                        age: calculateAge(doc.startDate, doc.endDate)
-                      }))
-                  } else {
-                      toast.error(response.data.message)
-                      return []
-                  } */
+            const auditData = await fetchData("admin_completed_charts/");
+            const apiRes = auditData.data as auditApiResponse;
+
+            if (apiRes.status === "Success") {
+                const response = apiRes.data.map((item) => {
+                    const startDate = item?.analyst_assignments[0]?.chart_start ? formatToMMDDYYYYIfNeeded(item?.analyst_assignments[0]?.chart_start) : "";
+                    const endDate = item?.auditor_assignments[0]?.chart_end ? formatToMMDDYYYYIfNeeded(item?.auditor_assignments[0]?.chart_end) : "";
+                    return {
+                        id: item?.id.toString(),
+                        title: item?.title?.replace(/^dev-/, ""),
+                        received: item?.received_date ? formatToMMDDYYYYIfNeeded(item?.received_date) : "",
+                        fileSize: `${item.file_size} KB`,
+                        category: "Medical",
+                        status: getDocumentStatusFromNumber(item.status) || DOCUMENT_STATUS.PENDING,
+                        startDate: item?.assigned_date ? formatToMMDDYYYYIfNeeded(item?.assigned_date) : "",
+                        endDate,
+                        auditor: item?.auditor_assignments[0]?.first_name || "",
+                        Assign: item?.analyst_assignments[0]?.first_name || "",
+                        age: calculateAge(startDate, endDate),
+                    };
+                });
+                return response;
+            } else {
+                toast.error(apiRes.message);
+                return [];
+            }
+
         } catch (error: unknown) {
             if (error instanceof Error) {
                 return rejectWithValue(error.message);

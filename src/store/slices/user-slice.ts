@@ -87,7 +87,7 @@ const initialState: UserState = {
                 Pending: 0,
                 Assigned: 0,
                 Audit: 0,
-                Completed: 4,
+                Completed: 0,
             }
         },
         status: "Success",

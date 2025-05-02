@@ -4,12 +4,12 @@ import { DataTable } from "@/components/common/data-table/data-table";
 import { Loader } from "@/components/ui/Loader";
 import { useRedux } from "@/hooks/use-redux";
 import { fetchCompletedDocuments } from "@/store/slices/table-document-slice";
-import { useEffect, useState } from "react";
-import { completedDocumentColumns } from "./Admin-columns";
 import { parse } from "date-fns";
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
+import { completedDocumentColumns } from "./Admin-columns";
 
 export default function CompletedDocumentsTable() {
     const { selector, dispatch } = useRedux();
@@ -24,10 +24,6 @@ export default function CompletedDocumentsTable() {
             return dateB.getTime() - dateA.getTime(); // Descending
         });
 
-
-    useEffect(() => {
-        dispatch(fetchCompletedDocuments());
-    }, [dispatch]);
 
     const isLoading = completedDocuments.status === "loading";
 

@@ -27,7 +27,6 @@ export function CalendarDateRangePicker({
     onReset,
     onExport,
 }: CalendarDateRangePickerProps) {
-    console.log("🚀 ~ dateRange:", dateRange);
     const [isOpen, setIsOpen] = useState(false);
     const [calendarDate, setCalendarDate] = useState(new Date());
     const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
