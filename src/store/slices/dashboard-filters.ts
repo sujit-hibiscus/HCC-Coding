@@ -1,6 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { DashboardData } from "@/lib/types/dashboard";
-import { generateDashboardData } from "@/components/dashboard-3/data-generator";
+import { generateDashboardData } from "@/components/dashboard/data-generator";
 
 export interface DashboardFilters3State {
     dateRange: [Date | null, Date | null]

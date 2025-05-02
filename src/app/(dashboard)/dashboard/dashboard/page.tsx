@@ -1,7 +1,7 @@
 "use client";
 
-import { AdminDashboard } from "@/components/dashboard-3/admin-dashboard";
-import { AnalystDashboard } from "@/components/dashboard-3/analyst-dashboard";
+import { AdminDashboard } from "@/components/dashboard/admin-dashboard";
+import { AnalystDashboard } from "@/components/dashboard/analyst-dashboard";
 import { useRedux } from "@/hooks/use-redux";
 
 export default function Dashboard3Page() {
