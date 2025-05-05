@@ -19,15 +19,16 @@ import { UserPlus, X } from "lucide-react";
 interface AssignmentControlsProps {
     currentTab: string
     userType: string
-    analysts: { id: string; name: string }[]
-    auditors: { id: string; name: string }[]
 }
 
-export default function AssignmentControls({ currentTab, userType, analysts, auditors }: AssignmentControlsProps) {
+
+
+export default function AssignmentControls({ currentTab, userType, }: AssignmentControlsProps) {
     const { selector, dispatch } = useRedux();
     const { charts = "", target = "" } = useFullPath();
     const tabKey = `${charts}${target}`;
 
+    const { analystUsers: analysts = [], auditorUsers: auditors = [] } = selector(state => state.dashboard);
     const { selectedAnalyst, selectedPendingAnalyst, selectedAuditor, selectedDocuments, isAssigning } = selector((state) => state.documentTable);
 
 
@@ -113,7 +114,7 @@ export default function AssignmentControls({ currentTab, userType, analysts, aud
 
     if (userType === "Provider") return null;
 
-    let options: { id: string; name: string }[] = [];
+    let options: { id: string | number; name: string }[] = [];
     let placeholder = "";
     let buttonText = "";
     let selectedValue = "";
@@ -156,7 +157,7 @@ export default function AssignmentControls({ currentTab, userType, analysts, aud
                     </SelectTrigger>
                     <SelectContent>
                         {options.map((option) => (
-                            <SelectItem key={option.id} value={option.id}>
+                            <SelectItem key={option.id} value={`${option.id}`}>
                                 {option.name}
                             </SelectItem>
                         ))}

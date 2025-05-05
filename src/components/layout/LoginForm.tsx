@@ -10,8 +10,8 @@ import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { useRedux } from "@/hooks/use-redux";
 import useToast from "@/hooks/use-toast";
-import { addTab } from "@/store/slices/DashboardSlice";
-import { setError, setLoading, setUser } from "@/store/slices/user-slice";
+import { addTab, fetchAnalystUsers, fetchAuditorUsers } from "@/store/slices/DashboardSlice";
+import { fetchChartCounts, setError, setLoading, setUser } from "@/store/slices/user-slice";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ForgotPassword } from "../common/user/forgot-password";
@@ -25,6 +25,7 @@ export default function LoginForm() {
     const { dispatch } = useRedux();
 
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+
         event.preventDefault();
         setIsSubmitting(true);
         dispatch(setLoading(true));
@@ -35,6 +36,11 @@ export default function LoginForm() {
                 formData.append("password", password);
 
                 const response = await loginAction(formData);
+                if (response?.userType?.toLowerCase()?.includes("admin")) {
+                    dispatch(fetchChartCounts());
+                    dispatch(fetchAnalystUsers());
+                    dispatch(fetchAuditorUsers());
+                }
 
                 if (response?.message && response?.message !== "Login successful") {
                     error({ message: response.message });

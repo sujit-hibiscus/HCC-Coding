@@ -10,7 +10,11 @@ export interface DashboardFilters3State {
     activeChartSeries: {
         charts: boolean
         audits: boolean
-    }
+    },
+    activeChartTimeSeries: {
+        analyst: boolean
+        auditor: boolean
+    },
     filtersApplied: boolean
 }
 
@@ -27,6 +31,10 @@ const initialState: DashboardFilters3State = {
     activeChartSeries: {
         charts: true,
         audits: true,
+    },
+    activeChartTimeSeries: {
+        analyst: true,
+        auditor: true,
     },
     filtersApplied: false,
 };
@@ -56,6 +64,10 @@ const dashboardFilters3Slice = createSlice({
             state.activeChartSeries[action.payload] = !state.activeChartSeries[action.payload];
             state.filtersApplied = true;
         },
+        toggleChartTimeSeries: (state, action: PayloadAction<"analyst" | "auditor">) => {
+            state.activeChartTimeSeries[action.payload] = !state.activeChartTimeSeries[action.payload];
+            state.filtersApplied = true;
+        },
         resetDashboard: (state) => {
             state.dateRange = [defaultStartDate, defaultEndDate];
             state.dashboardData = generateDashboardData(defaultStartDate, defaultEndDate);
@@ -70,7 +82,7 @@ const dashboardFilters3Slice = createSlice({
     },
 });
 
-export const { setDateRange, setDashboardData, resetDashboard, toggleChartSeries, loadDashboardData } =
+export const { setDateRange, setDashboardData, resetDashboard, toggleChartTimeSeries, toggleChartSeries, loadDashboardData } =
     dashboardFilters3Slice.actions;
 
 export default dashboardFilters3Slice.reducer;

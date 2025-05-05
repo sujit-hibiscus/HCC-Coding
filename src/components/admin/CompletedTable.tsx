@@ -17,11 +17,11 @@ export default function CompletedDocumentsTable() {
     const [showUnassignedOnly, setShowUnassignedOnly] = useState(false);
 
     const sortedDocuments = [...completedDocuments.data]
-        .filter((doc) => !showUnassignedOnly || !doc.Assign) // Filter for unassigned charts if filter is active
+        .filter((doc) => !showUnassignedOnly || !doc.Assign)
         .sort((a, b) => {
             const dateA = parse(a.received, "MM-dd-yyyy", new Date());
             const dateB = parse(b.received, "MM-dd-yyyy", new Date());
-            return dateB.getTime() - dateA.getTime(); // Descending
+            return dateB.getTime() - dateA.getTime();
         });
 
 
@@ -60,7 +60,7 @@ export default function CompletedDocumentsTable() {
             </motion.div>
 
             {
-                sortedDocuments.length === 0 ? (
+                sortedDocuments.length === 0 && showUnassignedOnly ? (
                     <div className="h-full w-full flex items-center justify-center">
                         <div className="py-8 text-center text-gray-500">No unassigned charts found</div>
                     </div>

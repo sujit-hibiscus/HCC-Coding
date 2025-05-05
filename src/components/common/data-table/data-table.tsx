@@ -315,7 +315,8 @@ export function DataTable<TData, TValue>({
                 <TableBody>
                   {table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row, index) => {
-                      const fileSizeRaw = row.getValue<string>("fileSize");
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      const fileSizeRaw = (row?.original as any)?.fileSize ?? 0;
                       const fileSizeNumber = Number.parseFloat(fileSizeRaw);
                       const isLargeFile = fileSizeNumber > 500;
                       return (

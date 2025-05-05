@@ -3,7 +3,7 @@
 import { DataTable } from "@/components/common/data-table/data-table";
 import { Loader } from "@/components/ui/Loader";
 import { useRedux } from "@/hooks/use-redux";
-import { analystsData, auditorsData, ChartTab } from "@/lib/types/chartsTypes";
+import { ChartTab } from "@/lib/types/chartsTypes";
 import { fetchAssignedDocuments } from "@/store/slices/table-document-slice";
 import { parse } from "date-fns";
 import { assignedDocumentColumns } from "./Admin-columns";
@@ -42,7 +42,7 @@ export default function AssignedDocumentsTable() {
             ) : (
                 <div className="flex  h-full flex-col gap-1">
                     <div className="flex justify-end pr-2">
-                        <AssignmentControls currentTab={ChartTab.Assigned} userType={userType as string} analysts={analystsData} auditors={auditorsData} />
+                        <AssignmentControls currentTab={ChartTab.Assigned} userType={userType as string} />
                     </div>
 
                     <DataTable

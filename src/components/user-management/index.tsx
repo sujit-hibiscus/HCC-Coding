@@ -173,6 +173,8 @@ export default function AddUserPage() {
                     password: formData.password || "",
                     profile_type: formData.profile_type,
                     target: showTargets ? formData.target : undefined,
+                    prodTarget: formData.target?.dailyChartTarget || 0,
+                    maxAssign: formData.target?.maxAssignments || 0
                 };
 
                 const resultAction = await dispatch(registerUser(registerData));

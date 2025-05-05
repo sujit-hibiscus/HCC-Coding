@@ -40,36 +40,43 @@ export function AnalystTable({
               <TableRow className="bg-gradient-to-r from-slate-50 to-slate-100 border-b">
                 <TableHead className="font-semibold">
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="px-3 py-0.5 bg-gray-200 text-gray-900 border-none">
-                      Analyst Name
+                    <Badge variant="outline" className="px-1 py-0.5 bg-gray-200 text-gray-900 border-none">
+                      Analyst/Auditor
                     </Badge>
                   </div>
                 </TableHead>
                 <TableHead className="text-right font-semibold">
-                  <div className="flex justify-end items-center">
-                    <Badge variant="outline" className="px-3 py-0.5 bg-sky-50 text-sky-700 border-sky-200">
+                  <div className="flex whitespace-nowrap justify-end items-center">
+                    <Badge variant="outline" className="px-1 py-0.5 bg-sky-50 text-sky-700 border-sky-200">
                       Daily Target
                     </Badge>
                   </div>
                 </TableHead>
                 <TableHead className="text-right font-semibold">
-                  <div className="flex justify-end items-center">
-                    <Badge variant="outline" className="px-3 py-0.5 bg-emerald-50 text-emerald-700 border-emerald-200">
+                  <div className="flex whitespace-nowrap justify-end items-center">
+                    <Badge variant="outline" className="px-1 py-0.5 bg-emerald-50 text-emerald-700 border-emerald-200">
                       Total Charts
                     </Badge>
                   </div>
                 </TableHead>
                 <TableHead className="text-right font-semibold">
-                  <div className="flex justify-end items-center">
+                  <div className="flex  justify-end items-center">
                     <Badge variant="outline" className="px-3 py-0.5 bg-purple-50 text-purple-700 border-purple-200">
-                      Charts Per Day
+                      Charts/day
+                    </Badge>
+                  </div>
+                </TableHead>
+                <TableHead className="text-right font-semibold">
+                  <div className="flex justify-end whitespace-nowrap items-center">
+                    <Badge variant="outline" className="px-3 py-0.5 bg-blue-50 text-blue-700 border-blue-200">
+                      Productivity %
                     </Badge>
                   </div>
                 </TableHead>
                 <TableHead className="text-right font-semibold">
                   <div className="flex justify-end items-center">
                     <Badge variant="outline" className="px-3 py-0.5 bg-amber-50 text-amber-700 border-amber-200">
-                      Time Per Day
+                      Hours/day
                     </Badge>
                   </div>
                 </TableHead>
@@ -83,6 +90,9 @@ export function AnalystTable({
                     <TableRow key={`loading-${index}`} className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}>
                       <TableCell className="py-3">
                         <div className="h-4 bg-slate-200 rounded animate-pulse w-3/4"></div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="h-4 bg-slate-200 rounded animate-pulse w-1/2 ml-auto"></div>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="h-4 bg-slate-200 rounded animate-pulse w-1/2 ml-auto"></div>
@@ -118,7 +128,10 @@ export function AnalystTable({
                         {analyst.chartsPerDay}
                       </TableCell>
                       <TableCell className="text-right !pr-4 py-[5.8px] font-semibold">
-                        {analyst.timePerDay} min
+                        {analyst.productivityPercent}%
+                      </TableCell>
+                      <TableCell className="text-right !pr-4 py-[5.8px] font-semibold">
+                        {(analyst.timePerDay / 60).toFixed(1)}h
                       </TableCell>
                     </motion.tr>
                   ))}
@@ -126,18 +139,27 @@ export function AnalystTable({
             </TableBody>
           </Table>
         </div>
-        {!isExpanded && analysts.length > maxInitialRows && (
+        {analysts.length - maxInitialRows > 0 ? (analysts.length - maxInitialRows) && !isExpanded ? (
           <div className="p-2 text-center border-t">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsExpanded(true)}
-              className="text-xs text-muted-foreground hover:text-foreground"
+              className=""
             >
               Show {analysts.length - maxInitialRows} more analysts
             </Button>
           </div>
-        )}
+        ) : <div className="p-2 text-center border-t">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsExpanded(false)}
+            className=""
+          >
+            Hide {analysts.length - maxInitialRows}  analysts
+          </Button>
+        </div> : <></>}
       </CardContent>
     </Card>
   );

@@ -1,12 +1,16 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Tab } from "@/lib/types/dashboardTypes";
+import { fetchData } from "@/lib/api/api-client";
+import toast from "react-hot-toast";
 
 interface DashboardState {
     token: string;
     tabs: Tab[]
     activeTab: string;
     search: string;
-    columnOrders: Record<string, string[]>; // Add this to store column orders by URL key
+    analystUsers: { id: string | number; name: string }[];
+    auditorUsers: { id: string | number; name: string }[];
+    columnOrders: Record<string, string[]>;
 }
 
 const initialState: DashboardState = {
@@ -14,6 +18,8 @@ const initialState: DashboardState = {
     tabs: [],
     // tabs: [{ id: "dashboard", title: "Dashboard", href: "/dashboard", active: true }],
     activeTab: "",
+    analystUsers: [],
+    auditorUsers: [],
     search: "",
     columnOrders: {
         "default": [
@@ -29,8 +35,56 @@ const initialState: DashboardState = {
             "",
             ""
         ]
-    }, // Initialize empty object for column orders
+    },
 };
+
+interface ApiResponse {
+    status: string
+    message: string
+    data: {
+        "id": number,
+        "first_name": string,
+        "last_name": string,
+        "role_id": number
+    }[]
+}
+
+export const fetchAnalystUsers = createAsyncThunk("dashboard/fetchAnalystUsers", async (_, { rejectWithValue }) => {
+    try {
+        const response = await fetchData("get/analyst_users/");
+        const data = response.data as ApiResponse;
+        if (data.status === "Success") {
+            return data.data.map(user => ({
+                id: `${user.id}`,
+                name: `${user.first_name} ${user.last_name}`
+            }));
+        } else {
+            toast.error(`${data.message}`);
+            return [] as { id: number; name: string }[];
+        }
+    } catch (error) {
+        return rejectWithValue((error as Error).message || "Failed to fetch analyst users");
+    }
+});
+
+export const fetchAuditorUsers = createAsyncThunk("dashboard/fetchAuditorUsers", async (_, { rejectWithValue }) => {
+    try {
+        const response = await fetchData("get/auditor_users/");
+        const data = response.data as ApiResponse;
+        if (data.status === "Success") {
+            // Transform the data to match the expected structure
+            return data.data.map(user => ({
+                id: `${user.id}`,
+                name: `${user.first_name} ${user.last_name}`
+            }));
+        } else {
+            toast.error(`${data.message}`);
+            return [] as { id: number; name: string }[];
+        }
+    } catch (error) {
+        return rejectWithValue((error as Error).message || "Failed to fetch auditor users");
+    }
+});
 
 const dashboardSlice = createSlice({
     name: "dashboard",
@@ -114,6 +168,17 @@ const dashboardSlice = createSlice({
             state.columnOrders[key] = order;
         },
     },
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchAuditorUsers.fulfilled, (state, action) => {
+                state.auditorUsers = action.payload;
+            });
+
+        builder
+            .addCase(fetchAnalystUsers.fulfilled, (state, action) => {
+                state.analystUsers = action.payload; // Fix: use analystUsers instead of analystsData
+            });
+    },
 });
 
 export const {
@@ -127,6 +192,6 @@ export const {
     updateTabSearch,
     setActiveTab,
     reorderTab,
-    setStoreColumnOrder // Export the new action
+    setStoreColumnOrder
 } = dashboardSlice.actions;
 export default dashboardSlice.reducer;

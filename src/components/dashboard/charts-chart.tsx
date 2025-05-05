@@ -19,15 +19,19 @@ export function ChartsChart({ data }: ChartsChartProps) {
       return (
         <div className="bg-white rounded-sm shadow-xl border border-gray-400 px-4 py-1.5">
           <p className="font-semibold text-black  mb-2">{label}</p>
-          {payload.map((
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            entry: any, index: number) => (
-            <div key={`item-${index}`} className="flex items-center mb-1 last:mb-0">
-              <div className="w-2 h-4 mr-2" style={{ backgroundColor: entry.color || "#2a9d90" }} />
-              <span className="text-gray-700 mr-2">Charts</span>
-              <span className="font-medium ml-auto">{entry.value}</span>
-            </div>
-          ))}
+          {payload.map(
+            (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              entry: any,
+              index: number,
+            ) => (
+              <div key={`item-${index}`} className="flex items-center mb-1 last:mb-0">
+                <div className="w-2 h-4 mr-2" style={{ backgroundColor: entry.color || "#2a9d90" }} />
+                <span className="text-gray-700 mr-2">Charts</span>
+                <span className="font-medium ml-auto">{entry.value}</span>
+              </div>
+            ),
+          )}
         </div>
       );
     }

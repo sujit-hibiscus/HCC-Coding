@@ -22,17 +22,19 @@ export function PeriodComparisonPanel({
         <CardTitle className="text-center">{title}</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="grid grid-cols-4 text-center">
+        <div className="grid grid-cols-5 text-center">
           <MetricHeader title="Total Assigned" />
           <MetricHeader title="Total Completed" />
+          <MetricHeader title="Total Audited" />
           <MetricHeader title="Average Daily Productivity" />
-          <MetricHeader title="Average Daily Time" />
+          <MetricHeader title="Average Hours/day" />
         </div>
-        <div className="grid grid-cols-4 text-center bg-white">
+        <div className="grid grid-cols-5 text-center bg-white">
           <MetricValue value={metrics.totalAssigned} />
           <MetricValue value={metrics.totalCompleted} />
+          <MetricValue value={metrics.totalAudited} />
           <MetricValue value={metrics.averageDailyProductivity} />
-          <MetricValue value={metrics.averageDailyTime} />
+          <MetricValue value={(metrics.averageDailyTime / 60).toFixed(1)} suffix="h" />
         </div>
       </CardContent>
     </Card>
@@ -43,6 +45,11 @@ function MetricHeader({ title }: { title: string }) {
   return <div className="p-2 text-xs font-medium">{title}</div>;
 }
 
-function MetricValue({ value }: { value: number }) {
-  return <div className="p-3 text-lg font-semibold">{value}</div>;
+function MetricValue({ value, suffix = "" }: { value: number | string; suffix?: string }) {
+  return (
+    <div className="p-3 text-lg font-semibold">
+      {value}
+      {suffix}
+    </div>
+  );
 }

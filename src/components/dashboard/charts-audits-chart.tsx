@@ -19,19 +19,17 @@ export function ChartsAuditsChart({ data }: ChartsAuditsChartProps) {
   const seriesCount = (activeChartSeries.charts ? 1 : 0) + (activeChartSeries.audits ? 1 : 0);
   const dynamicBarSize = Math.max(10, Math.min(400, 400 / (chartData.length * Math.max(seriesCount, 1))));
 
-
   const handleLegendClick = (dataKey: keyof typeof chartConfig) => {
     dispatch(toggleChartSeries(dataKey as "charts" | "audits"));
   };
 
   useEffect(() => {
-    if (Object?.values(activeChartSeries)?.every(item => item === false)) {
+    if (Object?.values(activeChartSeries)?.every((item) => item === false)) {
       dispatch(toggleChartSeries("charts"));
       dispatch(toggleChartSeries("audits"));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeChartSeries]);
-
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -39,30 +37,29 @@ export function ChartsAuditsChart({ data }: ChartsAuditsChartProps) {
       return (
         <div className="bg-white rounded-sm shadow-xl border border-gray-400 px-4 py-1.5">
           <p className="font-semibold text-black  mb-2">{label}</p>
-          {payload.map((
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            entry: any,
-            index: number) => {
-            const color = entry.dataKey === "charts" ? "#e76e50" : "#2a9d90";
-            const name = entry.dataKey === "charts" ? "Reviews" : "Audits";
+          {payload.map(
+            (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              entry: any,
+              index: number,
+            ) => {
+              const color = entry.dataKey === "charts" ? "#e76e50" : "#2a9d90";
+              const name = entry.dataKey === "charts" ? "Reviews" : "Audits";
 
-            return (
-              <div key={`item-${index}`} className="flex items-center mb-1 last:mb-0">
-                <div className="w-2 h-4 mr-2" style={{ backgroundColor: color }} />
-                <span className="text-gray-700 mr-2">{name}</span>
-                <span className="font-medium ml-auto">{entry.value}</span>
-              </div>
-            );
-          })}
+              return (
+                <div key={`item-${index}`} className="flex items-center mb-1 last:mb-0">
+                  <div className="w-2 h-4 mr-2" style={{ backgroundColor: color }} />
+                  <span className="text-gray-700 mr-2">{name}</span>
+                  <span className="font-medium ml-auto">{entry.value}</span>
+                </div>
+              );
+            },
+          )}
         </div>
       );
     }
     return null;
   };
-
-
-
-
 
   const chartConfig = {
     charts: {
@@ -74,7 +71,6 @@ export function ChartsAuditsChart({ data }: ChartsAuditsChartProps) {
       color: "#2a9d90",
     },
   } satisfies Record<"charts" | "audits", { label: string; color: string }>;
-
 
   return (
     <Card className="overflow-hidden px-0">
@@ -94,7 +90,6 @@ export function ChartsAuditsChart({ data }: ChartsAuditsChartProps) {
                 bottom: 5,
               }}
             >
-
               <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
               <Tooltip content={<CustomTooltip />} cursor={false} />
               {activeChartSeries.charts && (

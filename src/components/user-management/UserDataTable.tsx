@@ -21,7 +21,6 @@ export function UserTable({ onEdit, onDelete }: UserTableProps) {
     const { selector, dispatch } = useRedux();
     const { status: usersStatus } = selector((state) => state.user.users);
     const { data: users } = selector((state) => state.user.users);
-
     const { isLoading } = useLoading();
 
     useEffect(() => {

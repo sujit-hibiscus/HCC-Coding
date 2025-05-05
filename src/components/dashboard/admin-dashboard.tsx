@@ -14,11 +14,13 @@ import { ChartsAuditsChart } from "./charts-audits-chart";
 import { generateDashboardData } from "./data-generator";
 import { MetricsPanel } from "./metrics-panel";
 import { PeriodComparisonPanel } from "./period-comparison-panel";
+import { QualityMetricsTable } from "./quality-metrics-table";
+import { TimeSpentChart } from "./time-spent-chart";
 
 export function AdminDashboard() {
   const { selector, dispatch } = useRedux();
   const { dateRange, dashboardData, isDirty, isLoading, filtersApplied } = selector((state) => state.dashboardFilters3);
-  const userType = selector((state) => state.user.userType);
+  // const userType = selector((state) => state.user.userType);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -33,7 +35,6 @@ export function AdminDashboard() {
   const handleDateRangeChange = (range: [Date | null, Date | null]) => {
     dispatch(setDateRange(range));
   };
-
 
   const handleLoadData = () => {
     dispatch(loadDashboardData());
@@ -75,7 +76,7 @@ export function AdminDashboard() {
       transition={{ duration: 0.3 }}
     >
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1">
-        <h1 className="text-2xl font-bold">{userType} Dashboard</h1>
+        <div className="flex items-center gap-2">{/* Removed redundant title */}</div>
         <div className="flex flex-wrap items-center gap-2">
           {filtersApplied && (
             <Button variant="blue" onClick={handleResetFilters} className="h-8 px-2 lg:px-3">
@@ -83,7 +84,6 @@ export function AdminDashboard() {
               <X className="md:ml-2 h-4 w-4" />
             </Button>
           )}
-          {/* <DateRangePicker dateRange={dateRange} onChange={handleDateRangeChange} /> */}
           <CalendarDateRangePicker dateRange={dateRange} setDateRange={handleDateRangeChange} />
           <Button
             onClick={handleLoadData}
@@ -107,16 +107,12 @@ export function AdminDashboard() {
             <Download className="mr-1 h-3.5 w-3.5" />
             Export
           </Button>
-          {/*  <Button variant="outline" onClick={() => dispatch(setDateRange(dateRange))} size="sm">
-            <RefreshCw className="mr-1 h-3.5 w-3.5" />
-            Refresh
-          </Button> */}
         </div>
       </div>
 
       <MetricsPanel metrics={dashboardData.metrics} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4">
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -163,28 +159,41 @@ export function AdminDashboard() {
         <ChartsAuditsChart data={dashboardData.dailyData} />
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.3, delay: 0.45 }}
+      >
+        <TimeSpentChart data={dashboardData.dailyData} />
+      </motion.div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-1 2xl:grid-cols-3 gap-1">
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.5 }}
+          className="lg:col-span-2"
         >
-          <AnalystTable
-            title="Charts Reviewed"
-            analysts={dashboardData.analysts}
-            headerClassName="bg-[#e76e50] text-white"
-          />
+          <div className="grid grid-cols-1 items-start lg:grid-cols-2 gap-1">
+            <AnalystTable
+              title="Charts Reviewed"
+              analysts={dashboardData.analysts}
+              headerClassName="bg-[#e76e50] text-white"
+            />
+            <AnalystTable
+              title="Charts Audited"
+              analysts={dashboardData.auditors}
+              headerClassName="bg-[#2a9d90] text-white"
+            />
+
+          </div>
         </motion.div>
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.6 }}
         >
-          <AnalystTable
-            title="Charts Audited"
-            analysts={dashboardData.auditors}
-            headerClassName="bg-[#2a9d90] text-white"
-          />
+          <QualityMetricsTable analysts={dashboardData.analysts} headerClassName="bg-indigo-600 text-white" />
         </motion.div>
       </div>
     </motion.div>

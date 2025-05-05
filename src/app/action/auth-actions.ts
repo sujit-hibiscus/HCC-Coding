@@ -28,28 +28,19 @@ export async function logoutAction() {
     });
 }
 
-const mockCredentials = {
-    analyst: {
-        email: "kavita@homrcm.com",
-        password: "Kavita@123",
-        userType: "Analyst",
-    },
-    auditor: {
-        email: "sandeep@homrcm.com",
-        password: "Sandeep@123",
-        userType: "Auditor",
-    },
-    admin: {
-        email: "admin@homrcm.com",
-        password: "admin@123",
-        userType: "Admin",
-    },
-    superAdmin: {
-        email: "super.admin@homrcm.com",
-        password: "admin@123",
-        userType: "Super Admin",
-    },
+
+const ROLE_CHOICES: readonly [number, string][] = [
+    [1, "Super Admin"],
+    [2, "Admin"],
+    [3, "Analyst"],
+    [4, "Auditor"],
+];
+
+const getUserType = (roleNumber: number) => {
+    const roleMap = new Map(ROLE_CHOICES);
+    return roleMap.get(roleNumber) || "Unknown Role";
 };
+
 
 export async function loginAction(formData: FormData): Promise<LoginResponse> {
     const email = formData.get("email") as string;
@@ -57,50 +48,55 @@ export async function loginAction(formData: FormData): Promise<LoginResponse> {
 
     try {
 
-        let userType = "";
-        if (email === mockCredentials.analyst.email && password === mockCredentials.analyst.password) {
-            userType = mockCredentials.analyst.userType;
-        } else if (email === mockCredentials.admin.email && password === mockCredentials.admin.password) {
-            userType = mockCredentials.admin.userType;
-        } else if (email === mockCredentials.auditor.email && password === mockCredentials.auditor.password) {
-            userType = mockCredentials.auditor.userType;
-        } else if (email === mockCredentials.superAdmin.email && password === mockCredentials.superAdmin.password) {
-            userType = mockCredentials.superAdmin.userType;
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ? `${process.env.NEXT_PUBLIC_BASE_URL}` : "";
+        const bodyData = {
+            "email": email,
+            "password": password
+        };
+        const response = await fetch(`${baseUrl}login_user/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(bodyData),
+            cache: "no-store",
+        });
+
+        const data = await response.json();
+        if (data.status === "Success") {
+            const userType = data?.role_id ? getUserType(data?.role_id) : "";
+            const authToken = data?.token;
+            const cookieStore = await cookies();
+            cookieStore.set("authToken", authToken, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "strict",
+                maxAge: 3 * 60 * 60,
+                path: "/",
+            });
+            cookieStore.set("userType", userType, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "strict",
+                maxAge: 3 * 60 * 60,
+                path: "/",
+            });
+
+            TokenManager.setToken(authToken);
+
+            return {
+                success: true,
+                userType: userType,
+                userRoles: [],
+                token: authToken,
+                message: "Login successful"
+            };
         } else {
             return {
                 success: false,
-                error: "Invalid email or password.",
+                error: "Invalid email or password. Please try again.",
                 token: "",
-                message: "Login failed",
+                message: data?.message
             };
         }
-
-        const authToken = `${userType}-token-123`;
-        const cookieStore = await cookies();
-        cookieStore.set("authToken", authToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "strict",
-            maxAge: 3 * 60 * 60,
-            path: "/",
-        });
-        cookieStore.set("userType", userType, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "strict",
-            maxAge: 3 * 60 * 60,
-            path: "/",
-        });
-
-        TokenManager.setToken(authToken);
-
-        return {
-            success: true,
-            userType: userType,
-            userRoles: [],
-            token: authToken,
-            message: "Login successful"
-        };
 
     } catch (error) {
         console.error("Login error:", error);

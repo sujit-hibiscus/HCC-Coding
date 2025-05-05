@@ -31,13 +31,18 @@ const generateAnalystData = (count: number): AnalystData[] => {
     const dailyTarget = randomNumber(25, 40);
     const totalCharts = randomNumber(400, 600);
     const chartsPerDay = randomNumber(25, 40);
+    const timePerDay = randomNumber(250, 450);
+    const productivityPercent = Math.round((chartsPerDay / dailyTarget) * 100);
+    const qualityScore = randomNumber(85, 99);
 
     return {
       name: names[index % names.length],
       dailyTarget,
       totalCharts,
       chartsPerDay,
-      timePerDay: randomNumber(250, 450),
+      timePerDay,
+      productivityPercent,
+      qualityScore,
     };
   });
 };
@@ -61,6 +66,10 @@ const generateDailyData = (startDate: Date, endDate: Date): DailyData[] => {
     // Minutes spent on charts
     const minutes = randomNumber(250, 500);
 
+    // Analyst and auditor time spent
+    const analystTime = randomNumber(200, 400);
+    const auditorTime = randomNumber(150, 350);
+
     result.push({
       day: format(currentDate, "dd MMM"),
       date: currentDate,
@@ -68,6 +77,8 @@ const generateDailyData = (startDate: Date, endDate: Date): DailyData[] => {
       charts,
       audits,
       minutes,
+      analystTime,
+      auditorTime,
     });
   }
 
@@ -80,6 +91,7 @@ const generatePeriodMetrics = (multiplier: number): PeriodMetrics => {
   return {
     totalAssigned: randomNumber(400, 600) * multiplier,
     totalCompleted: randomNumber(350, 500) * multiplier,
+    totalAudited: randomNumber(300, 450) * multiplier,
     averageDailyProductivity: randomNumber(25, 40),
     averageDailyTime: randomNumber(250, 450),
   };
@@ -88,7 +100,7 @@ const generatePeriodMetrics = (multiplier: number): PeriodMetrics => {
 // Main function to generate dashboard data
 export const generateDashboardData = (startDate: Date, endDate: Date): DashboardData => {
   const dailyData = generateDailyData(startDate, endDate);
-  const analysts = generateAnalystData(5);
+  const analysts = generateAnalystData(8);
   const auditors = generateAnalystData(5);
 
   // Calculate metrics
@@ -96,6 +108,9 @@ export const generateDashboardData = (startDate: Date, endDate: Date): Dashboard
   const totalCompleted = randomNumber(5000, 7000);
   const averageDailyProductivity = randomNumber(250, 350);
   const estRemainingDays = Math.ceil((totalVolume - totalCompleted) / averageDailyProductivity);
+  const qualityScore = randomNumber(88, 97);
+  const totalAnalysts = analysts.length;
+  const totalAuditors = auditors.length;
 
   // Generate period titles
   const currentYear = new Date().getFullYear();
@@ -112,6 +127,9 @@ export const generateDashboardData = (startDate: Date, endDate: Date): Dashboard
       totalCompleted,
       averageDailyProductivity,
       estRemainingDays,
+      qualityScore,
+      totalAnalysts,
+      totalAuditors,
     },
     periodTitles: {
       yearToDateTitle,

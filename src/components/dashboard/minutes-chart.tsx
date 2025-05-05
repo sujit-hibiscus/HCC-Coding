@@ -23,7 +23,9 @@ export function MinutesChart({ data }: MinutesChartProps) {
             <div key={`item-${index}`} className="flex items-center mb-1 last:mb-0">
               <div className="w-2 h-4 mr-2" style={{ backgroundColor: "#005A9C" }} />
               <span className="text-gray-700 mr-3">Duration</span>
-              <span className="font-medium text-gray-900 ml-auto">{formatMinutes((entry as { value: number }).value)}</span>
+              <span className="font-medium text-gray-900 ml-auto">
+                {formatMinutes((entry as { value: number }).value)}
+              </span>
             </div>
           ))}
         </div>

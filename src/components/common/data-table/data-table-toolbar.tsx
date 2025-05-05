@@ -105,11 +105,10 @@ function DataTableToolbarComponent<TData>({
     setIsSubmitting(true);
 
 
-    const resultAction = await dispatch(autoAssign());;
+    const resultAction = await dispatch(autoAssign(target as "pending" | "assigned" | "audit" | "completed"));
     if (autoAssign.fulfilled.match(resultAction)) {
       setIsSubmitting(false);
       getChartApi(target as "pending" | "assigned" | "audit" | "completed");
-
     }
     /* setTimeout(() => {
         setIsSubmitting(false);
@@ -154,7 +153,7 @@ function DataTableToolbarComponent<TData>({
         <TasksTableToolbarActions table={table} />
       </div>
 
-      <Button
+      {target !== "completed" && <Button
         onClick={handleAutoAssign}
         disabled={isSubmitting}
         className="h-8 px-2 lg:px-3"
@@ -171,7 +170,7 @@ function DataTableToolbarComponent<TData>({
           </>
         )}
       </Button>
-
+      }
     </div>
   );
 }

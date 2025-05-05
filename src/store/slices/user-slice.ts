@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
 import type { UserTypes as User } from "@/lib/types/chartsTypes";
+import { fetchData, postData } from "@/lib/api/api-client";
+import toast from "react-hot-toast";
 
 export interface AppointmentCounts {
     charts: {
@@ -105,6 +107,8 @@ const initialState: UserState = {
 
 // Register user request interface
 export interface RegisterUserRequest {
+    prodTarget: number;
+    maxAssign: number;
     Fname: string
     Lname: string
     email: string
@@ -162,11 +166,26 @@ export const getAllUsers = createAsyncThunk(
     }
 );
 
+const roleMap = {
+    "Super Admin": 1,
+    Admin: 2,
+    Analyst: 3,
+    Auditor: 4,
+};
 export const registerUser = createAsyncThunk<string, RegisterUserRequest>(
     "user/registered/register",
     async (userData, { getState, dispatch, rejectWithValue }) => {
         try {
-            // Simulate API delay
+            const apiResponse = await postData("register_user/", {
+                "first_name": userData.Fname.trim(),
+                "last_name": userData.Lname.trim(),
+                "email": userData.email.toLowerCase().trim(),
+                "password": userData.password,
+                "role_id": roleMap[userData.profile_type as keyof typeof roleMap], // 1: Analyst, 2: Auditor, 3: Admin, 4: Super Admin
+                "prod_target": userData?.prodTarget, // Optional, required if the role_id is 3 (Analyst) or 4 (Auditor)
+                "bucket_threshold": userData?.maxAssign // Optional, required if the role_id is 3 (Analyst) or 4 (Auditor)
+            });
+            console.log("🚀 ~ apiResponse:", apiResponse);
             await new Promise((resolve) => setTimeout(resolve, 800));
 
             const state = getState() as { user: UserState };
@@ -194,7 +213,7 @@ export const registerUser = createAsyncThunk<string, RegisterUserRequest>(
             // Add to state in the reducer
             dispatch(addUser(newUser));
 
-            return "User registered successfully";
+            return "User created successfully.";
         } catch (error) {
             return rejectWithValue((error as Error).message || "Failed to register user");
         }
@@ -271,6 +290,49 @@ export const deleteUser = createAsyncThunk<{ id: number; message: string }, numb
         }
     }
 );
+
+
+interface ApiResponse {
+    data: {
+        "Pending": number,
+        "Assigned": number,
+        "Audit": number,
+        "Completed": number
+    }
+    status: "Success" | "Not Found" | "Error"
+    message: string
+}
+export const fetchChartCounts = createAsyncThunk("user/fetchChartCounts", async (_, { rejectWithValue }) => {
+    try {
+        // Use getData function if available, otherwise use fetch
+        const response = await fetchData("charts_count/");
+        const data = response.data as ApiResponse;
+        if (data.status === "Success") {
+            return {
+                data: {
+                    Pending: data.data.Pending,
+                    Assigned: data.data.Assigned,
+                    Audit: data.data.Audit,
+                    Completed: data.data.Completed,
+                },
+                status: "Success",
+            };
+        } else {
+            toast.error(`${data.message}`);
+            return {
+                data: {
+                    Pending: data.data.Pending,
+                    Assigned: data.data.Assigned,
+                    Audit: data.data.Audit,
+                    Completed: data.data.Completed,
+                },
+                status: "Success",
+            };
+        }
+    } catch (error) {
+        return rejectWithValue((error as Error).message || "Failed to fetch chart counts");
+    }
+});
 
 // Create the user slice
 const userSlice = createSlice({
@@ -383,6 +445,19 @@ const userSlice = createSlice({
             .addCase(deleteUser.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string || action.error.message || "Failed to delete user";
+            }) // Chart counts reducers
+            .addCase(fetchChartCounts.pending, (state) => {
+                state.appointmentCounts.status = "Loading";
+            })
+            .addCase(fetchChartCounts.fulfilled, (state, action) => {
+                state.appointmentCounts.data = {
+                    charts: action.payload.data,
+                };
+                state.appointmentCounts.status = "Success";
+            })
+            .addCase(fetchChartCounts.rejected, (state, action) => {
+                state.appointmentCounts.status = "Error";
+                state.error = (action.payload as string) || "Failed to fetch chart counts";
             });
     },
 });

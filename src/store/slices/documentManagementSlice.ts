@@ -13,7 +13,8 @@ export interface Document {
     assignId: string
     timeSpent: number
     startTime?: number
-    pauseTimes?: { start: number; end: number }[]
+    pauseTimes?: { start: number; end: number }[],
+    fileSize?: number | string
 }
 
 export interface FormData {
@@ -90,6 +91,7 @@ export const fetchDocuments = createAsyncThunk("documentManagement/fetchDocument
                 status: status === (userType === "Analyst" ? 1 : 3) ? "pending" : status === (userType === "Analyst" ? 2 : 4) ? "in_progress" : "completed",
                 assignedAt: formatToMMDDYYYYIfNeeded(userType === "Analyst" ? item.analyst_assignments?.[0]?.assigned_date ?? "" : item?.auditor_assignments?.[0]?.assigned_date ?? ""),
                 timeSpent: 0,
+                fileSize: item.file_size,
             } as Document;
         });
         return response;
@@ -259,22 +261,25 @@ export const fetchPdfFile = createAsyncThunk<string, string>(
     },
 );
 
-export const autoAssign = createAsyncThunk("documentManagement/assign", async (_, { rejectWithValue }) => {
-    try {
-        const response = await postData("assign_charts_analyst/");
-        const responseData = response.data as { status: string; message: string };
-        if (responseData.status === "Success") {
-            toast.success(responseData?.message);
-        } else {
-            toast.error(responseData?.message);
+export const autoAssign = createAsyncThunk(
+    "documentManagement/assign",
+    async (target: "pending" | "assigned" | "audit" | "completed", { rejectWithValue }) => {
+        try {
+            const response = (target === "pending" || target === "assigned") ? await postData("assign_charts_analyst/") : await postData("assign_charts_auditor/");
+            const responseData = response.data as { status: string; message: string };
+
+            if (responseData.status === "Success") {
+                toast.success(responseData.message);
+            } else {
+                toast.error(responseData.message);
+            }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Failed to start review";
+            toast.error(errorMessage);
+            return rejectWithValue(errorMessage);
         }
-    } catch (error) {
-        // Handle any exceptions during the API call
-        const errorMessage = error instanceof Error ? error.message : "Failed to start review";
-        toast.error(errorMessage);
-        return rejectWithValue(errorMessage);
     }
-});
+);
 
 const initialState: DocumentManagementState = {
     documents: [],
