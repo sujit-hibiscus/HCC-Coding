@@ -36,6 +36,8 @@ export default function LoginForm() {
                 formData.append("password", password);
 
                 const response = await loginAction(formData);
+                console.log("🚀 ~ loginPromise ~ response:", response);
+                dispatch(fetchChartCounts());
                 if (response?.userType?.toLowerCase()?.includes("admin")) {
                     dispatch(fetchChartCounts());
                     dispatch(fetchAnalystUsers());
@@ -74,6 +76,7 @@ export default function LoginForm() {
                         resolve();
                     }, 500);
                 } else {
+                    console.log(response.error, "ERROR >>>>>>");
                     dispatch(setError(response.error || "Login failed"));
                     reject(new Error(response.error || "Invalid email or password. Please try again."));
                 }
