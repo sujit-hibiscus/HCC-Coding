@@ -191,7 +191,7 @@ export default function AddUserPage() {
                     Fname: user.Fname,
                     Lname: user.Lname,
                     email: user.email,
-                    password: "",
+                    password: user?.password,
                     profile_type: user.profile_type as ProfileType,
                     target: user.target,
                 },
@@ -304,7 +304,7 @@ export default function AddUserPage() {
                                             <SelectValue placeholder="Select type" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="Super Admin">Super Admin</SelectItem>
+                                            {/* <SelectItem value="Super Admin">Super Admin</SelectItem> */}
                                             <SelectItem value="Admin">Admin</SelectItem>
                                             <SelectItem value="Auditor">Auditor</SelectItem>
                                             <SelectItem value="Analyst">Analyst</SelectItem>

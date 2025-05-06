@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ChevronRight, FileText, Key, Laptop, LayoutDashboard, LogOut, Moon, Settings, Sun, Table, User, UserPlus } from "lucide-react";
+import { ChevronRight, FileText, Key, Laptop, LayoutDashboard, LogOut, Moon, Settings, Sun, Table, UserPlus } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import type * as React from "react";
 
@@ -25,12 +25,12 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useRedux } from "@/hooks/use-redux";
 import useToast from "@/hooks/use-toast";
+import { targetTabs } from "@/lib/types/chartsTypes";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { useState } from "react";
-import { ChangePassword } from "./user/change-password";
-import { targetTabs } from "@/lib/types/chartsTypes";
 import { useApiCall } from "./ApiCall";
+import { ChangePassword } from "./user/change-password";
 
 interface MenuItem {
     icon: React.ElementType
@@ -298,12 +298,12 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                         </TooltipProvider>
 
                         <DropdownMenuContent align="end" className="w-[--radix-dropdown-menu-trigger-width] bg-selectedText text-tabBg">
-                            <motion.div>
+                            {/*   <motion.div>
                                 <DropdownMenuItem className="hover:!bg-tabBg hover:!text-selectedText">
                                     <User className="mr-2 size-4" />
                                     <span>Profile</span>
                                 </DropdownMenuItem>
-                            </motion.div>
+                            </motion.div> */}
 
                             <motion.div>
                                 <DropdownMenuItem

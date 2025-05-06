@@ -160,11 +160,13 @@ export default function AssignmentControls({ currentTab, userType, }: Assignment
                         <SelectValue placeholder={placeholder} />
                     </SelectTrigger>
                     <SelectContent>
-                        {options.map((option) => (
+                        {options?.length > 0 ? options.map((option) => (
                             <SelectItem key={option.id} value={`${option.id}`}>
                                 {option.name}
                             </SelectItem>
-                        ))}
+                        )) : <div className="flex items-center justify-center h-5 text-sm">
+                            No {currentTab === ChartTab.Audit ? "auditors" : "analysts"} available
+                        </div>}
                     </SelectContent>
                 </Select>
                 {selectedValue && (

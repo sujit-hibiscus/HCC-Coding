@@ -497,10 +497,10 @@ export const assignToAuditor = createAsyncThunk<
         const bodyData = {
             "chart_ids": documentIds?.map(item => +item),
             "request_user_id": +request_user_id,
-            "analyst_id": +analystId
+            "auditor_id": +analystId
         };
 
-        const response = await postData<ApiResponse>("manual/assign_pending_charts/", bodyData);
+        const response = await postData<ApiResponse>("manual/reassign_charts_auditor/", bodyData);
 
         if (response.data.status === "Success") {
             toast.success(response.data.message);

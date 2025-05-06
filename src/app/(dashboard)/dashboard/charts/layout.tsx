@@ -10,7 +10,7 @@ import { updateTab } from "@/store/slices/DashboardSlice";
 import { ChartTab } from "@/lib/types/chartsTypes";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, Clock, FileEdit } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { redirect, usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useApiCall } from "@/components/common/ApiCall";
 
@@ -31,6 +31,12 @@ export default function ChartLayout({
     const [currentTab, setCurrentTab] = useState(pathname.split("/").pop() || "pending");
     const { tabs: storedTabs = [] } = selector((state) => state.dashboard);
     const { userType = "", appointmentCounts } = selector((state) => state.user);
+
+    if (!(userType?.toLowerCase()?.includes("admin"))) {
+        redirect("/unauthorized");
+    }
+
+
     const chartsCounts = appointmentCounts?.data?.charts;
     const tabCountLoading = appointmentCounts?.status;
     const { getChartApi } = useApiCall();
@@ -42,25 +48,25 @@ export default function ChartLayout({
             value: ChartTab.Pending,
             label: "Pending",
             icon: Clock,
-            count: pendingDocuments?.data?.length > 0 ? pendingDocuments?.data?.length : chartsCounts?.Pending,
+            count: chartsCounts?.Pending,
         },
         {
             value: ChartTab.Assigned,
             label: "Assigned",
             icon: FileEdit,
-            count: assignedDocuments?.data?.length > 0 ? assignedDocuments?.data?.length : chartsCounts?.Assigned,
+            count: chartsCounts?.Assigned,
         },
         {
             value: ChartTab.Audit,
             label: "Audit",
             icon: CheckCircle2,
-            count: auditDocuments?.data?.length > 0 ? auditDocuments?.data?.length : chartsCounts?.Audit,
+            count: chartsCounts?.Audit,
         },
         {
             value: ChartTab.Completed,
             label: "Completed",
             icon: CheckCircle2,
-            count: completedDocuments?.data?.length > 0 ? completedDocuments?.data?.length : chartsCounts?.Completed,
+            count: chartsCounts?.Completed,
         },
     ];
     const tabsData = [

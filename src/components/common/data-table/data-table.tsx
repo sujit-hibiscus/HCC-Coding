@@ -44,6 +44,7 @@ import { DataTableToolbar } from "./data-table-toolbar";
 import { SortableHeader } from "./sortable-header";
 import { cn, EndDateFilter, StartDateFilter } from "@/lib/utils";
 import { setSelectedDocuments } from "@/store/slices/table-document-slice";
+import { updateCountByKey } from "@/store/slices/user-slice";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -278,6 +279,26 @@ export function DataTable<TData, TValue>({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, dateKey, dateRange]);
+
+  const routeKeyMap: Record<string, string> = {
+    "pending": "Pending",
+    "assigned": "Assigned",
+    "audit": "Audit",
+    "completed": "Completed",
+  };
+  const activeTabKey = routeKeyMap[target.split("/").pop() || ""] || "";
+  useEffect(() => {
+    if (activeTabKey) {
+      dispatch(
+        updateCountByKey({
+          key: activeTabKey,
+          count: table.getRowModel().rows.length,
+        })
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [table.getRowModel(), activeTabKey]);
+
 
   return (
     <div className="flex h-full flex-col space-y">

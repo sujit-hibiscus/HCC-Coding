@@ -8,12 +8,12 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useRedux } from "@/hooks/use-redux";
 import { fetchDocuments, fetchPdfFile, selectDocument } from "@/store/slices/documentManagementSlice";
 import { motion } from "framer-motion";
-import { Calendar, RefreshCw, Search } from "lucide-react";
+import { Calendar, Loader2, RefreshCw, Search } from "lucide-react";
 import { useState } from "react";
 
 export default function DocumentList() {
   const { dispatch, selector } = useRedux();
-  const { documents, selectedDocumentId, fetchedPdfPaths } = selector((state) => state.documentManagement);
+  const { documents, selectedDocumentId, fetchedPdfPaths, documentLoading } = selector((state) => state.documentManagement);
   const [searchTerm, setSearchTerm] = useState("");
 
   const totalDocuments = documents.length;
@@ -89,7 +89,22 @@ export default function DocumentList() {
       </div>
 
       <div className="space-y-2 overflow-y-auto flex-grow min-h-0">
-        {filteredDocuments.length === 0 ? (
+        {documentLoading ? <div className="h-full w-full flex items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className="text-center flex items-center gap-2"
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+            >
+              <Loader2 className="w-5 h-5 text-muted-foreground" />
+            </motion.div>
+            <p className="text-muted-foreground text-sm">Loading document...</p>
+          </motion.div>
+        </div> : filteredDocuments.length === 0 ? (
           <p className="text-center text-muted-foreground py-6 text-sm">No documents found</p>
         ) : (
           [...filteredDocuments]

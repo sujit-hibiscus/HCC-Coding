@@ -25,8 +25,8 @@ export const SubmissionFormSchema = z.object({
             required_error: "Rating is required",
             invalid_type_error: "Rating must be a number",
         })
-        .min(0.5, { message: "Rating must be at least 0.5" })
-        .max(5, { message: "Rating must not exceed 5" }),
+        .min(1, { message: "Rating must be at least 1" })
+        .max(100, { message: "Rating must not exceed 100" }),
 
 });
 

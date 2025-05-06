@@ -2,8 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { CreatableSelect } from "@/components/ui/creatable-select";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Rating } from "@/components/ui/rating";
 import { Textarea } from "@/components/ui/textarea";
 import { useRedux } from "@/hooks/use-redux";
 import { SubmissionFormSchema } from "@/lib/schemas";
@@ -22,7 +22,6 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle, Loader2, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { PreventSaveProvider } from "../layout/prevent-save-provider";
 import PdfUI from "../ui/pdfUI";
 
 export default function PdfViewer({
@@ -323,42 +322,42 @@ export default function PdfViewer({
             onClick={toggleFullScreen}
           >
             {/* {isFullScreenMode ? (
-              <>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="mr-1"
-                >
-                  <path d="M4 14h6m0 0v6m0-6-7 7m17-11h-6m0 0V4m0 6 7-7" />
-                </svg>
-                Exit Full Screen
-              </>
-            ) : (
-              <>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="mr-1"
-                >
-                  <path d="M3 7h6m0 0V1m0 6L1 1m20 16h-6m0 0v6m0-6 8 8" />
-                </svg>
-                Full Screen
-              </>
-            )} */}
+            <>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-1"
+              >
+                <path d="M4 14h6m0 0v6m0-6-7 7m17-11h-6m0 0V4m0 6 7-7" />
+              </svg>
+              Exit Full Screen
+            </>
+          ) : (
+            <>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-1"
+              >
+                <path d="M3 7h6m0 0V1m0 6L1 1m20 16h-6m0 0v6m0-6 8 8" />
+              </svg>
+              Full Screen
+            </>
+          )} */}
           </Button>
         </div>
       )}
@@ -381,7 +380,7 @@ export default function PdfViewer({
                   <div className="h-full w-full flex justify-center items-center">{"No Document available"}</div>
                 )}
                 {/* <PreventSaveProvider>
-              </PreventSaveProvider> */}
+            </PreventSaveProvider> */}
               </>
             )}
           </div>
@@ -549,21 +548,28 @@ export default function PdfViewer({
                     <Label htmlFor="rating" className="text-base">
                       Quality Rating (Required)
                     </Label>
-                    <Rating
-                      key={`rating-${selectedDocumentId}`}
-                      value={formData.rating || 0}
-                      onChange={(value) => {
-                        if (selectedDocumentId) {
-                          dispatch(
-                            updateFormData({
-                              documentId: selectedDocumentId,
-                              data: { rating: value },
-                            }),
-                          );
-                        }
-                      }}
-                      allowHalf={true}
-                    />
+                    <div className="flex items-center">
+                      <Input
+                        id="rating"
+                        type="number"
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={formData.rating || 0}
+                        onChange={(e) => {
+                          if (selectedDocumentId) {
+                            const value = Number.parseFloat(e.target.value);
+                            dispatch(
+                              updateFormData({
+                                documentId: selectedDocumentId,
+                                data: { rating: value },
+                              }),
+                            );
+                          }
+                        }}
+                        className="w-24"
+                      />
+                    </div>
                     {formErrors.rating && <p className="text-xs text-red-500 mt-1">{formErrors.rating}</p>}
                   </div>
                 </div>

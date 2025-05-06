@@ -27,6 +27,7 @@ export interface FormData {
 interface DocumentManagementState {
     documents: Document[]
     loading: boolean
+    documentLoading: boolean
     error: string | null
 
     selectedDocumentId: string | null
@@ -283,6 +284,7 @@ export const autoAssign = createAsyncThunk(
 
 const initialState: DocumentManagementState = {
     documents: [],
+    documentLoading: false,
     loading: false,
     error: null,
     selectedDocumentId: null,
@@ -417,15 +419,15 @@ const documentManagementSlice = createSlice({
     extraReducers: (builder) => {
         builder
             .addCase(fetchDocuments.pending, (state) => {
-                state.loading = true;
+                state.documentLoading = true;
                 state.error = null;
             })
             .addCase(fetchDocuments.fulfilled, (state, action) => {
-                state.loading = false;
+                state.documentLoading = false;
                 state.documents = action.payload;
             })
             .addCase(fetchDocuments.rejected, (state, action) => {
-                state.loading = false;
+                state.documentLoading = false;
                 state.error = action.error.message || "Failed to fetch documents";
             })
             .addCase(fetchPdfFile.pending, (state) => {

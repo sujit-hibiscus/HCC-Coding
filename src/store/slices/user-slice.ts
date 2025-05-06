@@ -5,10 +5,10 @@ import toast from "react-hot-toast";
 
 export interface AppointmentCounts {
     charts: {
-        Pending?: number
-        Assigned?: number
-        Audit?: number
-        Completed?: number
+        Pending: number
+        Assigned: number
+        Audit: number
+        Completed: number
     }
 }
 
@@ -138,7 +138,6 @@ export const getAllUsers = createAsyncThunk(
         const response = await fetchData("get_users/");
         const data = response.data as ApiResponseData;
         const convertedData = data.data.map((user) => {
-            console.log("🚀 ~ convertedData ~ user:", user);
             return {
                 id: user?.id,
                 Fname: user?.first_name,
@@ -347,6 +346,16 @@ const userSlice = createSlice({
         setLoading: (state, action: PayloadAction<boolean>) => {
             state.loading = action.payload;
         },
+
+        updateCountByKey: (
+            state,
+            action: PayloadAction<{ key: string; count: number }>
+        ) => {
+            const { key, count } = action.payload;
+            if (state.appointmentCounts.data) {
+                state.appointmentCounts.data.charts[key as keyof typeof state.appointmentCounts.data.charts] = count;
+            }
+        },
         setError: (state, action: PayloadAction<string>) => {
             state.error = action.payload;
             state.loading = false;
@@ -464,7 +473,8 @@ export const {
     logout,
     addUser,
     updateUserInState,
-    removeUser
+    removeUser,
+    updateCountByKey
 } = userSlice.actions;
 
 export default userSlice.reducer;
