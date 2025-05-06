@@ -63,6 +63,34 @@ export default function ChartLayout({
             count: completedDocuments?.data?.length > 0 ? completedDocuments?.data?.length : chartsCounts?.Completed,
         },
     ];
+    const tabsData = [
+        {
+            value: ChartTab.Pending,
+            label: "Pending",
+            icon: Clock,
+            count: pendingDocuments?.data?.length,
+        },
+        {
+            value: ChartTab.Assigned,
+            label: "Assigned",
+            icon: FileEdit,
+            count: assignedDocuments?.data?.length,
+        },
+        {
+            value: ChartTab.Audit,
+            label: "Audit",
+            icon: CheckCircle2,
+            count: auditDocuments?.data?.length,
+        },
+        {
+            value: ChartTab.Completed,
+            label: "Completed",
+            icon: CheckCircle2,
+            count: completedDocuments?.data?.length,
+        },
+    ];
+
+
 
     useEffect(() => {
         setCurrentTab(pathname.split("/").pop() || "pending");
@@ -75,7 +103,7 @@ export default function ChartLayout({
         const targetTab = (storedTabs as Tab[])?.map((item) => (item?.active ? { ...item, href: targetHref } : item));
 
         setTimeout(() => {
-            const targetTab = tabs?.find((item) => item.value === value);
+            const targetTab = tabsData?.find((item) => item.value === value);
             if (!(targetTab?.count ?? 0 > 0)) {
                 getChartApi(value as "pending" | "assigned" | "audit" | "completed");
             }

@@ -29,7 +29,8 @@ export default function AssignmentControls({ currentTab, userType, }: Assignment
     const tabKey = `${charts}${target}`;
 
     const { analystUsers: analysts = [], auditorUsers: auditors = [] } = selector(state => state.dashboard);
-    const { selectedAnalyst, selectedPendingAnalyst, selectedAuditor, selectedDocuments, isAssigning } = selector((state) => state.documentTable);
+    const selectedUser = selector((state) => state.user.userId);
+    const { selectedAnalyst, selectedPendingAnalyst, selectedAuditor, selectedDocumentsId: selectedDocuments, isAssigning } = selector((state) => state.documentTable);
 
 
 
@@ -52,13 +53,13 @@ export default function AssignmentControls({ currentTab, userType, }: Assignment
     const hasSelectedDocuments = Array.isArray(selectedDocumentIds) && selectedDocumentIds.length > 0;
 
     const handleAssign = () => {
-        const selectedDocumentIds = getSelectedDocuments();
         if (!selectedDocumentIds || selectedDocumentIds.length === 0) {
             return;
         }
 
         const currentAssignee = currentTab === ChartTab.Audit ? selectedAuditor : currentTab === ChartTab.Pending ? selectedPendingAnalyst : selectedAnalyst;
         const hasSelectedDocs = Array.isArray(selectedDocumentIds) && selectedDocumentIds.length > 0;
+
 
         if (!currentAssignee || !hasSelectedDocs || isAssigning) {
             return;
@@ -68,7 +69,8 @@ export default function AssignmentControls({ currentTab, userType, }: Assignment
             dispatch(
                 assignPendingDocuments({
                     documentIds: selectedDocumentIds,
-                    analystId: selectedPendingAnalyst,
+                    analystId: currentAssignee,
+                    "request_user_id": selectedUser,
                 }),
             ).then(() => {
                 clearSelectedValue();
@@ -83,7 +85,8 @@ export default function AssignmentControls({ currentTab, userType, }: Assignment
             dispatch(
                 changeAssignment({
                     documentIds: selectedDocumentIds,
-                    assigneeId: selectedAnalyst,
+                    analystId: currentAssignee,
+                    "request_user_id": selectedUser,
                 }),
             ).then(() => {
                 clearSelectedValue();
@@ -98,7 +101,8 @@ export default function AssignmentControls({ currentTab, userType, }: Assignment
             dispatch(
                 assignToAuditor({
                     documentIds: selectedDocumentIds,
-                    auditorId: selectedAuditor,
+                    analystId: currentAssignee,
+                    "request_user_id": selectedUser,
                 }),
             ).then(() => {
                 clearSelectedValue();

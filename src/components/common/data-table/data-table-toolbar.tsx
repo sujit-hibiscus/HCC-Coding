@@ -45,7 +45,7 @@ function DataTableToolbarComponent<TData>({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { getChartApi } = useApiCall();
 
-  const isChangePage = pageSize ? pageSize !== 20 : false || pageIndex ? pageIndex !== 0 : false;
+  const isChangePage = pageSize ? pageSize !== 25 : false || pageIndex ? pageIndex !== 0 : false;
   const isSort = storedFilters?.sorting;
   const isDateRange = storedFilters?.dateRange[0] !== StartDateFilter && storedFilters?.dateRange[1] !== EndDateFilter;
 
@@ -79,13 +79,13 @@ function DataTableToolbarComponent<TData>({
     }
 
     if (isChangePage) {
-      table.setPageSize(20);
+      table.setPageSize(25);
       dispatch(
         setTabPagination({
           tabKey: tabKey,
           pagination: {
             pageIndex: 0,
-            pageSize: 20,
+            pageSize: 25,
           },
         }),
       );

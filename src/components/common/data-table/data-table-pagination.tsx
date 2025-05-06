@@ -31,9 +31,10 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
   const initializedRef = useRef(false);
 
   const defaultPageSize = `${table.getState().pagination.pageSize}`;
+
   const [customPageSize, setCustomPageSize] = useState("");
   const [showCustomInput, setShowCustomInput] = useState(false);
-  const [availablePages] = useState<number[]>([20, 30, 40, 50]);
+  const [availablePages] = useState<number[]>([25, 30, 40, 50]);
 
   // This effect runs once to initialize pagination from stored data
   useEffect(() => {
@@ -42,6 +43,7 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
       table.setPagination(storedData.pagination);
 
       const storedPageSize = storedData.pagination?.pageSize;
+      console.log("🚀 ~ useEffect ~ storedPageSize:", storedPageSize);
       if (!availablePages?.includes(storedPageSize)) {
         setShowCustomInput(true);
         setCustomPageSize(`${storedPageSize}`);
@@ -89,7 +91,7 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
   const resetToSelect = () => {
     setShowCustomInput(false);
     setCustomPageSize("");
-    table.setPageSize(20);
+    table.setPageSize(25);
   };
 
   return (

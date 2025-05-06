@@ -278,8 +278,16 @@ export function CalendarDateRangePicker({
                                 startDate={dateRange[0]}
                                 endDate={dateRange[1]}
                                 onChange={(update) => {
-                                    setDateRange(update);
-                                    if (update[0] && update[1]) setIsOpen(false);
+
+                                    const updatedRange = update.map((date) =>
+                                        date ? new Date(date.setHours(0, 0, 0, 0)) : null
+                                    );
+
+                                    setDateRange(updatedRange as [Date | null, Date | null]);
+
+                                    if (updatedRange[0] && updatedRange[1]) {
+                                        setIsOpen(false);
+                                    }
                                 }}
                                 monthsShown={2}
                                 selected={calendarDate}

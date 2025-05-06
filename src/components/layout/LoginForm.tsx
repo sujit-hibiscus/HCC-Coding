@@ -52,7 +52,8 @@ export default function LoginForm() {
                             userType: response.userType || "",
                             userRoles: response.userRoles || [],
                             token: response.token,
-                            email: email
+                            email: email,
+                            id: response.id,
                         })
                     );
 

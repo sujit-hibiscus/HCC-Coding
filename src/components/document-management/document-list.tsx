@@ -26,7 +26,7 @@ export default function DocumentList() {
     switch (status) {
       case "pending":
         return "bg-amber-100 text-amber-800 border-amber-500";
-      case "in_progress":
+      case "In Review":
         return "bg-sky-100 text-sky-800 border-sky-700";
       case "on_hold":
         return "bg-orange-100 text-orange-800 border-orange-700";

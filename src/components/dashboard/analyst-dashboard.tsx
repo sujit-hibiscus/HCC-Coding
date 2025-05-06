@@ -69,13 +69,13 @@ export function AnalystDashboard() {
   return (
     <motion.div
       ref={dashboardRef}
-      className="space-y-4"
+      className="space-y-2"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <h1 className="text-2xl font-bold">{userType} Dashboard</h1>
+      <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center gap-3">
+        {/* <h1 className="text-2xl font-bold">{userType} Dashboard</h1> */}
         <div className="flex flex-wrap items-center gap-2">
           {filtersApplied && (
             <Button variant="blue" onClick={handleResetFilters} className="h-8 px-2 lg:px-3">

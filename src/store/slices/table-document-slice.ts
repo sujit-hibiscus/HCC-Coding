@@ -1,4 +1,4 @@
-import { fetchData } from "@/lib/api/api-client";
+import { fetchData, postData } from "@/lib/api/api-client";
 import { formatToMMDDYYYYIfNeeded } from "@/lib/utils";
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { differenceInDays, format, isValid, parse, parseISO } from "date-fns";
@@ -7,10 +7,10 @@ import toast from "react-hot-toast";
 // Document Types
 export enum DOCUMENT_STATUS {
     PENDING = "Pending",
-    IN_PROGRESS = "In Progress",
-    ON_HOLD = "On Hold",
-    COMPLETED = "Completed",
-    ERROR = "Error",
+    In_Review = "In Review",
+    ON_HOLD = "Done",
+    COMPLETED = "QA Review",
+    ERROR = "Closed",
 }
 
 // Document Data Types
@@ -92,6 +92,12 @@ interface DocumentState {
         assigned: string[]
         audit: string[]
         completed: string[]
+    },
+    selectedDocumentsId: {
+        pending: string[]
+        assigned: string[]
+        audit: string[]
+        completed: string[]
     }
     isAssigning: boolean
 }
@@ -156,84 +162,14 @@ const initialState: DocumentState = {
         audit: [],
         completed: [],
     },
+    selectedDocumentsId: {
+        pending: [],
+        assigned: [],
+        audit: [],
+        completed: [],
+    },
     isAssigning: false,
 };
-
-// Mock data for development
-/* const mockPendingDocuments: PendingDocument[] = [
-    {
-        id: "SL001",
-        title: "Medical Report 2025",
-        received: "04-28-2025",
-        fileSize: "2.4 MB",
-        category: "Medical",
-        status: DOCUMENT_STATUS.PENDING,
-    },
-    {
-        id: "SL002",
-        title: "Insurance Claim Form",
-        received: "04-29-2025",
-        fileSize: "1.2 MB",
-        category: "Insurance",
-        status: DOCUMENT_STATUS.PENDING,
-    },
-    {
-        id: "SL003",
-        title: "Patient History",
-        received: "04-30-2025",
-        fileSize: "3.7 MB",
-        category: "Medical",
-        status: DOCUMENT_STATUS.PENDING,
-    },
-]; */
-
-const mockAssignedDocuments: AssignedDocument[] = [
-    {
-        id: "SL004",
-        title: "Lab Results 2025",
-        received: "04-28-2025",
-        fileSize: "1800 KB",
-        category: "Medical",
-        status: DOCUMENT_STATUS.IN_PROGRESS,
-        assignedTo: "John Doe",
-        assignedDate: "04-12-2025",
-    },
-    {
-        id: "SL005",
-        title: "Prescription Records",
-        received: "04-29-2025",
-        fileSize: "450 KB",
-        category: "Pharmacy",
-        status: DOCUMENT_STATUS.ON_HOLD,
-        assignedTo: "Jane Smith",
-        assignedDate: "04-13-2025",
-    },
-];
-
-/* const mockAuditDocuments: AuditDocument[] = [
-    {
-        id: "SL006",
-        title: "Annual Checkup Report",
-        received: "04-29-2025",
-        endDate: "04-20-2025",
-        fileSize: "2.1 MB",
-        category: "Medical",
-        status: DOCUMENT_STATUS.COMPLETED,
-        analyst: "John Doe",
-        auditor: "Sarah Johnson",
-    },
-    {
-        id: "SL007",
-        title: "Specialist Consultation",
-        received: "04-30-2025",
-        fileSize: "1.5 MB",
-        category: "Medical",
-        endDate: "04-22-2025",
-        status: DOCUMENT_STATUS.IN_PROGRESS,
-        analyst: "Jane Smith",
-        auditor: "Mike Wilson",
-    },
-]; */
 
 interface pendingItem {
     "id": number | string,
@@ -250,10 +186,11 @@ interface pendingApiResponse {
 
 const statusByIndex: DOCUMENT_STATUS[] = [
     DOCUMENT_STATUS.PENDING,//0
-    DOCUMENT_STATUS.IN_PROGRESS, //1
-    DOCUMENT_STATUS.ON_HOLD, //2
-    DOCUMENT_STATUS.COMPLETED, //3
-    DOCUMENT_STATUS.ERROR,// 4
+    DOCUMENT_STATUS.PENDING,//1
+    DOCUMENT_STATUS.In_Review, //2
+    DOCUMENT_STATUS.ON_HOLD, //3
+    DOCUMENT_STATUS.COMPLETED, //4
+    DOCUMENT_STATUS.ERROR,// 5
 ];
 
 const getDocumentStatusFromNumber = (num: number): DOCUMENT_STATUS | undefined => {
@@ -338,7 +275,6 @@ export const fetchAssignedDocuments = createAsyncThunk<AssignedDocument[], void,
                 return [];
             }
             await new Promise((resolve) => setTimeout(resolve, 1000));
-            return mockAssignedDocuments;
         } catch (error: unknown) {
             if (error instanceof Error) {
                 return rejectWithValue(error.message);
@@ -474,36 +410,27 @@ export const fetchCompletedDocuments = createAsyncThunk<CompletedDocument[], voi
 // Assignment Thunks
 export const assignPendingDocuments = createAsyncThunk<
     { success: boolean; message: string },
-    { documentIds: string[]; analystId: string },
+    { documentIds: string[]; analystId: string, request_user_id: string },
     { rejectValue: string }
->("documents/assignPendingDocuments", async ({ documentIds, analystId }, { rejectWithValue, dispatch }) => {
+>("documents/assignPendingDocuments", async ({ documentIds, analystId, request_user_id }, { rejectWithValue, dispatch }) => {
     try {
         dispatch(setIsAssigning(true));
 
-        // For development, simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        const bodyData = {
+            "chart_ids": documentIds?.map(item => +item),
+            "request_user_id": +request_user_id,
+            "analyst_id": +analystId
+        };
 
-        // Success response
-        toast.success(`Successfully assigned ${documentIds.length} documents to analyst`);
-        dispatch(clearSelectedDocuments("pending"));
-        dispatch(fetchPendingDocuments());
-        dispatch(fetchAssignedDocuments());
-        return { success: true, message: "Documents assigned successfully" };
-        if (process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_TEST === "true") {
-            // Simulate API delay
-        }
 
-        // Actual API call
-        const response = await fetchData<ApiResponse>("/api/documents/assign", {
-            method: "POST",
-            body: JSON.stringify({ documentIds, analystId }),
-        });
+        const response = await postData<ApiResponse>("manual/assign_pending_charts/", bodyData);
+        console.log("🚀 ~ > ~ response:", response);
 
         if (response.data.status === "Success") {
             toast.success(response.data.message);
+
             dispatch(clearSelectedDocuments("pending"));
             dispatch(fetchPendingDocuments());
-            dispatch(fetchAssignedDocuments());
             return { success: true, message: response.data.message };
         } else {
             toast.error(response.data.message);
@@ -522,32 +449,23 @@ export const assignPendingDocuments = createAsyncThunk<
 
 export const changeAssignment = createAsyncThunk<
     { success: boolean; message: string },
-    { documentIds: string[]; assigneeId: string },
+    { documentIds: string[]; analystId: string, request_user_id: string },
     { rejectValue: string }
->("documents/changeAssignment", async ({ documentIds, assigneeId }, { rejectWithValue, dispatch }) => {
+>("documents/changeAssignment", async ({ documentIds, analystId, request_user_id }, { rejectWithValue, dispatch }) => {
     try {
         dispatch(setIsAssigning(true));
 
-        // For development, simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        const bodyData = {
+            "chart_ids": documentIds?.map(item => +item),
+            "request_user_id": +request_user_id,
+            "analyst_id": +analystId
+        };
 
-        // Success response
-        toast.success(`Successfully reassigned ${documentIds.length} documents`);
-        dispatch(clearSelectedDocuments("assigned"));
-        dispatch(fetchAssignedDocuments());
-        return { success: true, message: "Documents reassigned successfully" };
-        if (process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_TEST === "true") {
-            // Simulate API delay
-        }
-
-        // Actual API call
-        const response = await fetchData<ApiResponse>("/api/documents/reassign", {
-            method: "POST",
-            body: JSON.stringify({ documentIds, assigneeId }),
-        });
+        const response = await postData<ApiResponse>("manual/reassign_charts_analyst/", bodyData);
 
         if (response.data.status === "Success") {
             toast.success(response.data.message);
+
             dispatch(clearSelectedDocuments("assigned"));
             dispatch(fetchAssignedDocuments());
             return { success: true, message: response.data.message };
@@ -555,6 +473,7 @@ export const changeAssignment = createAsyncThunk<
             toast.error(response.data.message);
             return rejectWithValue(response.data.message);
         }
+
     } catch (error: unknown) {
         if (error instanceof Error) {
             toast.error(error.message);
@@ -568,32 +487,24 @@ export const changeAssignment = createAsyncThunk<
 
 export const assignToAuditor = createAsyncThunk<
     { success: boolean; message: string },
-    { documentIds: string[]; auditorId: string },
+    { documentIds: string[]; analystId: string, request_user_id: string },
+
     { rejectValue: string }
->("documents/assignToAuditor", async ({ documentIds, auditorId }, { rejectWithValue, dispatch }) => {
+>("documents/assignToAuditor", async ({ documentIds, analystId, request_user_id }, { rejectWithValue, dispatch }) => {
     try {
         dispatch(setIsAssigning(true));
 
-        // For development, simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        const bodyData = {
+            "chart_ids": documentIds?.map(item => +item),
+            "request_user_id": +request_user_id,
+            "analyst_id": +analystId
+        };
 
-        // Success response
-        toast.success(`Successfully assigned ${documentIds.length} documents to auditor`);
-        dispatch(clearSelectedDocuments("audit"));
-        dispatch(fetchAuditDocuments());
-        return { success: true, message: "Documents assigned to auditor successfully" };
-        if (process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_TEST === "true") {
-            // Simulate API delay
-        }
-
-        // Actual API call
-        const response = await fetchData<ApiResponse>("/api/documents/assign-auditor", {
-            method: "POST",
-            body: JSON.stringify({ documentIds, auditorId }),
-        });
+        const response = await postData<ApiResponse>("manual/assign_pending_charts/", bodyData);
 
         if (response.data.status === "Success") {
             toast.success(response.data.message);
+
             dispatch(clearSelectedDocuments("audit"));
             dispatch(fetchAuditDocuments());
             return { success: true, message: response.data.message };
@@ -631,13 +542,16 @@ const documentSlice = createSlice({
             action: PayloadAction<{
                 tabKey: "pending" | "assigned" | "audit" | "completed"
                 documentIds: string[]
+                selectedRowsDataId: string[]
             }>,
         ) => {
-            const { tabKey, documentIds } = action.payload;
+            const { tabKey, documentIds, selectedRowsDataId } = action.payload;
             state.selectedDocuments[tabKey] = documentIds;
+            state.selectedDocumentsId[tabKey] = selectedRowsDataId;
         },
         clearSelectedDocuments: (state, action: PayloadAction<"pending" | "assigned" | "audit" | "completed">) => {
             state.selectedDocuments[action.payload] = [];
+            state.selectedDocumentsId[action.payload] = [];
         },
         setIsAssigning: (state, action: PayloadAction<boolean>) => {
             state.isAssigning = action.payload;

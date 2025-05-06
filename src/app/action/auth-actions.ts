@@ -11,6 +11,7 @@ export interface LoginResponse {
     error?: string
     token: string
     message: string
+    id: string
 }
 
 
@@ -87,6 +88,7 @@ export async function loginAction(formData: FormData): Promise<LoginResponse> {
                 userType: userType,
                 userRoles: [],
                 token: authToken,
+                id: data?.user_id,
                 message: "Login successful"
             };
         } else {
@@ -94,7 +96,8 @@ export async function loginAction(formData: FormData): Promise<LoginResponse> {
                 success: false,
                 error: "Invalid email or password. Please try again.",
                 token: "",
-                message: data?.message
+                message: data?.message,
+                id: ""
             };
         }
 
@@ -104,7 +107,8 @@ export async function loginAction(formData: FormData): Promise<LoginResponse> {
             success: false,
             error: "An error occurred during login. Please try again later.",
             token: "",
-            message: ""
+            message: "",
+            id: ""
         };
     }
 }

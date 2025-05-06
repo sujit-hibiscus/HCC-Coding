@@ -20,7 +20,6 @@ export default function PendingDocumentsTable() {
         return dateB.getTime() - dateA.getTime();
     });
 
-
     const isLoading = pendingDocuments.status === "loading";
 
     const tableLoader = (
@@ -47,7 +46,7 @@ export default function PendingDocumentsTable() {
                         data={sortedDocuments}
                         dateKey="received"
                         onAction={() => { }}
-                        defaultPageSize={20}
+                        defaultPageSize={25}
                         isRefreshing={isLoading}
                         handleRefresh={() => {
                             setTimeout(() => {

@@ -18,6 +18,7 @@ export interface UserState {
     userType: string | null
     token: string | null
     email: string
+    userId: string
     userRoles: string[]
     loading: boolean
     error: string | null
@@ -36,48 +37,12 @@ export interface UserState {
     }
 }
 
-// Initial test users
-const initialUsers: User[] = [
-    {
-        id: 1,
-        Fname: "Sujit",
-        Lname: "SuperAdmin",
-        email: "super.admin.sujit@mailinator.com",
-        profile_type: "Super Admin",
-        password: "test@123",
-    },
-    {
-        id: 2,
-        Fname: "Sujit",
-        Lname: "Admin",
-        email: "admin.sujit@mailinator.com",
-        profile_type: "Admin",
-        password: "test@123",
-    },
-    {
-        id: 3,
-        Fname: "Sujit",
-        Lname: "Auditor",
-        email: "auditor.sujit@mailinator.com",
-        profile_type: "Auditor",
-        password: "test@123",
-        target: { dailyChartTarget: 8, maxAssignments: 15 },
-    },
-    {
-        id: 4,
-        Fname: "Sujit",
-        Lname: "Analyst",
-        email: "analyst.sujit@mailinator.com",
-        profile_type: "Analyst",
-        password: "test@123",
-        target: { dailyChartTarget: 10, maxAssignments: 20 },
-    }
-];
 
 // Initial state
 const initialState: UserState = {
     isAuthenticated: false,
     userType: null,
+    userId: "",
     token: null,
     userRoles: [],
     loading: false,
@@ -95,7 +60,7 @@ const initialState: UserState = {
         status: "Success",
     },
     users: {
-        data: initialUsers,
+        data: [],
         status: "Success",
         lastUpdated: Date.now()
     },
@@ -136,10 +101,10 @@ export interface UpdateUserRequest {
 const normalizeProfileType = (profileType: number | string): string => {
     if (typeof profileType === "number") {
         switch (profileType) {
-            case 1: return "Analyst";
-            case 2: return "Auditor";
-            case 3: return "Admin";
-            case 4: return "Super Admin";
+            case 1: return "Super Admin";
+            case 2: return "Admin";
+            case 3: return "Analyst";
+            case 4: return "Auditor";
             default: return "Analyst";
         }
     }
@@ -151,17 +116,44 @@ const emailExists = (users: User[], email: string, excludeId?: number): boolean 
     return users.some(user => user.email.toLowerCase() === email.toLowerCase() && user.id !== excludeId);
 };
 
+interface ApiResponseData {
+    status: string
+    message: string
+    data: {
+        "id": number,
+        "first_name": string,
+        "last_name": string,
+        "email": string,
+        "password": string,
+        "role_id": number,
+        "prod_target": number,
+        "bucket_threshold": number
+    }[]
+}
+
 // Mock async thunks that work with local state instead of API calls
 export const getAllUsers = createAsyncThunk(
     "user/registered/getAll",
-    async (_, { getState }) => {
-        // Simulate API delay
-        await new Promise((resolve) => setTimeout(resolve, 500));
+    async () => {
+        const response = await fetchData("get_users/");
+        const data = response.data as ApiResponseData;
+        const convertedData = data.data.map((user) => {
+            console.log("🚀 ~ convertedData ~ user:", user);
+            return {
+                id: user?.id,
+                Fname: user?.first_name,
+                Lname: user?.last_name,
+                email: user.email,
+                profile_type: normalizeProfileType(user?.role_id),
+                password: user?.password,
+                target: { dailyChartTarget: +user?.prod_target, maxAssignments: +user?.bucket_threshold },
+            };
+        });
 
-        const state = getState() as { user: UserState };
+
         return {
             message: "Users fetched successfully",
-            data: state.user.users.data || [],
+            data: convertedData || [],
         };
     }
 );
@@ -341,7 +333,7 @@ const userSlice = createSlice({
     reducers: {
         setUser: (
             state,
-            action: PayloadAction<{ userType: string; userRoles: string[]; token: string; email: string }>,
+            action: PayloadAction<{ userType: string; userRoles: string[]; token: string; email: string; id: string }>,
         ) => {
             state.isAuthenticated = true;
             state.userType = action.payload.userType;
@@ -350,6 +342,7 @@ const userSlice = createSlice({
             state.error = null;
             state.token = action.payload.token;
             state.email = action.payload.email;
+            state.userId = action.payload.id;
         },
         setLoading: (state, action: PayloadAction<boolean>) => {
             state.loading = action.payload;

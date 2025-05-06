@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
+
 "use client";
 
 import { TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
@@ -43,6 +43,7 @@ import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar } from "./data-table-toolbar";
 import { SortableHeader } from "./sortable-header";
 import { cn, EndDateFilter, StartDateFilter } from "@/lib/utils";
+import { setSelectedDocuments } from "@/store/slices/table-document-slice";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -63,7 +64,7 @@ export function DataTable<TData, TValue>({
   isRefreshing,
   handleRefresh,
   isFloating = true,
-  defaultPageSize = 20,
+  defaultPageSize = 25,
 }: DataTableProps<TData, TValue>) {
   const { dispatch, selector } = useRedux();
   const { charts = "", target = "" } = useFullPath();
@@ -116,33 +117,7 @@ export function DataTable<TData, TValue>({
     }
   }, [columnFilters, sorting, columnVisibility, dateRange, tabKey, dispatch]);
 
-  useEffect(() => {
-    if (tabKey) {
-      const selectedRowIds = Object.keys(rowSelection).filter((id) => rowSelection[id]);
-      dispatch(
-        setSelectedRows({
-          tabKey,
-          selectedRows: selectedRowIds,
-        }),
-      );
 
-      if (tabKey.includes("pending") || tabKey.includes("assigned") || tabKey.includes("audit")) {
-        const tabType = tabKey.includes("pending") ? "pending" : tabKey.includes("assigned") ? "assigned" : "audit";
-
-        try {
-          const { setSelectedDocuments } = require("@/store/slices/table-document-slice");
-          dispatch(
-            setSelectedDocuments({
-              tabKey: tabType,
-              documentIds: selectedRowIds,
-            }),
-          );
-        } catch (error) {
-          console.error("Error updating document selection:", error);
-        }
-      }
-    }
-  }, [rowSelection, tabKey, dispatch]);
 
   useEffect(() => {
     if (storedFilters?.selectedRows && Array.isArray(storedFilters.selectedRows)) {
@@ -225,6 +200,43 @@ export function DataTable<TData, TValue>({
       },
     },
   });
+
+  useEffect(() => {
+    if (tabKey) {
+      const selectedRowIds = Object.keys(rowSelection).filter((id) => rowSelection[id]);
+
+
+      const selectedRowsDataId = selectedRowIds.map(id => {
+        const rowId = id ? (table.getRow(id)?.original as { id: string })?.id : null;
+        return rowId;
+      });
+
+
+
+      dispatch(
+        setSelectedRows({
+          tabKey,
+          selectedRows: selectedRowIds,
+        }),
+      );
+
+      if (tabKey.includes("pending") || tabKey.includes("assigned") || tabKey.includes("audit")) {
+        const tabType = tabKey.includes("pending") ? "pending" : tabKey.includes("assigned") ? "assigned" : "audit";
+
+        try {
+          dispatch(
+            setSelectedDocuments({
+              tabKey: tabType,
+              documentIds: selectedRowIds,
+              selectedRowsDataId: selectedRowsDataId as string[]
+            }),
+          );
+        } catch (error) {
+          console.error("Error updating document selection:", error);
+        }
+      }
+    }
+  }, [rowSelection, tabKey, dispatch, table]);
 
   const filterTableByDateRange = (range: [Date | null, Date | null]) => {
     if (!range[0] && !range[1]) {

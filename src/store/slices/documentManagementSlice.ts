@@ -8,7 +8,7 @@ export interface Document {
     id: string
     name: string
     url: string
-    status: "pending" | "in_progress" | "on_hold" | "completed"
+    status: "pending" | "In Review" | "on_hold" | "completed"
     assignedAt: string
     assignId: string
     timeSpent: number
@@ -88,7 +88,7 @@ export const fetchDocuments = createAsyncThunk("documentManagement/fetchDocument
                 name: maskFileName(title),
                 url: file_path,
                 assignId: userType === "Analyst" ? item.analyst_assignments?.[0]?.id ?? "" : item.auditor_assignments?.[0]?.id ?? "",
-                status: status === (userType === "Analyst" ? 1 : 3) ? "pending" : status === (userType === "Analyst" ? 2 : 4) ? "in_progress" : "completed",
+                status: status === (userType === "Analyst" ? 1 : 3) ? "pending" : status === (userType === "Analyst" ? 2 : 4) ? "In Review" : "completed",
                 assignedAt: formatToMMDDYYYYIfNeeded(userType === "Analyst" ? item.analyst_assignments?.[0]?.assigned_date ?? "" : item?.auditor_assignments?.[0]?.assigned_date ?? ""),
                 timeSpent: 0,
                 fileSize: item.file_size,
@@ -322,7 +322,7 @@ const documentManagementSlice = createSlice({
         resumeReview: (state, action: PayloadAction<string>) => {
             const document = state.documents.find((doc) => doc.id === action.payload);
             if (document) {
-                document.status = "in_progress";
+                document.status = "In Review";
                 document.startTime = Date.now();
 
                 if (document.pauseTimes && document.pauseTimes.length > 0) {
@@ -341,7 +341,7 @@ const documentManagementSlice = createSlice({
         },
         recalculateDocumentTimes: (state) => {
             state.documents.forEach((doc) => {
-                if (doc.status === "in_progress" && doc.startTime) {
+                if (doc.status === "In Review" && doc.startTime) {
                     const now = Date.now();
                     const additionalTime = Math.floor((now - doc.startTime) / 1000);
                     doc.timeSpent = (doc.timeSpent || 0) + additionalTime;
@@ -354,7 +354,7 @@ const documentManagementSlice = createSlice({
             state.selectedDocumentId = action.payload;
             if (action.payload) {
                 const selectedDoc = state.documents.find((doc) => doc.id === action.payload);
-                if (selectedDoc && selectedDoc.status === "in_progress") {
+                if (selectedDoc && selectedDoc.status === "In Review") {
                     state.isRunning = true;
                     state.startTime = Date.now();
                 } else {

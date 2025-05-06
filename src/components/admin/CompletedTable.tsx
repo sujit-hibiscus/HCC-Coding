@@ -74,7 +74,7 @@ export default function CompletedDocumentsTable() {
                                 data={sortedDocuments}
                                 dateKey="received"
                                 onAction={() => { }}
-                                defaultPageSize={20}
+                                defaultPageSize={25}
                                 isRefreshing={isLoading}
                                 handleRefresh={() => {
                                     setTimeout(() => {

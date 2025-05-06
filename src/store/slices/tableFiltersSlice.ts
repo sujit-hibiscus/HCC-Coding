@@ -26,7 +26,7 @@ const initialState: TableFiltersState = {
         sorting: [],
         columnVisibility: {},
         dateRange: [StartDateFilter, EndDateFilter],
-        pagination: { pageIndex: 0, pageSize: 20 },
+        pagination: { pageIndex: 0, pageSize: 25 },
         selectedRows: [],
     },
     assigned: {
@@ -34,7 +34,7 @@ const initialState: TableFiltersState = {
         sorting: [],
         columnVisibility: {},
         dateRange: [StartDateFilter, EndDateFilter],
-        pagination: { pageIndex: 0, pageSize: 20 },
+        pagination: { pageIndex: 0, pageSize: 25 },
         selectedRows: [],
     },
     audit: {
@@ -42,7 +42,15 @@ const initialState: TableFiltersState = {
         sorting: [],
         columnVisibility: {},
         dateRange: [StartDateFilter, EndDateFilter],
-        pagination: { pageIndex: 0, pageSize: 20 },
+        pagination: { pageIndex: 0, pageSize: 25 },
+        selectedRows: [],
+    },
+    completed: {
+        columnFilters: [],
+        sorting: [],
+        columnVisibility: {},
+        dateRange: [StartDateFilter, EndDateFilter],
+        pagination: { pageIndex: 0, pageSize: 25 },
         selectedRows: [],
     },
 };
@@ -137,7 +145,7 @@ const tableFiltersSlice = createSlice({
                     sorting: [],
                     columnVisibility: {},
                     dateRange: [StartDateFilter, EndDateFilter],
-                    pagination: { pageIndex: 0, pageSize: 20 },
+                    pagination: { pageIndex: 0, pageSize: 25 },
                     selectedRows: [],
                 };
             }

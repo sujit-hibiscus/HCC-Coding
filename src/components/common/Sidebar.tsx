@@ -53,7 +53,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
     const { resetReduxStore, selector } = useRedux();
     const { userType } = selector(state => state.user);
     const [isOpen, setIsOpen] = useState(false);
-    const { getChartApi } = useApiCall();
+    const { getChartApi, getUserApiCall } = useApiCall();
 
     const adminMenuOptions = userType?.toLowerCase().includes("admin") ? [
         { icon: Table, label: "Charts", href: "/dashboard/charts/pending" },
@@ -113,7 +113,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
 
     const addUserClick = () => {
         handleNavigation("/dashboard/add-user", "Add User");
-        // getUserApiCall("/dashboard/add-user");
+        getUserApiCall("/dashboard/add-user");
     };
 
     const appName = "HCC-Coding";

@@ -1,16 +1,15 @@
 "use client";
-import { useEffect } from "react";
 import { DataTable } from "@/components/common/data-table/data-table";
+import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/Loader";
 import { useLoading } from "@/hooks/use-loading";
 import { useRedux } from "@/hooks/use-redux";
 import type { UserTypes } from "@/lib/types/chartsTypes";
 import { filterData } from "@/lib/utils";
 import { getAllUsers } from "@/store/slices/user-slice";
+import { RefreshCcw } from "lucide-react";
 import { Suspense } from "react";
 import { UserTableColumns } from "./userTableColumns";
-import { RefreshCcw } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 interface UserTableProps {
     onEdit: (user: UserTypes) => void
@@ -22,11 +21,6 @@ export function UserTable({ onEdit, onDelete }: UserTableProps) {
     const { status: usersStatus } = selector((state) => state.user.users);
     const { data: users } = selector((state) => state.user.users);
     const { isLoading } = useLoading();
-
-    useEffect(() => {
-        // Load users on component mount
-        dispatch(getAllUsers());
-    }, [dispatch]);
 
     const { search = "" } = selector((state) => state?.dashboard);
     const filteredData = filterData(users || [], search);
@@ -79,7 +73,7 @@ export function UserTable({ onEdit, onDelete }: UserTableProps) {
                         data={filteredData as UserTypes[]}
                         dateKey=""
                         onAction={() => { }}
-                        defaultPageSize={20}
+                        defaultPageSize={25}
                         isRefreshing={isTableLoading}
                         handleRefresh={() => {
                             dispatch(getAllUsers());

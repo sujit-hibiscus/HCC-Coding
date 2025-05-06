@@ -28,7 +28,7 @@ import useToast from "@/hooks/use-toast";
 import type { UserTypes } from "@/lib/types/chartsTypes";
 import type { RootState } from "@/store";
 import { cancelEditing, resetForm, startEditing, updateField, updateTargetField } from "@/store/slices/user-form-slice";
-import { deleteUser, getAllUsers, registerUser, updateUser } from "@/store/slices/user-slice";
+import { deleteUser, registerUser, updateUser } from "@/store/slices/user-slice";
 import { notFound } from "next/navigation";
 
 type ProfileType = "Analyst" | "Auditor" | "Admin" | "Super Admin"
@@ -68,12 +68,6 @@ export default function AddUserPage() {
 
     // State for showing targets section
     const [showTargets, setShowTargets] = useState(false);
-
-    useEffect(() => {
-        // Load users on component mount
-        dispatch(getAllUsers());
-    }, [dispatch]);
-
     useEffect(() => {
         if (reduxError) {
             error({ message: reduxError });

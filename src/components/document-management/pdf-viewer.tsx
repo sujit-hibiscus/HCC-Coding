@@ -50,7 +50,7 @@ export default function PdfViewer({
     ?.filter((item: { status: string }) => item?.status !== "completed")
     .find((doc: { id: string }) => doc.id === selectedDocumentId);
 
-  const isSidebar = selectedDocument?.status === "in_progress";
+  const isSidebar = selectedDocument?.status === "In Review";
 
   const [showControls, setShowControls] = useState(false);
   const [, setCurrentTime] = useState(0);
@@ -60,6 +60,7 @@ export default function PdfViewer({
 
   // Get form data for the selected document from Redux store
   const currentFormData = selectedDocumentId ? allFormData[selectedDocumentId] : null;
+  console.log("🚀 ~ isSidebar:", selectedDocument?.status);
 
   const [formErrors, setFormErrors] = useState<{
     codesMissed?: string[]
@@ -74,9 +75,9 @@ export default function PdfViewer({
 
   useEffect(() => {
     if (selectedDocument) {
-      setShowControls(selectedDocument.status === "in_progress");
+      setShowControls(selectedDocument.status === "In Review");
 
-      if (selectedDocument.startTime && selectedDocument.status === "in_progress") {
+      if (selectedDocument.startTime && selectedDocument.status === "In Review") {
         const elapsed = Math.floor((Date.now() - selectedDocument.startTime) / 1000) + (selectedDocument.timeSpent || 0);
         setCurrentTime(elapsed);
       } else if (selectedDocument.timeSpent) {
@@ -105,7 +106,7 @@ export default function PdfViewer({
   }, [selectedDocumentId, allFormData, dispatch, userType]);
 
   useEffect(() => {
-    if (isRunning && selectedDocument?.status === "in_progress" && !showSidebar) {
+    if (isRunning && selectedDocument?.status === "In Review" && !showSidebar) {
       timerRef.current = setInterval(() => {
         if (selectedDocument.startTime) {
           const elapsed =
@@ -135,7 +136,7 @@ export default function PdfViewer({
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
-    } else if (!showSidebar && selectedDocument?.status === "in_progress") {
+    } else if (!showSidebar && selectedDocument?.status === "In Review") {
       // Resume the timer when sidebar closes if document is still in progress
       if (!timerRef.current) {
         timerRef.current = setInterval(() => {
@@ -367,19 +368,21 @@ export default function PdfViewer({
             } h-full bg-gray-100 relative transition-all duration-300`}
         >
           <div className={`h-full overflow-auto ${userType === "Auditor" ? "max-h-[89.2vh]" : "max-h-[89.2vh]"}`}>
-            {pdfLoading && selectedDocument.status === "in_progress" ? (
+            {pdfLoading && selectedDocument.status === "In Review" ? (
               <div className="flex items-center justify-center h-full">
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
                 <span className="ml-2 text-lg font-medium">Loading PDF...</span>
               </div>
             ) : (
-              <PreventSaveProvider>
+              <>
                 {(pdfUrl as string)?.length > 0 ? (
                   <PdfUI url={pdfUrl as string} />
                 ) : (
                   <div className="h-full w-full flex justify-center items-center">{"No Document available"}</div>
                 )}
-              </PreventSaveProvider>
+                {/* <PreventSaveProvider>
+              </PreventSaveProvider> */}
+              </>
             )}
           </div>
 
