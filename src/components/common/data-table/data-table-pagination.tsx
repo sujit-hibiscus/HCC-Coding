@@ -43,7 +43,6 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
       table.setPagination(storedData.pagination);
 
       const storedPageSize = storedData.pagination?.pageSize;
-      console.log("🚀 ~ useEffect ~ storedPageSize:", storedPageSize);
       if (!availablePages?.includes(storedPageSize)) {
         setShowCustomInput(true);
         setCustomPageSize(`${storedPageSize}`);

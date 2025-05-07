@@ -424,7 +424,6 @@ export const assignPendingDocuments = createAsyncThunk<
 
 
         const response = await postData<ApiResponse>("manual/assign_pending_charts/", bodyData);
-        console.log("🚀 ~ > ~ response:", response);
 
         if (response.data.status === "Success") {
             toast.success(response.data.message);

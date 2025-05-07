@@ -9,10 +9,8 @@ export default function DocumentReviewSystem() {
   const { selector } = useRedux();
   const { selectedDocumentId, documents } = selector((state) => state.documentManagement);
   const [isFullScreenMode, setIsFullScreenMode] = useState(false);
-  console.log("🚀 ~ DocumentReviewSystem ~ isFullScreenMode:", isFullScreenMode);
 
   const selectedDocument = documents?.find((doc) => doc.id === selectedDocumentId);
-  console.log("🚀 ~ DocumentReviewSystem ~ selectedDocument:", selectedDocument);
 
   // Set full-screen mode when a document is in review
   useEffect(() => {

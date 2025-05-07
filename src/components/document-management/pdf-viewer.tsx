@@ -23,6 +23,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle, Loader2, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import PdfUI from "../ui/pdfUI";
+import { PreventSaveProvider } from "../layout/prevent-save-provider";
 
 export default function PdfViewer({
   onReviewComplete,
@@ -33,7 +34,7 @@ export default function PdfViewer({
   isFullScreenMode?: boolean
   toggleFullScreen?: () => void
 }) {
-  console.log("🚀 ~ isFullScreenMode:", isFullScreenMode);
+  console.info("🚀 ~ isFullScreenMode:", isFullScreenMode);
   const { dispatch, selector } = useRedux();
   const {
     documents,
@@ -59,7 +60,6 @@ export default function PdfViewer({
 
   // Get form data for the selected document from Redux store
   const currentFormData = selectedDocumentId ? allFormData[selectedDocumentId] : null;
-  console.log("🚀 ~ isSidebar:", selectedDocument?.status);
 
   const [formErrors, setFormErrors] = useState<{
     codesMissed?: string[]
@@ -373,15 +373,13 @@ export default function PdfViewer({
                 <span className="ml-2 text-lg font-medium">Loading PDF...</span>
               </div>
             ) : (
-              <>
+              <PreventSaveProvider>
                 {(pdfUrl as string)?.length > 0 ? (
                   <PdfUI url={pdfUrl as string} />
                 ) : (
                   <div className="h-full w-full flex justify-center items-center">{"No Document available"}</div>
                 )}
-                {/* <PreventSaveProvider>
-            </PreventSaveProvider> */}
-              </>
+              </PreventSaveProvider>
             )}
           </div>
 
