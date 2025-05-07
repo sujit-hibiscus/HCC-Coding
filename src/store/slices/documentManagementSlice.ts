@@ -70,11 +70,19 @@ interface ApiResponse {
 
 // Async thunks
 export const fetchDocuments = createAsyncThunk("documentManagement/fetchDocuments", async (_, { getState }) => {
-    const state = getState() as { documentManagement: DocumentManagementState; user: { userType: "Analyst" | "Auditor" } };
+    const state = getState() as {
+        documentManagement: DocumentManagementState;
+        user: {
+            userType: "Analyst" | "Auditor";
+            userId: string
+        }
+
+    };
     const userType = state.user.userType;
+    const userID = state.user.userId;
 
     const api = await postData("get_charts/", {
-        id: userType === "Analyst" ? 3 : 4,
+        id: +userID,
         role: userType,
     });
     const apiRes = api.data as ApiResponse;
