@@ -25,7 +25,6 @@ export default function LoginForm() {
     const { dispatch } = useRedux();
 
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
-        dispatch(fetchChartCounts());
         event.preventDefault();
         setIsSubmitting(true);
         dispatch(setLoading(true));
@@ -37,9 +36,8 @@ export default function LoginForm() {
 
                 const response = await loginAction(formData);
                 console.log("🚀 ~ loginPromise ~ response:", response);
-                dispatch(fetchChartCounts());
                 if (response?.userType?.toLowerCase()?.includes("admin")) {
-                    // dispatch(fetchChartCounts());
+                    dispatch(fetchChartCounts());
                     dispatch(fetchAnalystUsers());
                     dispatch(fetchAuditorUsers());
                 }
