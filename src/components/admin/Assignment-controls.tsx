@@ -32,8 +32,6 @@ export default function AssignmentControls({ currentTab, userType, }: Assignment
     const selectedUser = selector((state) => state.user.userId);
     const { selectedAnalyst, selectedPendingAnalyst, selectedAuditor, selectedDocumentsId: selectedDocuments, isAssigning } = selector((state) => state.documentTable);
 
-
-
     const getSelectedDocuments = () => {
         if (!selectedDocuments) return [];
 

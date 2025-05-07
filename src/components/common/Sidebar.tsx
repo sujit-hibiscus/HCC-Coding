@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ChevronRight, FileText, Key, Laptop, LayoutDashboard, LogOut, Moon, Settings, Sun, Table, UserPlus } from "lucide-react";
+import { ChevronRight, FileText, Laptop, LayoutDashboard, LogOut, Moon, Settings, Sun, Table, UserPlus } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import type * as React from "react";
 
@@ -305,7 +305,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                                 </DropdownMenuItem>
                             </motion.div> */}
 
-                            <motion.div>
+                            {/* <motion.div>
                                 <DropdownMenuItem
                                     className="hover:!bg-tabBg hover:!text-selectedText"
                                     onSelect={(e) => {
@@ -316,7 +316,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                                     <Key className="mr-2 size-4" />
                                     <span>Change Password</span>
                                 </DropdownMenuItem>
-                            </motion.div>
+                            </motion.div> */}
 
                             <motion.div>
                                 <DropdownMenuItem

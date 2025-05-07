@@ -3,7 +3,6 @@ import { formatToMMDDYYYYIfNeeded, maskFileName } from "@/lib/utils";
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 
-// Types
 export interface Document {
     id: string
     name: string
@@ -33,13 +32,12 @@ interface DocumentManagementState {
     selectedDocumentId: string | null
     pdfUrl: string | null
     pdfLoading: boolean
-    fetchedPdfPaths: string[] // Add this to track fetched PDF paths
+    fetchedPdfPaths: string[]
 
     isRunning: boolean
     elapsedTime: number
     startTime: number | null
 
-    // Form data for each document
     formData: Record<string, FormData>
 }
 
@@ -113,21 +111,7 @@ export const startReviewWithApi = createAsyncThunk(
                 end_time: "False",
             });
             return response;
-
-            // Check if the response indicates success
-            /*  if (response.status === "Success") {
-                       // You can return any data you want to use in the reducer
-                       return {
-                           documentId: document.id,
-                           timestamp: Date.now(),
-                       };
-                   } else {
-                       // If the API returns an error status
-                       toast.error(response.message || "Failed to start review");
-                       return rejectWithValue(response.message || "Failed to start review");
-                   } */
         } catch (error) {
-            // Handle any exceptions during the API call
             const errorMessage = error instanceof Error ? error.message : "Failed to start review";
             toast.error(errorMessage);
             return rejectWithValue(errorMessage);
@@ -147,21 +131,7 @@ export const completeReviewWithAPI = createAsyncThunk(
             });
             const apiRes = response.data as ApiResponse;
             return apiRes;
-
-            // Check if the response indicates success
-            /*  if (response.status === "Success") {
-                       // You can return any data you want to use in the reducer
-                       return {
-                           documentId: document.id,
-                           timestamp: Date.now(),
-                       };
-                   } else {
-                       // If the API returns an error status
-                       toast.error(response.message || "Failed to start review");
-                       return rejectWithValue(response.message || "Failed to start review");
-                   } */
         } catch (error) {
-            // Handle any exceptions during the API call
             const errorMessage = error instanceof Error ? error.message : "Failed to start review";
             toast.error(errorMessage);
             return rejectWithValue(errorMessage);
@@ -179,21 +149,7 @@ export const startReviewAuditorWithApi = createAsyncThunk(
                 start_time: "True",
                 end_time: "False",
             });
-
-            // Check if the response indicates success
-            /*  if (response.status === "Success") {
-                             // You can return any data you want to use in the reducer
-                             return {
-                                 documentId: document.id,
-                                 timestamp: Date.now(),
-                             };
-                         } else {
-                             // If the API returns an error status
-                             toast.error(response.message || "Failed to start review");
-                             return rejectWithValue(response.message || "Failed to start review");
-                         } */
         } catch (error) {
-            // Handle any exceptions during the API call
             const errorMessage = error instanceof Error ? error.message : "Failed to start review";
             toast.error(errorMessage);
             return rejectWithValue(errorMessage);
@@ -211,9 +167,9 @@ interface AuditorReviewPayload {
     };
 }
 export const completeReviewAuditorWithAPI = createAsyncThunk<
-    ApiResponse, // return type
-    AuditorReviewPayload, // argument type
-    { rejectValue: string } // reject value type
+    ApiResponse,
+    AuditorReviewPayload,
+    { rejectValue: string }
 >(
     "documentManagement/completeReviewWithApi",
     async ({ doc, body }, { rejectWithValue }) => {
@@ -241,11 +197,9 @@ export const fetchPdfFile = createAsyncThunk<string, string>(
     "pdf/fetchPdfFile",
     async (pdfFilePath, { rejectWithValue, getState }) => {
         try {
-            // Check if we've already fetched this PDF
             const state = getState() as { documentManagement: DocumentManagementState };
             const { fetchedPdfPaths } = state.documentManagement;
 
-            // If we've already fetched this PDF, return the existing URL
             if (fetchedPdfPaths.includes(pdfFilePath) && state.documentManagement.pdfUrl) {
                 return state.documentManagement.pdfUrl;
             }
@@ -262,17 +216,32 @@ export const fetchPdfFile = createAsyncThunk<string, string>(
     },
 );
 
+interface AutoAssignPayload {
+    target: "pending" | "assigned" | "audit" | "completed";
+    selectedDocumentIds: (string | number)[];
+}
+
 export const autoAssign = createAsyncThunk(
     "documentManagement/assign",
-    async (target: "pending" | "assigned" | "audit" | "completed", { rejectWithValue }) => {
+    async ({ target, selectedDocumentIds }: AutoAssignPayload, { rejectWithValue }) => {
         try {
-            const response = (target === "pending" || target === "assigned") ? await postData("assign_charts_analyst/") : await postData("assign_charts_auditor/");
+            const bodyData = {
+                chart_ids: selectedDocumentIds?.map(item => +item),
+            };
+
+            const response =
+                (target === "pending" || target === "assigned")
+                    ? await postData("assign_charts_analyst/", bodyData)
+                    : await postData("assign_charts_auditor/", bodyData);
+
             const responseData = response.data as { status: string; message: string };
 
             if (responseData.status === "Success") {
                 toast.success(responseData.message);
+                return responseData;
             } else {
                 toast.error(responseData.message);
+                return "Failed to assign charts";
             }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "Failed to start review";
@@ -290,7 +259,7 @@ const initialState: DocumentManagementState = {
     selectedDocumentId: null,
     pdfUrl: null,
     pdfLoading: false,
-    fetchedPdfPaths: [], // Initialize the array to track fetched PDFs
+    fetchedPdfPaths: [],
     isRunning: false,
     elapsedTime: 0,
     startTime: null,
@@ -301,13 +270,6 @@ const documentManagementSlice = createSlice({
     name: "documentManagement",
     initialState,
     reducers: {
-        /*  startReview: (state, action: PayloadAction<string>) => {
-                 const document = state.documents.find((doc) => doc.id === action.payload);
-                 if (document) {
-                     document.status = "in_progress";
-                     document.startTime = Date.now();
-                 }
-             }, */
         pauseReview: (state, action: PayloadAction<string>) => {
             const document = state.documents.find((doc) => doc.id === action.payload);
             if (document && document.startTime) {
@@ -438,10 +400,7 @@ const documentManagementSlice = createSlice({
                 state.pdfLoading = false;
                 state.pdfUrl = action.payload;
 
-                // Get the PDF path from the action payload
                 const pdfPath = action.meta.arg;
-
-                // Add this path to our tracking array if it's not already there
                 if (!state.fetchedPdfPaths.includes(pdfPath)) {
                     state.fetchedPdfPaths.push(pdfPath);
                 }
@@ -463,7 +422,6 @@ export const {
     resetTimer,
     updateElapsedTime,
     pauseTimerOnly,
-    // Export new actions
     updateFormData,
     resetFormData,
 } = documentManagementSlice.actions;

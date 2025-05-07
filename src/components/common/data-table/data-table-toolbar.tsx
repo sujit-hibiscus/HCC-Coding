@@ -7,14 +7,14 @@ import { Button } from "@/components/ui/button";
 import useFullPath from "@/hooks/use-fullpath";
 import { useRedux } from "@/hooks/use-redux";
 import { EndDateFilter, StartDateFilter } from "@/lib/utils";
+import { autoAssign } from "@/store/slices/documentManagementSlice";
+import { fetchAssignedDocuments, fetchAuditDocuments, fetchPendingDocuments } from "@/store/slices/table-document-slice";
 import { clearTabFilters, setTabPagination } from "@/store/slices/tableFiltersSlice";
 import type { SortingState, Table } from "@tanstack/react-table";
 import { motion } from "framer-motion";
 import { LoaderCircle, RefreshCw, Sparkles, X } from "lucide-react";
 import { CalendarDateRangePicker } from "./CalendarDateRangePicker";
 import { TasksTableToolbarActions } from "./tasks-table-toolbar-actions";
-import { autoAssign } from "@/store/slices/documentManagementSlice";
-import { useApiCall } from "../ApiCall";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
@@ -43,7 +43,16 @@ function DataTableToolbarComponent<TData>({
   const pageSize = storedFilters?.pagination?.pageSize;
   const pageIndex = storedFilters?.pagination?.pageIndex;
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { getChartApi } = useApiCall();
+
+  const callChartApi = (target: "pending" | "assigned" | "audit" | "completed") => {
+    if (target === "pending") {
+      dispatch(fetchPendingDocuments());
+    } else if (target === "assigned") {
+      dispatch(fetchAssignedDocuments());
+    } else if (target === "audit") {
+      dispatch(fetchAuditDocuments());
+    }
+  };
 
   const isChangePage = pageSize ? pageSize !== 25 : false || pageIndex ? pageIndex !== 0 : false;
   const isSort = storedFilters?.sorting;
@@ -100,21 +109,33 @@ function DataTableToolbarComponent<TData>({
   const showResetButton =
     isFiltered || isDateRange || invisibleColumnCount > 0 || isChangePage || isSort?.length > 0 || hasSelectedRows;
 
+  const { selectedDocumentsId: selectedDocuments } = selector((state) => state.documentTable);
 
+  const getSelectedDocuments = () => {
+    if (!selectedDocuments) return [];
+
+    switch (target) {
+      case "pending":
+        return selectedDocuments.pending || [];
+      case "assigned":
+        return selectedDocuments.assigned || [];
+      case "audit":
+        return selectedDocuments.audit || [];
+      default:
+        return [];
+    }
+  };
+
+  const selectedDocumentIds = getSelectedDocuments();
   const handleAutoAssign = async () => {
     setIsSubmitting(true);
-
-
-    const resultAction = await dispatch(autoAssign(target as "pending" | "assigned" | "audit" | "completed"));
+    const resultAction = await dispatch(autoAssign({ target: target as "pending" | "assigned" | "audit" | "completed", selectedDocumentIds: selectedDocumentIds as string[] }));
     if (autoAssign.fulfilled.match(resultAction)) {
       setIsSubmitting(false);
-      getChartApi(target as "pending" | "assigned" | "audit" | "completed");
+      handleReset();
+      callChartApi(target as "pending" | "assigned" | "audit" | "completed");
     }
-    /* setTimeout(() => {
-        setIsSubmitting(false);
-        success({ message: "Chart Assigned Successfully!" });
 
-    }, 2000); */
   };
 
   return (
@@ -155,7 +176,7 @@ function DataTableToolbarComponent<TData>({
 
       {target !== "completed" && <Button
         onClick={handleAutoAssign}
-        disabled={isSubmitting}
+        disabled={isSubmitting || (!(selectedDocumentIds?.length > 0))}
         className="h-8 px-2 lg:px-3"
       >
         {isSubmitting ? (

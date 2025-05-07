@@ -9,11 +9,13 @@ import { useRedux } from "@/hooks/use-redux";
 import { fetchDocuments, fetchPdfFile, selectDocument } from "@/store/slices/documentManagementSlice";
 import { motion } from "framer-motion";
 import { Calendar, Loader2, RefreshCw, Search } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function DocumentList() {
   const { dispatch, selector } = useRedux();
-  const { documents, selectedDocumentId, fetchedPdfPaths, documentLoading } = selector((state) => state.documentManagement);
+  const { documents, selectedDocumentId, fetchedPdfPaths, documentLoading } = selector(
+    (state) => state.documentManagement,
+  );
   const [searchTerm, setSearchTerm] = useState("");
 
   const totalDocuments = documents.length;
@@ -48,10 +50,7 @@ export default function DocumentList() {
   };
 
   const handleRefresh = () => {
-    // Implement refresh functionality here
-    // This could be fetching documents again from the API
     dispatch(fetchDocuments());
-    // Example: dispatch(fetchDocuments());
   };
 
   const formatFileSize = (fileSizeInKB: number) => {
@@ -62,19 +61,29 @@ export default function DocumentList() {
     }
   };
 
+  useEffect(() => {
+    if (!selectedDocumentId && documents.length > 0) {
+      const inReviewDoc = documents.find((doc) => doc.status === "In Review");
+
+      if (inReviewDoc) {
+        getSelectedDocumentUrl(inReviewDoc.url, inReviewDoc.id);
+        dispatch(selectDocument(inReviewDoc.id));
+      } else {
+        const firstDoc = documents[0];
+        getSelectedDocumentUrl(firstDoc.url, firstDoc.id);
+        dispatch(selectDocument(firstDoc.id));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [documents, selectedDocumentId, dispatch]);
+
   return (
     <div className="h-full flex flex-col py-1.5 px-1.5 max-h-[calc(100vh-2.9rem)]">
       <div className="flex justify-between items-center mb-3">
         <div className="text-sm font-medium">
           <span>{totalDocuments}</span> total documents
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 p-0"
-          onClick={handleRefresh}
-          title="Refresh documents"
-        >
+        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleRefresh} title="Refresh documents">
           <RefreshCw className="h-4 w-4" />
         </Button>
       </div>
@@ -89,22 +98,24 @@ export default function DocumentList() {
       </div>
 
       <div className="space-y-2 overflow-y-auto flex-grow min-h-0">
-        {documentLoading ? <div className="h-full w-full flex items-center justify-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            className="text-center flex items-center gap-2"
-          >
+        {documentLoading ? (
+          <div className="h-full w-full flex items-center justify-center">
             <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="text-center flex items-center gap-2"
             >
-              <Loader2 className="w-5 h-5 text-muted-foreground" />
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Number.POSITIVE_INFINITY, duration: 1, ease: "linear" }}
+              >
+                <Loader2 className="w-5 h-5 text-muted-foreground" />
+              </motion.div>
+              <p className="text-muted-foreground text-sm">Loading document...</p>
             </motion.div>
-            <p className="text-muted-foreground text-sm">Loading document...</p>
-          </motion.div>
-        </div> : filteredDocuments.length === 0 ? (
+          </div>
+        ) : filteredDocuments.length === 0 ? (
           <p className="text-center text-muted-foreground py-6 text-sm">No documents found</p>
         ) : (
           [...filteredDocuments]
