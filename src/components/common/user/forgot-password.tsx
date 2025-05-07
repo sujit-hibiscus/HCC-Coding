@@ -2,15 +2,15 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
-import { Loader2 } from "lucide-react";
 import useToast from "@/hooks/use-toast";
 import { postData } from "@/lib/api/api-client";
+import { Loader2 } from "lucide-react";
+import { useState } from "react";
 
 interface ForgotPasswordProps {
     triggerComponent?: React.ReactNode,
@@ -22,6 +22,7 @@ interface ApiResponse {
     message: string;
 }
 export function ForgotPassword({ triggerComponent }: ForgotPasswordProps) {
+    console.info("🚀 ~ ForgotPassword ~ triggerComponent:", triggerComponent);
     const [isOpen, setIsOpen] = useState(false);
     const [email, setEmail] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -80,7 +81,7 @@ export function ForgotPassword({ triggerComponent }: ForgotPasswordProps) {
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
+            {/* <DialogTrigger asChild>
                 {triggerComponent || (
                     <Button
                         // disabled={!(email?.length > 0)}
@@ -89,7 +90,7 @@ export function ForgotPassword({ triggerComponent }: ForgotPasswordProps) {
                         Forgot Password?
                     </Button>
                 )}
-            </DialogTrigger>
+            </DialogTrigger> */}
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>Forgot Password</DialogTitle>
