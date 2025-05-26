@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { CreatableSelect } from "@/components/ui/creatable-select";
 import { Input } from "@/components/ui/input";
@@ -18,23 +19,23 @@ import {
   startReviewWithApi,
   updateElapsedTime,
   updateFormData,
+  updateCodeCart,
+  removeCartItem,
+  removeStaticCartItem,
 } from "@/store/slices/documentManagementSlice";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle, Loader2, Play } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { CheckCircle, Loader2, Play, Trash2 } from "lucide-react";
 import PdfUI from "../ui/pdfUI";
 import { PreventSaveProvider } from "../layout/prevent-save-provider";
 
 export default function PdfViewer({
   onReviewComplete,
-  isFullScreenMode,
   toggleFullScreen,
 }: {
   onReviewComplete?: () => void
   isFullScreenMode?: boolean
   toggleFullScreen?: () => void
 }) {
-  console.info("🚀 ~ isFullScreenMode:", isFullScreenMode);
   const { dispatch, selector } = useRedux();
   const {
     documents,
@@ -43,6 +44,7 @@ export default function PdfViewer({
     pdfUrl = "",
     pdfLoading,
     formData: allFormData,
+    staticCartItems,
   } = selector((state: RootState) => state.documentManagement);
   const { userType } = selector((state) => state.user);
 
@@ -71,6 +73,36 @@ export default function PdfViewer({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isStartingReview, setIsStartingReview] = useState(false);
   const [isCompletingReview, setIsCompletingReview] = useState(false);
+
+  // State for delete confirmation
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean
+    index: number
+    type: "static" | "dynamic"
+  } | null>(null);
+
+  const currentCodeCart =
+    selectedDocumentId && currentFormData?.codeCart
+      ? currentFormData.codeCart
+      : {
+        items: [],
+        notes: "",
+        searchTerm: "",
+      };
+
+  // Filter static items based on search term
+  const filteredStaticItems = staticCartItems.filter(
+    (item) =>
+      item.code.toLowerCase().includes(currentCodeCart.searchTerm.toLowerCase()) ||
+      item.description.toLowerCase().includes(currentCodeCart.searchTerm.toLowerCase()),
+  );
+
+  // Filter dynamic items based on search term
+  const filteredDynamicItems = currentCodeCart.items.filter(
+    (item) =>
+      item.code.toLowerCase().includes(currentCodeCart.searchTerm.toLowerCase()) ||
+      item.description.toLowerCase().includes(currentCodeCart.searchTerm.toLowerCase()),
+  );
 
   useEffect(() => {
     if (selectedDocument) {
@@ -236,7 +268,14 @@ export default function PdfViewer({
   const submitChartApiCall = async () => {
     setIsCompletingReview(true);
     try {
-      const resultAction = await dispatch(completeReviewWithAPI(selectedDocument));
+      // Include cart data in the API call
+      const resultAction = await dispatch(
+        completeReviewWithAPI({
+          ...selectedDocument,
+          // This would be sent to the API if needed
+          cartData: currentCodeCart,
+        }),
+      );
       if (completeReviewWithAPI.fulfilled.match(resultAction)) {
         dispatch(fetchDocuments());
         setShowControls(false);
@@ -311,6 +350,18 @@ export default function PdfViewer({
     rating: 0,
   };
 
+  const handleRemoveCartItem = (index: number) => {
+    if (selectedDocumentId) {
+      dispatch(removeCartItem({ documentId: selectedDocumentId, index }));
+    }
+  };
+
+  const handleRemoveStaticItem = (index: number) => {
+    if (selectedDocumentId) {
+      dispatch(removeStaticCartItem({ documentId: selectedDocumentId, index }));
+    }
+  };
+
   return (
     <div className="h-full flex flex-col">
       {toggleFullScreen && (
@@ -320,45 +371,7 @@ export default function PdfViewer({
             size="sm"
             className="bg-white/80 backdrop-blur-sm hover:bg-white/90 border shadow-sm"
             onClick={toggleFullScreen}
-          >
-            {/* {isFullScreenMode ? (
-            <>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="mr-1"
-              >
-                <path d="M4 14h6m0 0v6m0-6-7 7m17-11h-6m0 0V4m0 6 7-7" />
-              </svg>
-              Exit Full Screen
-            </>
-          ) : (
-            <>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="mr-1"
-              >
-                <path d="M3 7h6m0 0V1m0 6L1 1m20 16h-6m0 0v6m0-6 8 8" />
-              </svg>
-              Full Screen
-            </>
-          )} */}
-          </Button>
+          ></Button>
         </div>
       )}
       <div className="flex-1 relative flex flex-col md:flex-row">
@@ -366,7 +379,9 @@ export default function PdfViewer({
           className={`${userType === "Auditor" && showSidebar ? "w-full md:w-full" : "w-full"
             } h-full bg-gray-100 relative transition-all duration-300`}
         >
-          <div className={`h-full overflow-auto ${userType === "Auditor" ? "max-h-[89.2vh]" : "max-h-[89.2vh]"}`}>
+          <div
+            className={`h-full overflow-auto ${userType === "Auditor" ? "max-h-[89.2vh]" : "max-h-[94.2vh] bg-red"}`}
+          >
             {pdfLoading && selectedDocument.status === "In Review" ? (
               <div className="flex items-center justify-center h-full">
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -455,154 +470,384 @@ export default function PdfViewer({
 
         {/* Right-side Review Panel for Auditors */}
         <AnimatePresence>
-          {userType === "Auditor" && isSidebar && (
-            <motion.div
-              className="w-full flex flex-col md:w-[32rem] h-full border-t md:border-t-0 md:border-l overflow-y-auto bg-white p-2"
-              initial={{ x: "100%", opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: "100%", opacity: 0 }}
-              transition={{
-                type: "spring",
-                stiffness: 300,
-                damping: 30,
-                mass: 0.8,
-                velocity: 2,
-              }}
-            >
-              <h3 className="text-lg font-semibold mb-4">Audit Review</h3>
+          {isSidebar &&
+            (userType !== "Auditor" ? (
+              <motion.div
+                className="w-full flex flex-col md:w-[32rem] h-full border-t md:border-t-0 md:border-l overflow-y-auto bg-white p-2"
+                initial={{ x: "100%", opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: "100%", opacity: 0 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 30,
+                  mass: 0.8,
+                  velocity: 2,
+                }}
+              >
+                <h3 className="text-lg font-semibold mb-4">Audit Review</h3>
 
-              <div className="flex flex-col justify-between h-full">
-                <div className="grid gap-6">
-                  <div className="grid gap-2">
-                    <Label htmlFor="codes-missed">Codes Missed</Label>
-                    <CreatableSelect
-                      id="codes-missed"
-                      isMulti
-                      placeholder="Add codes that were missed..."
-                      value={formData.codesMissed}
-                      onChange={(newValue) => {
-                        if (selectedDocumentId) {
-                          dispatch(
-                            updateFormData({
-                              documentId: selectedDocumentId,
-                              data: { codesMissed: newValue as { value: string; label: string }[] },
-                            }),
-                          );
-                        }
-                      }}
-                    />
-                    {formErrors.codesMissed && !(formData.codesMissed?.length > 0) && (
-                      <p className="text-xs text-red-500 mt-1">{formErrors.codesMissed}</p>
-                    )}
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="codes-corrected">Codes Corrected</Label>
-                    <CreatableSelect
-                      id="codes-corrected"
-                      isMulti
-                      placeholder="Add codes that were corrected..."
-                      value={formData.codesCorrected}
-                      onChange={(newValue) => {
-                        if (selectedDocumentId) {
-                          dispatch(
-                            updateFormData({
-                              documentId: selectedDocumentId,
-                              data: { codesCorrected: newValue as { value: string; label: string }[] },
-                            }),
-                          );
-                        }
-                      }}
-                    />
-                    {formErrors.codesCorrected && !(formData.codesCorrected?.length > 0) && (
-                      <p className="text-xs text-red-500 mt-1">{formErrors.codesCorrected}</p>
-                    )}
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="audit-remarks">Audit Remarks</Label>
-                    <Textarea
-                      id="audit-remarks"
-                      placeholder="Enter your audit remarks here..."
-                      value={formData.auditRemarks}
-                      onChange={(e) => {
-                        if (selectedDocumentId) {
-                          dispatch(
-                            updateFormData({
-                              documentId: selectedDocumentId,
-                              data: { auditRemarks: e.target.value },
-                            }),
-                          );
-                        }
-                      }}
-                      rows={4}
-                    />
-                    {formErrors.auditRemarks && !(formData.auditRemarks?.length >= 10) && (
-                      <p className="text-xs text-red-500 mt-1">{formErrors.auditRemarks}</p>
-                    )}
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="rating" className="text-base">
-                      Quality Rating (Required)
-                    </Label>
-                    <div className="flex items-center">
-                      <Input
-                        id="rating"
-                        type="number"
-                        min={0}
-                        max={100}
-                        step={1}
-                        value={formData.rating || 0}
-                        onChange={(e) => {
+                <div className="flex flex-col justify-between h-full">
+                  <div className="grid gap-6">
+                    <div className="grid gap-2">
+                      <Label htmlFor="codes-missed">Codes Missed</Label>
+                      <CreatableSelect
+                        id="codes-missed"
+                        isMulti
+                        placeholder="Add codes that were missed..."
+                        value={formData.codesMissed}
+                        onChange={(newValue) => {
                           if (selectedDocumentId) {
-                            const value = Number.parseFloat(e.target.value);
                             dispatch(
                               updateFormData({
                                 documentId: selectedDocumentId,
-                                data: { rating: value },
+                                data: { codesMissed: newValue as { value: string; label: string }[] },
                               }),
                             );
                           }
                         }}
-                        className="w-24"
                       />
+                      {formErrors.codesMissed && !(formData.codesMissed?.length > 0) && (
+                        <p className="text-xs text-red-500 mt-1">{formErrors.codesMissed}</p>
+                      )}
                     </div>
-                    {formErrors.rating && <p className="text-xs text-red-500 mt-1">{formErrors.rating}</p>}
+
+                    <div className="grid gap-2">
+                      <Label htmlFor="codes-corrected">Codes Corrected</Label>
+                      <CreatableSelect
+                        id="codes-corrected"
+                        isMulti
+                        placeholder="Add codes that were corrected..."
+                        value={formData.codesCorrected}
+                        onChange={(newValue) => {
+                          if (selectedDocumentId) {
+                            dispatch(
+                              updateFormData({
+                                documentId: selectedDocumentId,
+                                data: { codesCorrected: newValue as { value: string; label: string }[] },
+                              }),
+                            );
+                          }
+                        }}
+                      />
+                      {formErrors.codesCorrected && !(formData.codesCorrected?.length > 0) && (
+                        <p className="text-xs text-red-500 mt-1">{formErrors.codesCorrected}</p>
+                      )}
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label htmlFor="audit-remarks">Audit Remarks</Label>
+
+                      <Textarea
+                        id="audit-remarks"
+                        placeholder="Enter your audit remarks here..."
+                        value={formData.auditRemarks}
+                        onChange={(e) => {
+                          if (selectedDocumentId) {
+                            dispatch(
+                              updateFormData({
+                                documentId: selectedDocumentId,
+                                data: { auditRemarks: e.target.value },
+                              }),
+                            );
+                          }
+                        }}
+                        rows={4}
+                      />
+                      {formErrors.auditRemarks && !(formData.auditRemarks?.length >= 10) && (
+                        <p className="text-xs text-red-500 mt-1">{formErrors.auditRemarks}</p>
+                      )}
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label htmlFor="rating" className="text-base">
+                        Quality Rating (Required)
+                      </Label>
+                      <div className="flex items-center">
+                        <Input
+                          id="rating"
+                          type="number"
+                          min={0}
+                          max={100}
+                          step={1}
+                          value={formData.rating || 0}
+                          onChange={(e) => {
+                            if (selectedDocumentId) {
+                              const value = Number.parseFloat(e.target.value);
+                              dispatch(
+                                updateFormData({
+                                  documentId: selectedDocumentId,
+                                  data: { rating: value },
+                                }),
+                              );
+                            }
+                          }}
+                          className="w-24"
+                        />
+                      </div>
+                      {formErrors.rating && <p className="text-xs text-red-500 mt-1">{formErrors.rating}</p>}
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-3">
+                    <Button onClick={submitReview} disabled={isSubmitting || isCompletingReview} type="submit">
+                      {isSubmitting || isCompletingReview ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                      )}
+                      {isSubmitting || isCompletingReview ? "Submitting..." : "Submit Review"}
+                    </Button>
                   </div>
                 </div>
-                <div className="flex justify-end gap-3">
-                  <Button onClick={submitReview} disabled={isSubmitting || isCompletingReview} type="submit">
-                    {isSubmitting || isCompletingReview ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <CheckCircle className="mr-2 h-4 w-4" />
+              </motion.div>
+            ) : (
+              <motion.div
+                className="w-full flex flex-col md:w-[32rem] h-full border-t md:border-t-0 md:border-l overflow-y-auto bg-white p-2"
+                initial={{ x: "100%", opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: "100%", opacity: 0 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 30,
+                  mass: 0.8,
+                  velocity: 2,
+                }}
+              >
+                <h3 className="text-lg font-semibold mb-4">Code cart</h3>
+
+                <div className="flex flex-col justify-between h-full">
+                  {/* Here create design as per image */}
+                  <div className="flex flex-col h-full">
+                    {/* Search Input */}
+                    <div className="mb-3">
+                      <Input
+                        placeholder="Search DX code"
+                        value={currentCodeCart.searchTerm}
+                        onChange={(e) => {
+                          if (selectedDocumentId) {
+                            dispatch(
+                              updateCodeCart({
+                                documentId: selectedDocumentId,
+                                cartData: { searchTerm: e.target.value },
+                              }),
+                            );
+                          }
+                        }}
+                        className="text-sm"
+                      />
+                    </div>
+
+                    {/* Table */}
+                    <div className="flex-1 border border-gray-300 rounded mb-3">
+                      <div className="bg-selectedText text-white text-sm font-medium">
+                        <div className="grid grid-cols-12 gap-2 p-2">
+                          <div className="col-span-4">ICD-CMS-10</div>
+                          <div className="col-span-7">Description</div>
+                          <div className="col-span-1"></div>
+                        </div>
+                      </div>
+                      <div className="max-h-[60vh] overflow-y-auto">
+                        {/* Show filtered static items first */}
+                        {filteredStaticItems.map((item, index) => (
+                          <div
+                            key={`static-${index}`}
+                            className="grid grid-cols-12 gap-2 p-2 border-b border-gray-200 text-sm"
+                          >
+                            <div className="col-span-4 font-medium">{item.code}</div>
+                            <div className="col-span-7">{item.description}</div>
+                            <div className="col-span-1">
+                              <button
+                                onClick={() => setDeleteConfirmation({ isOpen: true, index, type: "static" })}
+                                className="text-red-500 hover:text-red-700"
+                                aria-label="Delete item"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                        {/* Then show filtered dynamic items from the cart */}
+                        {filteredDynamicItems.map((item, index) => (
+                          <div
+                            key={`dynamic-${index}`}
+                            className="grid grid-cols-12 gap-2 p-2 border-b border-gray-200 text-sm"
+                          >
+                            <div className="col-span-4 font-medium">{item.code}</div>
+                            <div className="col-span-7">{item.description}</div>
+                            <div className="col-span-1">
+                              <button
+                                onClick={() => setDeleteConfirmation({ isOpen: true, index, type: "dynamic" })}
+                                className="text-red-500 hover:text-red-700"
+                                aria-label="Delete item"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Show message when no items match the filter */}
+                        {filteredStaticItems.length === 0 &&
+                          filteredDynamicItems.length === 0 &&
+                          currentCodeCart.searchTerm && (
+                            <div className="flex flex-col items-center justify-center py-8 text-center">
+                              <div className="text-gray-400 mb-2">
+                                <svg
+                                  className="w-12 h-12 mx-auto"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={1.5}
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                  />
+                                </svg>
+                              </div>
+                              <p className="text-sm text-gray-500 font-medium">No items found</p>
+                            </div>
+                          )}
+
+                        {/* Show message when there are no items at all */}
+                        {filteredStaticItems.length === 0 &&
+                          filteredDynamicItems.length === 0 &&
+                          !currentCodeCart.searchTerm && (
+                            <div className="flex flex-col items-center justify-center py-8 text-center">
+                              <div className="text-gray-400 mb-2">
+                                <svg
+                                  className="w-12 h-12 mx-auto"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={1.5}
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                  />
+                                </svg>
+                              </div>
+                              <p className="text-sm text-gray-500 font-medium">No items in cart</p>
+                              <p className="text-xs text-gray-400 mt-1">Add some codes to get started</p>
+                            </div>
+                          )}
+                      </div>
+                    </div>
+
+                    {/* Notes */}
+                    <div className="mb-4">
+                      <Label className="text-sm font-medium mb-2 block">Notes</Label>
+                      <Textarea
+                        placeholder="Enter notes..."
+                        value={currentCodeCart.notes}
+                        onChange={(e) => {
+                          if (selectedDocumentId) {
+                            dispatch(
+                              updateCodeCart({
+                                documentId: selectedDocumentId,
+                                cartData: { notes: e.target.value },
+                              }),
+                            );
+                          }
+                        }}
+                        rows={4}
+                        className="text-sm max-h-[100px]"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-3">
+                    {selectedDocument.status !== "completed" && !showSidebar && (
+                      <Button onClick={handleComplete} disabled={isCompletingReview} className="text-white">
+                        {isCompletingReview ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                        )}
+                        {isCompletingReview ? "Submitting..." : "Submit"}
+                      </Button>
                     )}
-                    {isSubmitting || isCompletingReview ? "Submitting..." : "Submit Review"}
-                  </Button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+        </AnimatePresence>
+      </div>
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteConfirmation?.isOpen && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            {/* Backdrop */}
+            <motion.div
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDeleteConfirmation(null)}
+            />
+
+            {/* Modal */}
+            <motion.div
+              className="relative bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{
+                duration: 0.2,
+                ease: "easeOut",
+              }}
+            >
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                    <Trash2 className="h-4 w-4 text-red-600" />
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900">Confirm Delete</h4>
+                </div>
+
+                <p className="text-sm text-gray-600">
+                  Are you sure you want to delete this item? This action cannot be undone.
+                </p>
+
+                <div className="flex justify-end space-x-3 pt-2">
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button variant="outline" size="sm" onClick={() => setDeleteConfirmation(null)} className="px-4">
+                      Cancel
+                    </Button>
+                  </motion.div>
+
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        if (deleteConfirmation.type === "static") {
+                          handleRemoveStaticItem(deleteConfirmation.index);
+                        } else {
+                          handleRemoveCartItem(deleteConfirmation.index);
+                        }
+                        setDeleteConfirmation(null);
+                      }}
+                      className="px-4"
+                    >
+                      Delete
+                    </Button>
+                  </motion.div>
                 </div>
               </div>
             </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {showControls && userType !== "Auditor" && (
-        <div className="p-1.5 pr-3 border-t">
-          <div className="flex justify-end gap-2">
-            {selectedDocument.status !== "completed" && !showSidebar && (
-              <Button onClick={handleComplete} disabled={isCompletingReview}>
-                {isCompletingReview ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                )}
-                {isCompletingReview ? "Submitting..." : "Submit"}
-              </Button>
-            )}
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

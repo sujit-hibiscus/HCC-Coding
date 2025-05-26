@@ -12,8 +12,21 @@ export interface Document {
     assignId: string
     timeSpent: number
     startTime?: number
-    pauseTimes?: { start: number; end: number }[],
+    pauseTimes?: { start: number; end: number }[]
     fileSize?: number | string
+}
+
+// Define the CodeCartItem interface
+export interface CodeCartItem {
+    code: string
+    description: string
+}
+
+// Define the CodeCart interface
+export interface CodeCart {
+    items: CodeCartItem[]
+    notes: string
+    searchTerm: string
 }
 
 export interface FormData {
@@ -21,6 +34,7 @@ export interface FormData {
     codesCorrected: Array<{ value: string; label: string }>
     auditRemarks: string
     rating: number
+    codeCart?: CodeCart // Add the codeCart property to FormData
 }
 
 interface DocumentManagementState {
@@ -39,6 +53,7 @@ interface DocumentManagementState {
     startTime: number | null
 
     formData: Record<string, FormData>
+    staticCartItems: CodeCartItem[]
 }
 
 type AnalystAssignment = {
@@ -71,12 +86,11 @@ interface ApiResponse {
 // Async thunks
 export const fetchDocuments = createAsyncThunk("documentManagement/fetchDocuments", async (_, { getState }) => {
     const state = getState() as {
-        documentManagement: DocumentManagementState;
+        documentManagement: DocumentManagementState
         user: {
-            userType: "Analyst" | "Auditor";
+            userType: "Analyst" | "Auditor"
             userId: string
         }
-
     };
     const userType = state.user.userType;
     const userID = state.user.userId;
@@ -94,9 +108,21 @@ export const fetchDocuments = createAsyncThunk("documentManagement/fetchDocument
                 id,
                 name: maskFileName(title),
                 url: file_path,
-                assignId: userType === "Analyst" ? item.analyst_assignments?.[0]?.id ?? "" : item.auditor_assignments?.[0]?.id ?? "",
-                status: status === (userType === "Analyst" ? 1 : 3) ? "pending" : status === (userType === "Analyst" ? 2 : 4) ? "In Review" : "completed",
-                assignedAt: formatToMMDDYYYYIfNeeded(userType === "Analyst" ? item.analyst_assignments?.[0]?.assigned_date ?? "" : item?.auditor_assignments?.[0]?.assigned_date ?? ""),
+                assignId:
+                    userType === "Analyst"
+                        ? (item.analyst_assignments?.[0]?.id ?? "")
+                        : (item.auditor_assignments?.[0]?.id ?? ""),
+                status:
+                    status === (userType === "Analyst" ? 1 : 3)
+                        ? "pending"
+                        : status === (userType === "Analyst" ? 2 : 4)
+                            ? "In Review"
+                            : "completed",
+                assignedAt: formatToMMDDYYYYIfNeeded(
+                    userType === "Analyst"
+                        ? (item.analyst_assignments?.[0]?.assigned_date ?? "")
+                        : (item?.auditor_assignments?.[0]?.assigned_date ?? ""),
+                ),
                 timeSpent: 0,
                 fileSize: item.file_size,
             } as Document;
@@ -128,15 +154,24 @@ export const startReviewWithApi = createAsyncThunk(
 );
 export const completeReviewWithAPI = createAsyncThunk(
     "documentManagement/completeReviewWithApi",
-    async (document: Document, { rejectWithValue }) => {
+    async (document: Document & { cartData?: CodeCart }, { rejectWithValue }) => {
         try {
-            const response = await postData("update_analyst_charts/", {
+            // Include cart data in the API call if needed
+            const payload = {
                 id: document.id,
                 assignment_id: document.assignId || "",
                 status: 3,
                 start_time: "False",
                 end_time: "True",
-            });
+            };
+
+            // If you need to send cart data to the API, you can add it here
+            // if (document.cartData) {
+            //     payload.cart_items = document.cartData.items;
+            //     payload.cart_notes = document.cartData.notes;
+            // }
+
+            const response = await postData("update_analyst_charts/", payload);
             const apiRes = response.data as ApiResponse;
             return apiRes;
         } catch (error) {
@@ -166,40 +201,36 @@ export const startReviewAuditorWithApi = createAsyncThunk(
 );
 
 interface AuditorReviewPayload {
-    doc: Document;
+    doc: Document
     body: {
-        codes_corrected: string[];
-        codes_missed: string[];
-        rating: number | string;
-        audit_remarks: string;
-    };
+        codes_corrected: string[]
+        codes_missed: string[]
+        rating: number | string
+        audit_remarks: string
+    }
 }
 export const completeReviewAuditorWithAPI = createAsyncThunk<
     ApiResponse,
     AuditorReviewPayload,
     { rejectValue: string }
->(
-    "documentManagement/completeReviewWithApi",
-    async ({ doc, body }, { rejectWithValue }) => {
-        try {
-            const response = await postData("update_auditor_charts/", {
-                id: doc.id,
-                assignment_id: doc.assignId || "",
-                status: 5,
-                start_time: "False",
-                end_time: "True",
-                ...body,
-            });
+>("documentManagement/completeReviewWithApi", async ({ doc, body }, { rejectWithValue }) => {
+    try {
+        const response = await postData("update_auditor_charts/", {
+            id: doc.id,
+            assignment_id: doc.assignId || "",
+            status: 5,
+            start_time: "False",
+            end_time: "True",
+            ...body,
+        });
 
-            return response.data as ApiResponse;
-        } catch (error) {
-            const errorMessage =
-                error instanceof Error ? error.message : "Failed to start review";
-            toast.error(errorMessage);
-            return rejectWithValue(errorMessage);
-        }
+        return response.data as ApiResponse;
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Failed to start review";
+        toast.error(errorMessage);
+        return rejectWithValue(errorMessage);
     }
-);
+});
 // Update fetchPdfFile to check if we've already fetched this PDF
 export const fetchPdfFile = createAsyncThunk<string, string>(
     "pdf/fetchPdfFile",
@@ -225,8 +256,8 @@ export const fetchPdfFile = createAsyncThunk<string, string>(
 );
 
 interface AutoAssignPayload {
-    target: "pending" | "assigned" | "audit" | "completed";
-    selectedDocumentIds: (string | number)[];
+    target: "pending" | "assigned" | "audit" | "completed"
+    selectedDocumentIds: (string | number)[]
 }
 
 export const autoAssign = createAsyncThunk(
@@ -234,11 +265,11 @@ export const autoAssign = createAsyncThunk(
     async ({ target, selectedDocumentIds }: AutoAssignPayload, { rejectWithValue }) => {
         try {
             const bodyData = {
-                chart_ids: selectedDocumentIds?.map(item => +item),
+                chart_ids: selectedDocumentIds?.map((item) => +item),
             };
 
             const response =
-                (target === "pending" || target === "assigned")
+                target === "pending" || target === "assigned"
                     ? await postData("assign_charts_analyst/", bodyData)
                     : await postData("assign_charts_auditor/", bodyData);
 
@@ -256,7 +287,7 @@ export const autoAssign = createAsyncThunk(
             toast.error(errorMessage);
             return rejectWithValue(errorMessage);
         }
-    }
+    },
 );
 
 const initialState: DocumentManagementState = {
@@ -272,6 +303,16 @@ const initialState: DocumentManagementState = {
     elapsedTime: 0,
     startTime: null,
     formData: {},
+    staticCartItems: [
+        { code: "J18.20", description: "Lobar pneumonia, unspecified organism" },
+        { code: "J20.9", description: "Acute bronchitis, unspecified" },
+        { code: "I10", description: "Essential (primary) hypertension" },
+        { code: "E11.9", description: "Type 2 diabetes mellitus without complications" },
+        { code: "J44.1", description: "Chronic obstructive pulmonary disease with acute exacerbation" },
+        { code: "N18.6", description: "End stage renal disease" },
+        { code: "F32.9", description: "Major depressive disorder, single episode, unspecified" },
+        { code: "M79.3", description: "Panniculitis, unspecified" },
+    ],
 };
 
 const documentManagementSlice = createSlice({
@@ -366,6 +407,11 @@ const documentManagementSlice = createSlice({
                     codesCorrected: [],
                     auditRemarks: "",
                     rating: 0,
+                    codeCart: {
+                        items: [],
+                        notes: "",
+                        searchTerm: "",
+                    },
                 };
             }
 
@@ -382,7 +428,87 @@ const documentManagementSlice = createSlice({
                     codesCorrected: [],
                     auditRemarks: "",
                     rating: 0,
+                    codeCart: {
+                        items: [],
+                        notes: "",
+                        searchTerm: "",
+                    },
                 };
+            }
+        },
+        // New reducers for code cart
+        updateCodeCart: (state, action: PayloadAction<{ documentId: string; cartData: Partial<CodeCart> }>) => {
+            const { documentId, cartData } = action.payload;
+
+            if (!state.formData[documentId]) {
+                state.formData[documentId] = {
+                    codesMissed: [],
+                    codesCorrected: [],
+                    auditRemarks: "",
+                    rating: 0,
+                    codeCart: {
+                        items: [],
+                        notes: "",
+                        searchTerm: "",
+                    },
+                };
+            }
+
+            if (!state.formData[documentId].codeCart) {
+                state.formData[documentId].codeCart = {
+                    items: [],
+                    notes: "",
+                    searchTerm: "",
+                };
+            }
+
+            state.formData[documentId].codeCart = {
+                ...state.formData[documentId].codeCart!,
+                ...cartData,
+            };
+        },
+        addCartItem: (state, action: PayloadAction<{ documentId: string; item: CodeCartItem }>) => {
+            const { documentId, item } = action.payload;
+
+            if (!state.formData[documentId]) {
+                state.formData[documentId] = {
+                    codesMissed: [],
+                    codesCorrected: [],
+                    auditRemarks: "",
+                    rating: 0,
+                    codeCart: {
+                        items: [],
+                        notes: "",
+                        searchTerm: "",
+                    },
+                };
+            }
+
+            if (!state.formData[documentId].codeCart) {
+                state.formData[documentId].codeCart = {
+                    items: [],
+                    notes: "",
+                    searchTerm: "",
+                };
+            }
+
+            state.formData[documentId].codeCart!.items.push(item);
+        },
+        removeCartItem: (state, action: PayloadAction<{ documentId: string; index: number }>) => {
+            const { documentId, index } = action.payload;
+
+            if (
+                state.formData[documentId] &&
+                state.formData[documentId].codeCart &&
+                state.formData[documentId].codeCart!.items.length > index
+            ) {
+                state.formData[documentId].codeCart!.items.splice(index, 1);
+            }
+        },
+        removeStaticCartItem: (state, action: PayloadAction<{ documentId: string; index: number }>) => {
+            const { index } = action.payload;
+            if (state.staticCartItems.length > index) {
+                state.staticCartItems.splice(index, 1);
             }
         },
     },
@@ -432,6 +558,11 @@ export const {
     pauseTimerOnly,
     updateFormData,
     resetFormData,
+    // Export the new actions
+    updateCodeCart,
+    addCartItem,
+    removeCartItem,
+    removeStaticCartItem,
 } = documentManagementSlice.actions;
 
 export default documentManagementSlice.reducer;

@@ -12,7 +12,6 @@ export default function DocumentReviewSystem() {
 
   const selectedDocument = documents?.find((doc) => doc.id === selectedDocumentId);
 
-  // Set full-screen mode when a document is in review
   useEffect(() => {
     if (selectedDocument?.status === "In Review") {
       setIsFullScreenMode(true);

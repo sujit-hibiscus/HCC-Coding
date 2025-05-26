@@ -48,7 +48,6 @@ export async function loginAction(formData: FormData): Promise<LoginResponse> {
     const password = formData.get("password") as string;
 
     try {
-
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ? `${process.env.NEXT_PUBLIC_BASE_URL}` : "";
         const bodyData = {
             "email": email,

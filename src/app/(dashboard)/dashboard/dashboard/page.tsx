@@ -3,10 +3,21 @@
 import { AdminDashboard } from "@/components/dashboard/admin-dashboard";
 import { AnalystDashboard } from "@/components/dashboard/analyst-dashboard";
 import { useRedux } from "@/hooks/use-redux";
+import { useEffect, useState } from "react";
+import DocumentSkeleton from "../loading";
 
 export default function Dashboard3Page() {
     const { selector } = useRedux();
     const userType = selector((state) => state.user.userType);
+
+    const [isClient, setIsClient] = useState(false);
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
+    if (!isClient) {
+        return <DocumentSkeleton />;
+    }
 
     const renderDashboard = () => {
         switch (userType) {
@@ -15,9 +26,9 @@ export default function Dashboard3Page() {
                 return <AdminDashboard />;
             case "Analyst":
             case "Auditor":
-                return <AnalystDashboard />; // Auditors see the same view as analysts
+                return <AnalystDashboard />;
             default:
-                return <AdminDashboard />; // Default to admin dashboard
+                return <AdminDashboard />;
         }
     };
 

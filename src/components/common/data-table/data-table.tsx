@@ -5,6 +5,7 @@ import { TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/tab
 import { Typography } from "@/components/ui/Typography";
 import useFullPath from "@/hooks/use-fullpath";
 import { useRedux } from "@/hooks/use-redux";
+import { restrictToHorizontalAxis } from "@dnd-kit/modifiers";
 import { setStoreColumnOrder } from "@/store/slices/DashboardSlice";
 import { setSelectedRows, setTabFilters } from "@/store/slices/tableFiltersSlice";
 import {
@@ -14,7 +15,9 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  MeasuringStrategy,
   type DragEndEvent,
+  DragOverlay,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -45,6 +48,7 @@ import { SortableHeader } from "./sortable-header";
 import { cn, EndDateFilter, StartDateFilter } from "@/lib/utils";
 import { setSelectedDocuments } from "@/store/slices/table-document-slice";
 import { updateCountByKey } from "@/store/slices/user-slice";
+import { DragMonitor } from "./drag-monitor";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -117,6 +121,42 @@ export function DataTable<TData, TValue>({
       );
     }
   }, [columnFilters, sorting, columnVisibility, dateRange, tabKey, dispatch]);
+
+  // Add global styles for dragging
+  React.useEffect(() => {
+    // Add a style tag for cursor styles
+    const styleTag = document.createElement("style");
+    styleTag.innerHTML = `
+      .cursor-grabbing {
+        cursor: grabbing !important;
+      }
+      .cursor-grabbing * {
+        cursor: grabbing !important;
+      }
+      
+      @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+      }
+      
+      .column-drag-preview {
+        animation: pulse 1.5s infinite ease-in-out;
+        background-color: var(--selected-text-color);
+        color: var(--tab-bg-color);
+        padding: 0.75rem;
+        border-radius: 0.375rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        font-weight: 600;
+        text-transform: capitalize;
+      }
+    `;
+    document.head.appendChild(styleTag);
+
+    return () => {
+      document.head.removeChild(styleTag);
+    };
+  }, []);
 
 
 
@@ -300,6 +340,8 @@ export function DataTable<TData, TValue>({
   }, [table.getRowModel(), activeTabKey]);
 
 
+
+  const [activeId, setActiveId] = useState<string | null>(null);
   return (
     <div className="flex h-full flex-col space-y">
       {isFloating ? (
@@ -326,7 +368,18 @@ export function DataTable<TData, TValue>({
         />
       )}
       <div className="relative flex-1 min-h-0 border">
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+          modifiers={[restrictToHorizontalAxis]}
+          measuring={{
+            droppable: {
+              strategy: MeasuringStrategy.Always,
+            },
+          }}
+        >
+          <DragMonitor setActiveId={setActiveId} />
           <div className="absolute inset-0 flex flex-col border border-gray-300">
             <div className="flex-1 min-h-0 overflow-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent">
               <table className="w-full text-sm border-collapse">
@@ -385,6 +438,9 @@ export function DataTable<TData, TValue>({
               </table>
             </div>
           </div>
+          <DragOverlay adjustScale={true} zIndex={1000}>
+            {activeId ? <div className="">{""}</div> : null}
+          </DragOverlay>
         </DndContext>
       </div>
 
