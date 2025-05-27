@@ -10,7 +10,7 @@ export default function DocumentReviewSystem() {
   const { selectedDocumentId, documents } = selector((state) => state.documentManagement);
   const [isFullScreenMode, setIsFullScreenMode] = useState(false);
 
-  const selectedDocument = documents?.find((doc) => doc.id === selectedDocumentId);
+  const selectedDocument = documents?.find((doc: { id: any; }) => doc.id === selectedDocumentId);
 
   useEffect(() => {
     if (selectedDocument?.status === "In Review") {

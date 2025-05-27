@@ -1,7 +1,7 @@
-import { postData } from "@/lib/api/api-client";
-import { formatToMMDDYYYYIfNeeded, maskFileName } from "@/lib/utils";
-import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import toast from "react-hot-toast";
+import { postData } from "@/lib/api/api-client"
+import { formatToMMDDYYYYIfNeeded, maskFileName } from "@/lib/utils"
+import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit"
+import toast from "react-hot-toast"
 
 export interface Document {
     id: string
@@ -26,6 +26,22 @@ export interface CodeCartItem {
 export interface CodeCart {
     items: CodeCartItem[]
     notes: string
+    searchTerm: string
+}
+
+// New interfaces for code management
+export interface CodeManagementItem {
+    id: string
+    code: string
+    description: string
+    status: "pending" | "accepted" | "rejected"
+    addedAt: number
+}
+
+export interface CodeManagementData {
+    codes: CodeManagementItem[]
+    analystNotes: string
+    auditorNotes: string
     searchTerm: string
 }
 
@@ -54,6 +70,9 @@ interface DocumentManagementState {
 
     formData: Record<string, FormData>
     staticCartItems: CodeCartItem[]
+
+    // New state for code management
+    codeManagement: Record<string, CodeManagementData>
 }
 
 type AnalystAssignment = {
@@ -91,19 +110,19 @@ export const fetchDocuments = createAsyncThunk("documentManagement/fetchDocument
             userType: "Analyst" | "Auditor"
             userId: string
         }
-    };
-    const userType = state.user.userType;
-    const userID = state.user.userId;
+    }
+    const userType = state.user.userType
+    const userID = state.user.userId
 
     const api = await postData("get_charts/", {
         id: +userID,
         role: userType,
-    });
-    const apiRes = api.data as ApiResponse;
+    })
+    const apiRes = api.data as ApiResponse
 
     if (apiRes.status === "Success") {
         const response = apiRes?.data?.map((item) => {
-            const { id = "", title = "", file_path = "", status } = item;
+            const { id = "", title = "", file_path = "", status } = item
             return {
                 id,
                 name: maskFileName(title),
@@ -125,14 +144,15 @@ export const fetchDocuments = createAsyncThunk("documentManagement/fetchDocument
                 ),
                 timeSpent: 0,
                 fileSize: item.file_size,
-            } as Document;
-        });
-        return response;
+            } as Document
+        })
+        return response
     } else {
-        toast.error(`${apiRes.message}`);
-        return [];
+        toast.error(`${apiRes.message}`)
+        return []
     }
-});
+})
+
 export const startReviewWithApi = createAsyncThunk(
     "documentManagement/startReviewWithApi",
     async (document: Document, { rejectWithValue }) => {
@@ -143,15 +163,16 @@ export const startReviewWithApi = createAsyncThunk(
                 status: 2,
                 start_time: "True",
                 end_time: "False",
-            });
-            return response;
+            })
+            return response
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "Failed to start review";
-            toast.error(errorMessage);
-            return rejectWithValue(errorMessage);
+            const errorMessage = error instanceof Error ? error.message : "Failed to start review"
+            toast.error(errorMessage)
+            return rejectWithValue(errorMessage)
         }
     },
-);
+)
+
 export const completeReviewWithAPI = createAsyncThunk(
     "documentManagement/completeReviewWithApi",
     async (document: Document & { cartData?: CodeCart }, { rejectWithValue }) => {
@@ -163,7 +184,7 @@ export const completeReviewWithAPI = createAsyncThunk(
                 status: 3,
                 start_time: "False",
                 end_time: "True",
-            };
+            }
 
             // If you need to send cart data to the API, you can add it here
             // if (document.cartData) {
@@ -171,16 +192,17 @@ export const completeReviewWithAPI = createAsyncThunk(
             //     payload.cart_notes = document.cartData.notes;
             // }
 
-            const response = await postData("update_analyst_charts/", payload);
-            const apiRes = response.data as ApiResponse;
-            return apiRes;
+            const response = await postData("update_analyst_charts/", payload)
+            const apiRes = response.data as ApiResponse
+            return apiRes
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "Failed to start review";
-            toast.error(errorMessage);
-            return rejectWithValue(errorMessage);
+            const errorMessage = error instanceof Error ? error.message : "Failed to start review"
+            toast.error(errorMessage)
+            return rejectWithValue(errorMessage)
         }
     },
-);
+)
+
 export const startReviewAuditorWithApi = createAsyncThunk(
     "documentManagement/startReviewWithApi",
     async (document: Document, { rejectWithValue }) => {
@@ -191,14 +213,14 @@ export const startReviewAuditorWithApi = createAsyncThunk(
                 status: 4,
                 start_time: "True",
                 end_time: "False",
-            });
+            })
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "Failed to start review";
-            toast.error(errorMessage);
-            return rejectWithValue(errorMessage);
+            const errorMessage = error instanceof Error ? error.message : "Failed to start review"
+            toast.error(errorMessage)
+            return rejectWithValue(errorMessage)
         }
     },
-);
+)
 
 interface AuditorReviewPayload {
     doc: Document
@@ -209,6 +231,7 @@ interface AuditorReviewPayload {
         audit_remarks: string
     }
 }
+
 export const completeReviewAuditorWithAPI = createAsyncThunk<
     ApiResponse,
     AuditorReviewPayload,
@@ -222,38 +245,39 @@ export const completeReviewAuditorWithAPI = createAsyncThunk<
             start_time: "False",
             end_time: "True",
             ...body,
-        });
+        })
 
-        return response.data as ApiResponse;
+        return response.data as ApiResponse
     } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Failed to start review";
-        toast.error(errorMessage);
-        return rejectWithValue(errorMessage);
+        const errorMessage = error instanceof Error ? error.message : "Failed to start review"
+        toast.error(errorMessage)
+        return rejectWithValue(errorMessage)
     }
-});
+})
+
 // Update fetchPdfFile to check if we've already fetched this PDF
 export const fetchPdfFile = createAsyncThunk<string, string>(
     "pdf/fetchPdfFile",
     async (pdfFilePath, { rejectWithValue, getState }) => {
         try {
-            const state = getState() as { documentManagement: DocumentManagementState };
-            const { fetchedPdfPaths } = state.documentManagement;
+            const state = getState() as { documentManagement: DocumentManagementState }
+            const { fetchedPdfPaths } = state.documentManagement
 
             if (fetchedPdfPaths.includes(pdfFilePath) && state.documentManagement.pdfUrl) {
-                return state.documentManagement.pdfUrl;
+                return state.documentManagement.pdfUrl
             }
 
-            const response = await postData<Blob>("view_pdf/", { file_path: pdfFilePath }, { responseType: "blob" });
-            const blobUrl = `${URL.createObjectURL(response.data)}__${pdfFilePath}`;
-            return blobUrl;
+            const response = await postData<Blob>("view_pdf/", { file_path: pdfFilePath }, { responseType: "blob" })
+            const blobUrl = `${URL.createObjectURL(response.data)}__${pdfFilePath}`
+            return blobUrl
         } catch (error: unknown) {
             if (error instanceof Error) {
-                return rejectWithValue(error.message);
+                return rejectWithValue(error.message)
             }
-            return rejectWithValue("Something went wrong");
+            return rejectWithValue("Something went wrong")
         }
     },
-);
+)
 
 interface AutoAssignPayload {
     target: "pending" | "assigned" | "audit" | "completed"
@@ -266,29 +290,29 @@ export const autoAssign = createAsyncThunk(
         try {
             const bodyData = {
                 chart_ids: selectedDocumentIds?.map((item) => +item),
-            };
+            }
 
             const response =
                 target === "pending" || target === "assigned"
                     ? await postData("assign_charts_analyst/", bodyData)
-                    : await postData("assign_charts_auditor/", bodyData);
+                    : await postData("assign_charts_auditor/", bodyData)
 
-            const responseData = response.data as { status: string; message: string };
+            const responseData = response.data as { status: string; message: string }
 
             if (responseData.status === "Success") {
-                toast.success(responseData.message);
-                return responseData;
+                toast.success(responseData.message)
+                return responseData
             } else {
-                toast.error(responseData.message);
-                return "Failed to assign charts";
+                toast.error(responseData.message)
+                return "Failed to assign charts"
             }
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "Failed to start review";
-            toast.error(errorMessage);
-            return rejectWithValue(errorMessage);
+            const errorMessage = error instanceof Error ? error.message : "Failed to start review"
+            toast.error(errorMessage)
+            return rejectWithValue(errorMessage)
         }
     },
-);
+)
 
 const initialState: DocumentManagementState = {
     documents: [],
@@ -313,93 +337,95 @@ const initialState: DocumentManagementState = {
         { code: "F32.9", description: "Major depressive disorder, single episode, unspecified" },
         { code: "M79.3", description: "Panniculitis, unspecified" },
     ],
-};
+    // Initialize new code management state
+    codeManagement: {},
+}
 
 const documentManagementSlice = createSlice({
     name: "documentManagement",
     initialState,
     reducers: {
         pauseReview: (state, action: PayloadAction<string>) => {
-            const document = state.documents.find((doc) => doc.id === action.payload);
+            const document = state.documents.find((doc) => doc.id === action.payload)
             if (document && document.startTime) {
-                document.status = "on_hold";
-                const pauseTime = Date.now();
-                const timeElapsed = Math.floor((pauseTime - document.startTime) / 1000);
-                document.timeSpent = (document.timeSpent || 0) + timeElapsed;
+                document.status = "on_hold"
+                const pauseTime = Date.now()
+                const timeElapsed = Math.floor((pauseTime - document.startTime) / 1000)
+                document.timeSpent = (document.timeSpent || 0) + timeElapsed
 
-                if (!document.pauseTimes) document.pauseTimes = [];
-                document.pauseTimes.push({ start: pauseTime, end: 0 });
-                document.startTime = undefined;
+                if (!document.pauseTimes) document.pauseTimes = []
+                document.pauseTimes.push({ start: pauseTime, end: 0 })
+                document.startTime = undefined
             }
         },
         resumeReview: (state, action: PayloadAction<string>) => {
-            const document = state.documents.find((doc) => doc.id === action.payload);
+            const document = state.documents.find((doc) => doc.id === action.payload)
             if (document) {
-                document.status = "In Review";
-                document.startTime = Date.now();
+                document.status = "In Review"
+                document.startTime = Date.now()
 
                 if (document.pauseTimes && document.pauseTimes.length > 0) {
-                    const lastPause = document.pauseTimes[document.pauseTimes.length - 1];
+                    const lastPause = document.pauseTimes[document.pauseTimes.length - 1]
                     if (lastPause.end === 0) {
-                        lastPause.end = Date.now();
+                        lastPause.end = Date.now()
                     }
                 }
             }
         },
         updateDocumentTime: (state, action: PayloadAction<{ id: string; time: number }>) => {
-            const document = state.documents.find((doc) => doc.id === action.payload.id);
+            const document = state.documents.find((doc) => doc.id === action.payload.id)
             if (document) {
-                document.timeSpent = action.payload.time;
+                document.timeSpent = action.payload.time
             }
         },
         recalculateDocumentTimes: (state) => {
             state.documents.forEach((doc) => {
                 if (doc.status === "In Review" && doc.startTime) {
-                    const now = Date.now();
-                    const additionalTime = Math.floor((now - doc.startTime) / 1000);
-                    doc.timeSpent = (doc.timeSpent || 0) + additionalTime;
-                    doc.startTime = now;
+                    const now = Date.now()
+                    const additionalTime = Math.floor((now - doc.startTime) / 1000)
+                    doc.timeSpent = (doc.timeSpent || 0) + additionalTime
+                    doc.startTime = now
                 }
-            });
+            })
         },
 
         selectDocument: (state, action: PayloadAction<string | null>) => {
-            state.selectedDocumentId = action.payload;
+            state.selectedDocumentId = action.payload
             if (action.payload) {
-                const selectedDoc = state.documents.find((doc) => doc.id === action.payload);
+                const selectedDoc = state.documents.find((doc) => doc.id === action.payload)
                 if (selectedDoc && selectedDoc.status === "In Review") {
-                    state.isRunning = true;
-                    state.startTime = Date.now();
+                    state.isRunning = true
+                    state.startTime = Date.now()
                 } else {
-                    state.isRunning = false;
+                    state.isRunning = false
                 }
             } else {
-                state.isRunning = false;
+                state.isRunning = false
             }
         },
         resetTimer: (state) => {
-            state.isRunning = false;
-            state.elapsedTime = 0;
-            state.startTime = null;
+            state.isRunning = false
+            state.elapsedTime = 0
+            state.startTime = null
         },
         updateElapsedTime: (state) => {
             if (state.isRunning && state.startTime) {
-                const now = Date.now();
-                state.elapsedTime = Math.floor((now - state.startTime) / 1000);
+                const now = Date.now()
+                state.elapsedTime = Math.floor((now - state.startTime) / 1000)
             }
         },
         pauseTimerOnly: (state) => {
-            state.isRunning = false;
+            state.isRunning = false
             if (state.startTime) {
-                const now = Date.now();
-                const additionalTime = Math.floor((now - state.startTime) / 1000);
-                state.elapsedTime += additionalTime;
-                state.startTime = null;
+                const now = Date.now()
+                const additionalTime = Math.floor((now - state.startTime) / 1000)
+                state.elapsedTime += additionalTime
+                state.startTime = null
             }
         },
-        // New reducers for form data
+        // Existing form data reducers
         updateFormData: (state, action: PayloadAction<{ documentId: string; data: Partial<FormData> }>) => {
-            const { documentId, data } = action.payload;
+            const { documentId, data } = action.payload
 
             if (!state.formData[documentId]) {
                 state.formData[documentId] = {
@@ -412,16 +438,16 @@ const documentManagementSlice = createSlice({
                         notes: "",
                         searchTerm: "",
                     },
-                };
+                }
             }
 
             state.formData[documentId] = {
                 ...state.formData[documentId],
                 ...data,
-            };
+            }
         },
         resetFormData: (state, action: PayloadAction<string>) => {
-            const documentId = action.payload;
+            const documentId = action.payload
             if (state.formData[documentId]) {
                 state.formData[documentId] = {
                     codesMissed: [],
@@ -433,12 +459,12 @@ const documentManagementSlice = createSlice({
                         notes: "",
                         searchTerm: "",
                     },
-                };
+                }
             }
         },
-        // New reducers for code cart
+        // Existing code cart reducers
         updateCodeCart: (state, action: PayloadAction<{ documentId: string; cartData: Partial<CodeCart> }>) => {
-            const { documentId, cartData } = action.payload;
+            const { documentId, cartData } = action.payload
 
             if (!state.formData[documentId]) {
                 state.formData[documentId] = {
@@ -451,7 +477,7 @@ const documentManagementSlice = createSlice({
                         notes: "",
                         searchTerm: "",
                     },
-                };
+                }
             }
 
             if (!state.formData[documentId].codeCart) {
@@ -459,16 +485,16 @@ const documentManagementSlice = createSlice({
                     items: [],
                     notes: "",
                     searchTerm: "",
-                };
+                }
             }
 
             state.formData[documentId].codeCart = {
                 ...state.formData[documentId].codeCart!,
                 ...cartData,
-            };
+            }
         },
         addCartItem: (state, action: PayloadAction<{ documentId: string; item: CodeCartItem }>) => {
-            const { documentId, item } = action.payload;
+            const { documentId, item } = action.payload
 
             if (!state.formData[documentId]) {
                 state.formData[documentId] = {
@@ -481,7 +507,7 @@ const documentManagementSlice = createSlice({
                         notes: "",
                         searchTerm: "",
                     },
-                };
+                }
             }
 
             if (!state.formData[documentId].codeCart) {
@@ -489,63 +515,151 @@ const documentManagementSlice = createSlice({
                     items: [],
                     notes: "",
                     searchTerm: "",
-                };
+                }
             }
 
-            state.formData[documentId].codeCart!.items.push(item);
+            state.formData[documentId].codeCart!.items.push(item)
         },
         removeCartItem: (state, action: PayloadAction<{ documentId: string; index: number }>) => {
-            const { documentId, index } = action.payload;
+            const { documentId, index } = action.payload
 
             if (
                 state.formData[documentId] &&
                 state.formData[documentId].codeCart &&
                 state.formData[documentId].codeCart!.items.length > index
             ) {
-                state.formData[documentId].codeCart!.items.splice(index, 1);
+                state.formData[documentId].codeCart!.items.splice(index, 1)
             }
         },
         removeStaticCartItem: (state, action: PayloadAction<{ documentId: string; index: number }>) => {
-            const { index } = action.payload;
+            const { index } = action.payload
             if (state.staticCartItems.length > index) {
-                state.staticCartItems.splice(index, 1);
+                state.staticCartItems.splice(index, 1)
+            }
+        },
+
+        // NEW CODE MANAGEMENT REDUCERS
+        updateCodeManagement: (state, action: PayloadAction<{ documentId: string; data: Partial<CodeManagementData> }>) => {
+            const { documentId, data } = action.payload
+
+            if (!state.codeManagement[documentId]) {
+                state.codeManagement[documentId] = {
+                    codes: [],
+                    analystNotes: "",
+                    auditorNotes: "",
+                    searchTerm: "",
+                }
+            }
+
+            state.codeManagement[documentId] = {
+                ...state.codeManagement[documentId],
+                ...data,
+            }
+        },
+
+        addCodeToTable: (state, action: PayloadAction<{ documentId: string; code: CodeManagementItem }>) => {
+            const { documentId, code } = action.payload
+
+            if (!state.codeManagement[documentId]) {
+                state.codeManagement[documentId] = {
+                    codes: [],
+                    analystNotes: "",
+                    auditorNotes: "",
+                    searchTerm: "",
+                }
+            }
+
+            state.codeManagement[documentId].codes.push(code)
+        },
+
+        updateCodeStatus: (
+            state,
+            action: PayloadAction<{ documentId: string; codeId: string; status: "accepted" | "rejected" }>,
+        ) => {
+            const { documentId, codeId, status } = action.payload
+
+            if (state.codeManagement[documentId]) {
+                const code = state.codeManagement[documentId].codes.find((c) => c.id === codeId)
+                if (code) {
+                    code.status = status
+                }
+            }
+        },
+
+        updateAnalystNotes: (state, action: PayloadAction<{ documentId: string; notes: string }>) => {
+            const { documentId, notes } = action.payload
+
+            if (!state.codeManagement[documentId]) {
+                state.codeManagement[documentId] = {
+                    codes: [],
+                    analystNotes: "",
+                    auditorNotes: "",
+                    searchTerm: "",
+                }
+            }
+
+            state.codeManagement[documentId].analystNotes = notes
+        },
+
+        updateAuditorNotes: (state, action: PayloadAction<{ documentId: string; notes: string }>) => {
+            const { documentId, notes } = action.payload
+
+            if (!state.codeManagement[documentId]) {
+                state.codeManagement[documentId] = {
+                    codes: [],
+                    analystNotes: "",
+                    auditorNotes: "",
+                    searchTerm: "",
+                }
+            }
+
+            state.codeManagement[documentId].auditorNotes = notes
+        },
+
+        removeCodeFromTable: (state, action: PayloadAction<{ documentId: string; codeId: string }>) => {
+            const { documentId, codeId } = action.payload
+
+            if (state.codeManagement[documentId]) {
+                state.codeManagement[documentId].codes = state.codeManagement[documentId].codes.filter(
+                    (code) => code.id !== codeId,
+                )
             }
         },
     },
     extraReducers: (builder) => {
         builder
             .addCase(fetchDocuments.pending, (state) => {
-                state.documentLoading = true;
-                state.error = null;
+                state.documentLoading = true
+                state.error = null
             })
             .addCase(fetchDocuments.fulfilled, (state, action) => {
-                state.documentLoading = false;
-                state.documents = action.payload;
+                state.documentLoading = false
+                state.documents = action.payload
             })
             .addCase(fetchDocuments.rejected, (state, action) => {
-                state.documentLoading = false;
-                state.error = action.error.message || "Failed to fetch documents";
+                state.documentLoading = false
+                state.error = action.error.message || "Failed to fetch documents"
             })
             .addCase(fetchPdfFile.pending, (state) => {
-                state.pdfLoading = true;
-                state.error = null;
+                state.pdfLoading = true
+                state.error = null
             })
             .addCase(fetchPdfFile.fulfilled, (state, action) => {
-                state.pdfLoading = false;
-                state.pdfUrl = action.payload;
+                state.pdfLoading = false
+                state.pdfUrl = action.payload
 
-                const pdfPath = action.meta.arg;
+                const pdfPath = action.meta.arg
                 if (!state.fetchedPdfPaths.includes(pdfPath)) {
-                    state.fetchedPdfPaths.push(pdfPath);
+                    state.fetchedPdfPaths.push(pdfPath)
                 }
             })
             .addCase(fetchPdfFile.rejected, (state, action) => {
-                state.pdfLoading = false;
-                state.error = action.error.message || "Failed to fetch PDF file";
-                toast.error("Failed to load PDF file");
-            });
+                state.pdfLoading = false
+                state.error = action.error.message || "Failed to fetch PDF file"
+                toast.error("Failed to load PDF file")
+            })
     },
-});
+})
 
 export const {
     pauseReview,
@@ -558,11 +672,18 @@ export const {
     pauseTimerOnly,
     updateFormData,
     resetFormData,
-    // Export the new actions
+    // Export existing actions
     updateCodeCart,
     addCartItem,
     removeCartItem,
     removeStaticCartItem,
-} = documentManagementSlice.actions;
+    // Export new code management actions
+    updateCodeManagement,
+    addCodeToTable,
+    updateCodeStatus,
+    updateAnalystNotes,
+    updateAuditorNotes,
+    removeCodeFromTable,
+} = documentManagementSlice.actions
 
-export default documentManagementSlice.reducer;
+export default documentManagementSlice.reducer
