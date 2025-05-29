@@ -6,6 +6,8 @@ import { CreatableSelect } from "@/components/ui/creatable-select"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { useRedux } from "@/hooks/use-redux"
 import {
     updateFormData,
@@ -15,8 +17,9 @@ import {
     updateAuditorNotes,
 } from "@/store/slices/documentManagementSlice"
 import { motion, AnimatePresence } from "framer-motion"
-import { CheckCircle, Loader2, Search, Plus, Check, X, TrendingUp } from "lucide-react"
+import { CheckCircle, Loader2, Search, Plus, Check, X, TrendingUp, ChevronsUpDown } from "lucide-react"
 import { useState, useMemo } from "react"
+import { cn } from "@/lib/utils"
 import type { RootState } from "@/store"
 
 interface FormData {
@@ -75,8 +78,9 @@ export default function AuditorReviewForm({
     const { dispatch, selector } = useRedux()
     const { codeManagement } = selector((state: RootState) => state.documentManagement)
 
+    const [open, setOpen] = useState(false)
+    const [selectedCode, setSelectedCode] = useState<{ code: string; description: string } | null>(null)
     const [searchTerm, setSearchTerm] = useState("")
-    const [showDropdown, setShowDropdown] = useState(false)
 
     // Get current document's code management data
     const currentData =
@@ -89,15 +93,15 @@ export default function AuditorReviewForm({
                 searchTerm: "",
             }
 
-    // Filter codes based on search term
+    // Filter codes based on search term for table display
     const filteredCodes = useMemo(() => {
-        if (!searchTerm.trim()) return []
-        return DX_CODES.filter(
-            (item) =>
-                item.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                item.description.toLowerCase().includes(searchTerm.toLowerCase()),
+        if (!searchTerm.trim()) return currentData.codes
+        return currentData.codes.filter(
+            (code) =>
+                code.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                code.description.toLowerCase().includes(searchTerm.toLowerCase()),
         )
-    }, [searchTerm])
+    }, [searchTerm, currentData.codes])
 
     // Calculate quality metrics
     const qualityMetrics = useMemo(() => {
@@ -130,8 +134,8 @@ export default function AuditorReviewForm({
         }
 
         dispatch(addCodeToTable({ documentId: selectedDocumentId, code: newCode }))
-        setSearchTerm("")
-        setShowDropdown(false)
+        setSelectedCode(null)
+        setOpen(false)
     }
 
     const handleStatusUpdate = (codeId: string, status: "accepted" | "rejected") => {
@@ -169,8 +173,6 @@ export default function AuditorReviewForm({
                 {/* Scrollable Content Area */}
                 <div className="flex-1 overflow-y-auto max-h-[84vh] pr-1">
                     <div className="space-y-4">
-
-
                         {/* Original Form Fields */}
                         <div className="space-y-4">
                             <div className="grid gap-2">
@@ -223,8 +225,6 @@ export default function AuditorReviewForm({
                                 )}
                             </div>
 
-
-
                             <div className="grid gap-2">
                                 <Label htmlFor="audit-remarks" className="text-sm font-medium">
                                     Audit Remarks
@@ -276,99 +276,140 @@ export default function AuditorReviewForm({
                                         }}
                                         className="w-20 h-9 text-sm"
                                     />
-                                    <span className="ml-2 text-sm text-muted-foreground">%</span>
+                                    {/* <span className="ml-2 text-sm text-muted-foreground">%</span> */}
                                 </div>
                                 {formErrors.rating && <p className="text-xs text-red-500 mt-1">{formErrors.rating}</p>}
                             </div>
 
-                            {/* Code Management Section */}
-                            <div className="p-1  px-0 bg-transparent border-none">
-                                <div className="space-y-3 px-1">
-                                    <div className="relative">
-                                        <div className="relative">
-                                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                            <Input
-                                                placeholder="Search DX code..."
-                                                value={searchTerm}
-                                                onChange={(e) => {
-                                                    setSearchTerm(e.target.value)
-                                                    setShowDropdown(true)
-                                                }}
-                                                onFocus={() => setShowDropdown(true)}
-                                                className="pl-10 h-9 text-sm"
-                                            />
-                                        </div>
-
-                                        <AnimatePresence>
-                                            {showDropdown && filteredCodes.length > 0 && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, y: -10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: -10 }}
-                                                    className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-40 overflow-y-auto"
+                            {/* Enhanced Code Management Section */}
+                            <div className="border-gray-200">
+                                <div className="space-y-3">
+                                    {/* Enhanced Searchable Select */}
+                                    <div className="space-y-2">
+                                        <Popover open={open} onOpenChange={setOpen}>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    role="combobox"
+                                                    aria-expanded={open}
+                                                    className="w-full !rounded-none justify-between text-sm h-9"
                                                 >
-                                                    {filteredCodes.slice(0, 5).map((item, index) => (
-                                                        <motion.div
-                                                            key={item.code}
-                                                            initial={{ opacity: 0 }}
-                                                            animate={{ opacity: 1 }}
-                                                            transition={{ delay: index * 0.05 }}
-                                                            className="p-2 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 flex items-center justify-between"
-                                                            onClick={() => handleAddCode(item)}
-                                                        >
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="font-medium text-xs">{item.code}</div>
-                                                                <div className="text-xs text-muted-foreground truncate">{item.description}</div>
-                                                            </div>
-                                                            <Plus className="h-3 w-3 text-muted-foreground ml-2" />
-                                                        </motion.div>
-                                                    ))}
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
+                                                    <div className="flex items-center">
+                                                        <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                                                        {selectedCode ? (
+                                                            <span className="truncate">
+                                                                {selectedCode.code} - {selectedCode.description}
+                                                            </span>
+                                                        ) : (
+                                                            "Search DX code..."
+                                                        )}
+                                                    </div>
+                                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0 rounded-none" align="start">
+                                                <Command>
+                                                    <CommandInput placeholder="Search DX code..." />
+                                                    <CommandList>
+                                                        <CommandEmpty>No codes found.</CommandEmpty>
+                                                        <CommandGroup>
+                                                            {DX_CODES.slice(0, 10).map((item) => {
+                                                                const exists = currentData.codes.some((code) => code.code === item.code)
+
+                                                                return (
+                                                                    <CommandItem
+                                                                        key={item.code}
+                                                                        value={`${item.code} ${item.description}`}
+                                                                        onSelect={() => {
+                                                                            if (!exists) {
+                                                                                handleAddCode(item)
+                                                                            }
+                                                                        }}
+                                                                        disabled={exists}
+                                                                        className={cn(
+                                                                            "flex items-center justify-between",
+                                                                            exists && "opacity-50 cursor-not-allowed",
+                                                                        )}
+                                                                    >
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <div className="font-medium text-sm">{item.code}</div>
+                                                                            <div className="text-xs text-muted-foreground truncate">{item.description}</div>
+                                                                        </div>
+                                                                        {exists ? (
+                                                                            <Check className="ml-2 h-4 w-4 text-green-600" />
+                                                                        ) : (
+                                                                            <Plus className="ml-2 h-4 w-4" />
+                                                                        )}
+                                                                    </CommandItem>
+                                                                )
+                                                            })}
+                                                        </CommandGroup>
+                                                    </CommandList>
+                                                </Command>
+                                            </PopoverContent>
+                                        </Popover>
                                     </div>
 
+                                    {/* Filter Input */}
+                                    <div>
+                                        <Input
+                                            placeholder="Filter codes in table..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="text-sm"
+                                        />
+                                    </div>
+
+
+                                    {/* Enhanced Table Design */}
                                     {currentData.codes.length > 0 && (
-                                        <div className="border border-gray-300 rounded">
+                                        <div className="border border-gray-300 rounded-none overflow-hidden">
                                             <div className="bg-selectedText text-white text-sm font-medium">
-                                                <div className="grid grid-cols-12 gap-2 p-2">
+                                                <div className="grid grid-cols-12 gap-2 p-3">
                                                     <div className="col-span-3">Code</div>
                                                     <div className="col-span-6">Description</div>
                                                     <div className="col-span-3 text-center">Actions</div>
                                                 </div>
                                             </div>
-                                            <div className="max-h-32 overflow-y-auto">
+                                            <div className="max-h-40 overflow-y-auto">
                                                 <AnimatePresence>
-                                                    {currentData.codes.map((code, index) => (
+                                                    {filteredCodes.map((code, index) => (
                                                         <motion.div
                                                             key={code.id}
                                                             initial={{ opacity: 0, x: -20 }}
                                                             animate={{ opacity: 1, x: 0 }}
                                                             exit={{ opacity: 0, x: 20 }}
                                                             transition={{ delay: index * 0.05 }}
-                                                            className="grid grid-cols-12 gap-2 p-2 border-b border-gray-200 text-sm hover:bg-gray-50"
+                                                            className="grid grid-cols-12 gap-2 p-3 border-b border-gray-200 text-sm hover:bg-gray-50 transition-colors"
                                                         >
-                                                            <div className="col-span-3 font-mono text-xs">{code.code}</div>
-                                                            <div className="col-span-6 text-xs truncate" title={code.description}>
-                                                                {code.description}
+                                                            <div className="col-span-3 font-mono text-xs font-medium">{code.code}</div>
+                                                            <div className="col-span-6 text-xs" title={code.description}>
+                                                                <div className="truncate">{code.description}</div>
                                                             </div>
-                                                            <div className="col-span-3 flex justify-center gap-1">
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant={code.status === "accepted" ? "default" : "outline"}
-                                                                    onClick={() => handleStatusUpdate(code.id, "accepted")}
-                                                                    className="h-6 w-6 p-0"
-                                                                >
-                                                                    <Check className="h-3 w-3" />
-                                                                </Button>
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant={code.status === "rejected" ? "destructive" : "outline"}
-                                                                    onClick={() => handleStatusUpdate(code.id, "rejected")}
-                                                                    className="h-6 w-6 p-0"
-                                                                >
-                                                                    <X className="h-3 w-3" />
-                                                                </Button>
+                                                            <div className="col-span-3 flex justify-center gap-2">
+                                                                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant={code.status === "accepted" ? "default" : "outline"}
+                                                                        onClick={() => handleStatusUpdate(code.id, "accepted")}
+                                                                        className={cn(
+                                                                            "h-7 w-7 p-0 transition-all",
+                                                                            code.status === "accepted" && "bg-green-600 hover:bg-green-700 text-white",
+                                                                        )}
+                                                                    >
+                                                                        <Check className="h-3 w-3" />
+                                                                    </Button>
+                                                                </motion.div>
+                                                                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant={code.status === "rejected" ? "destructive" : "outline"}
+                                                                        onClick={() => handleStatusUpdate(code.id, "rejected")}
+                                                                        className="h-7 w-7 p-0 transition-all"
+                                                                    >
+                                                                        <X className="h-3 w-3" />
+                                                                    </Button>
+                                                                </motion.div>
                                                             </div>
                                                         </motion.div>
                                                     ))}
@@ -376,8 +417,20 @@ export default function AuditorReviewForm({
                                             </div>
                                         </div>
                                     )}
+
+                                    {/* Empty State */}
+                                    {currentData.codes.length === 0 && (
+                                        <div className="flex flex-col items-center justify-center py-8 text-center border border-dashed border-gray-300 rounded-lg">
+                                            <div className="text-gray-400 mb-2">
+                                                <Search className="w-8 h-8 mx-auto" />
+                                            </div>
+                                            <p className="text-sm text-gray-500 font-medium">No codes added yet</p>
+                                            <p className="text-xs text-gray-400 mt-1">Use the search above to add DX codes</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
+
                             {/* Notes Section */}
                             <div className="grid gap-2">
                                 <Label htmlFor="analyst-notes" className="text-sm font-medium">
@@ -406,86 +459,85 @@ export default function AuditorReviewForm({
                                     className="resize-none text-sm"
                                 />
                             </div>
-                            {/* Quality Score Card */}
+
+                            {/* Enhanced Quality Score Card */}
                             {currentData.codes.length > 0 && (
-                                <Card className="bg-gradient-to-r from-blue-50 to-indigo-50  border-blue-200">
-                                    <CardHeader className="p-1">
-                                        <CardTitle className="pt-2 flex items-center gap-2 text-blue-900 text-sm">
-                                            <TrendingUp className="h-4 w-4" />
+                                <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-blue-200 shadow-sm">
+                                    <div className="p-2">
+                                        <CardTitle className="flex items-center gap-2 text-blue-900 text-base">
+                                            <TrendingUp className="h-5 w-5" />
                                             Quality Score
                                         </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="pt-0">
-                                        <div className="grid grid-cols-2 gap-3">
+                                    </div>
+                                    <div className="py-2 p-1">
+                                        <div className="grid grid-cols-3 gap-4">
                                             <motion.div
-                                                className="text-center"
-                                                whileHover={{ scale: 1.05 }}
+                                                className="text-center p-1 bg-white/60 rounded-lg border border-green-100 cursor-pointer"
+                                                // whileHover={{ scale: 1.02, y: -2 }}
                                                 transition={{ type: "spring", stiffness: 300 }}
                                             >
-                                                <div className="text-lg font-bold text-blue-600">{qualityMetrics.qualityScore}%</div>
-                                                <div className="text-xs text-muted-foreground">Score</div>
+                                                <div className="text-2xl font-bold text-green-600">{qualityMetrics.accepted}</div>
+                                                <div className="text-xs text-muted-foreground font-medium">Accepted</div>
                                             </motion.div>
 
                                             <motion.div
-                                                className="text-center"
-                                                whileHover={{ scale: 1.05 }}
+                                                className="text-center p-1 bg-white/60 rounded-lg border border-blue-100 cursor-pointer"
+                                                // whileHover={{ scale: 1.02, y: -2 }}
                                                 transition={{ type: "spring", stiffness: 300 }}
                                             >
-                                                <div className="text-lg font-bold text-green-600">{qualityMetrics.accepted}</div>
-                                                <div className="text-xs text-muted-foreground">Accepted</div>
+                                                <div className="text-2xl font-bold text-blue-600">{qualityMetrics.added}</div>
+                                                <div className="text-xs text-muted-foreground font-medium">Total Added</div>
                                             </motion.div>
 
                                             <motion.div
-                                                className="text-center"
-                                                whileHover={{ scale: 1.05 }}
+                                                className="text-center p-1 bg-white/60 rounded-lg border border-red-100 cursor-pointer"
+                                                // whileHover={{ scale: 1.02, y: -2 }}
                                                 transition={{ type: "spring", stiffness: 300 }}
                                             >
-                                                <div className="text-lg font-bold text-blue-600">{qualityMetrics.added}</div>
-                                                <div className="text-xs text-muted-foreground">Added</div>
-                                            </motion.div>
-
-                                            <motion.div
-                                                className="text-center"
-                                                whileHover={{ scale: 1.05 }}
-                                                transition={{ type: "spring", stiffness: 300 }}
-                                            >
-                                                <div className="text-lg font-bold text-red-600">{qualityMetrics.removed}</div>
-                                                <div className="text-xs text-muted-foreground">Removed</div>
+                                                <div className="text-2xl font-bold text-red-600">{qualityMetrics.removed}</div>
+                                                <div className="text-xs text-muted-foreground font-medium">Rejected</div>
                                             </motion.div>
                                         </div>
 
-                                        {/* Progress Bar */}
-                                        <div className="mt-3">
-                                            <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                                                <span>Progress</span>
-                                                <span>{qualityMetrics.qualityScore}%</span>
+                                        {/* Enhanced Progress Bar */}
+                                        <div className="mt-4">
+                                            <div className="flex justify-between text-xs text-muted-foreground mb-2">
+                                                <span className="font-medium">Quality Progress</span>
+                                                <span className="font-bold">{qualityMetrics.qualityScore}%</span>
                                             </div>
-                                            <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                                                 <motion.div
-                                                    className="bg-blue-600 h-1.5 rounded-full"
+                                                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full shadow-sm"
                                                     initial={{ width: 0 }}
                                                     animate={{ width: `${qualityMetrics.qualityScore}%` }}
-                                                    transition={{ duration: 0.5, ease: "easeOut" }}
+                                                    transition={{ duration: 0.8, ease: "easeOut" }}
                                                 />
                                             </div>
                                         </div>
-                                    </CardContent>
-                                </Card>
+                                    </div>
+                                </div>
                             )}
                         </div>
                     </div>
                 </div>
 
                 {/* Fixed Submit Button at Bottom */}
-                <div className="flex justify-end gap-3 pt-1 border-t bg-white">
-                    <Button onClick={onSubmit} disabled={isSubmitting || isCompletingReview} type="submit" className="text-white">
-                        {isSubmitting || isCompletingReview ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                        )}
-                        {isSubmitting || isCompletingReview ? "Submitting..." : "Submit Review"}
-                    </Button>
+                <div className="flex justify-end gap-3 pt-4 border-t bg-white">
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                        <Button
+                            onClick={onSubmit}
+                            disabled={isSubmitting || isCompletingReview}
+                            type="submit"
+                            className="text-white px-6"
+                        >
+                            {isSubmitting || isCompletingReview ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                            )}
+                            {isSubmitting || isCompletingReview ? "Submitting..." : "Submit Review"}
+                        </Button>
+                    </motion.div>
                 </div>
             </div>
         </motion.div>

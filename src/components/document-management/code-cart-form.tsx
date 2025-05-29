@@ -181,7 +181,7 @@ export default function CodeCartForm({
                                     variant="outline"
                                     role="combobox"
                                     aria-expanded={open}
-                                    className="w-full justify-between text-sm h-8"
+                                    className="w-full !rounded-none justify-between text-sm h-8"
                                 >
                                     <div className="flex items-center">
                                         <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
@@ -196,7 +196,7 @@ export default function CodeCartForm({
                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                            <PopoverContent className="w-[--radix-popover-trigger-width] rounded-none p-0" align="start">
                                 <Command>
                                     <CommandInput
                                         placeholder="Search DX code..."
@@ -263,10 +263,10 @@ export default function CodeCartForm({
                     </div>
 
                     {/* Table */}
-                    <div className="flex-1 border border-gray-300 rounded mb-3">
+                    <div className="flex-1 border border-gray-300 rounded-none mb-3">
                         <div className="bg-selectedText text-white text-sm font-medium">
                             <div className="grid grid-cols-12 gap-2 p-2">
-                                <div className="col-span-4">ICD-CMS-10</div>
+                                <div className="col-span-4 ">ICD-CMS-10</div>
                                 <div className="col-span-7">Description</div>
                                 <div className="col-span-1"></div>
                             </div>
@@ -275,7 +275,7 @@ export default function CodeCartForm({
                             {/* Show filtered static items first */}
                             {filteredStaticItems.map((item, index) => (
                                 <div key={`static-${index}`} className="grid grid-cols-12 gap-2 p-2 border-b border-gray-200 text-sm">
-                                    <div className="col-span-4 font-medium">{item.code}</div>
+                                    <div className="col-span-4 font-medium font-mono">{item.code}</div>
                                     <div className="col-span-7">{item.description}</div>
                                     <div className="col-span-1">
                                         <button

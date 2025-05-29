@@ -467,7 +467,7 @@ export default function PdfViewer({
 
         {/* Right-side Review Panel */}
         <AnimatePresence>
-          {isSidebar && (userType !== "Auditor" ? (
+          {isSidebar && (userType === "Auditor" ? (
             <>
               <AuditorReviewForm
                 selectedDocumentId={selectedDocumentId}
