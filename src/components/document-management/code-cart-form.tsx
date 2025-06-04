@@ -380,7 +380,7 @@ export default function ImprovedCodeReviewForm({
                             />
                         </div>
 
-                        <div className="w-24">
+                        <div className="w-32">
                             <Select value={filterStatus} onValueChange={handleFilterChange}>
                                 <SelectTrigger className="h-9 text-sm transition-all duration-200 focus:ring-2 focus:ring-blue-200">
                                     <SelectValue />

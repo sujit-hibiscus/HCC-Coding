@@ -509,7 +509,7 @@ export default function PdfViewer({
         {/* Enhanced Right-side Review Panel */}
         <AnimatePresence mode="wait">
           {isSidebar &&
-            (userType === "Auditor" ? (
+            (userType !== "Auditor" ? (
               <AuditorReviewForm
                 selectedDocumentId={selectedDocumentId}
                 formData={formData}

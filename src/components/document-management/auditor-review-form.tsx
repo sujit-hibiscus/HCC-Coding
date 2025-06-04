@@ -512,7 +512,7 @@ export default function AuditorReviewForm({
                         </div>
 
                         {/* Status Filter */}
-                        <div className="w-20">
+                        <div className="w-32">
                             <Select value={filterStatus} onValueChange={handleFilterChange}>
                                 <SelectTrigger className="h-8 text-xs transition-all duration-200 focus:ring-2 focus:ring-blue-200">
                                     <SelectValue />
