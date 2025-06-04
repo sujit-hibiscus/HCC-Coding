@@ -210,7 +210,7 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
 
   return (
     <PreventSaveProvider>
-      <div className={`w-full border-none h-full rounded-md ${isDarkTheme ? "dark-theme" : "light-theme"}`}>
+      <div className={`w-full  border-none h-full  ${isDarkTheme ? "dark-theme" : "light-theme"}`}>
         {isViewer ? (
           <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
             <Viewer

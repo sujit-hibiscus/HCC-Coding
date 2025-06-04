@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { useRedux } from "@/hooks/use-redux"
 import { SubmissionFormSchema } from "@/lib/schemas"
@@ -9,20 +8,21 @@ import {
   completeReviewAuditorWithAPI,
   completeReviewWithAPI,
   fetchDocuments,
+  resetCodeReview,
   resetFormData,
   resumeReview,
   startReviewAuditorWithApi,
   startReviewWithApi,
   updateElapsedTime,
   updateFormData,
-  resetCodeReview,
 } from "@/store/slices/documentManagementSlice"
 import { AnimatePresence, motion } from "framer-motion"
-import { Loader2, Play, Maximize2, Minimize2 } from "lucide-react"
-import PdfUI from "../ui/pdfUI"
+import { Loader2, Play } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 import { PreventSaveProvider } from "../layout/prevent-save-provider"
-import ImprovedCodeReviewForm from "./code-cart-form"
+import PdfUI from "../ui/pdfUI"
 import AuditorReviewForm from "./auditor-review-form"
+import ImprovedCodeReviewForm from "./code-cart-form"
 
 export default function PdfViewer({
   onReviewComplete,
@@ -509,7 +509,7 @@ export default function PdfViewer({
         {/* Enhanced Right-side Review Panel */}
         <AnimatePresence mode="wait">
           {isSidebar &&
-            (userType === "Auditor" ? (
+            (userType !== "Auditor" ? (
               <AuditorReviewForm
                 selectedDocumentId={selectedDocumentId}
                 formData={formData}

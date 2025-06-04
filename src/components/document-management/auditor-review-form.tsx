@@ -112,12 +112,13 @@ const AnimatedCounter = ({ value, label, color }: { value: number; label: string
             </TooltipTrigger>
             <TooltipContent
                 variant={label === "Pending" ? "warning" : label === "Accepted" ? "success" : "error"}
-                side={label === "Rejected" ? "left" : "top"}>
+                side={label === "Rejected" ? "left" : "top"}
+            >
                 <p className="text-xs">
                     {value} {label}
                 </p>
             </TooltipContent>
-        </Tooltip >
+        </Tooltip>
     )
 }
 
@@ -152,6 +153,7 @@ export default function AuditorReviewForm({
     const [filterStatus, setFilterStatus] = useState<string>("all")
     const [localSearchTerm, setLocalSearchTerm] = useState("")
     const [isPending, startTransition] = useTransition()
+    const [updatingItemId, setUpdatingItemId] = useState<string | null>(null)
 
     // Get current document's code review data
     const currentCodeReview = useMemo(() => {
@@ -193,7 +195,7 @@ export default function AuditorReviewForm({
     // Optimized status counts
     const statusCounts = useMemo(() => {
         return currentCodeReview.items.reduce(
-            (acc, item) => {
+            (acc: Record<string, number>, item) => {
                 acc[item.status] = (acc[item.status] || 0) + 1
                 return acc
             },
@@ -245,14 +247,22 @@ export default function AuditorReviewForm({
     )
 
     const handleStatusUpdate = useCallback(
-        (itemId: string, status: "accepted" | "rejected") => {
-            if (selectedDocumentId) {
+        async (itemId: string, status: "accepted" | "rejected") => {
+            if (selectedDocumentId && !updatingItemId) {
+                setUpdatingItemId(itemId)
+
+                // Add a small delay to prevent rapid clicking and ensure smooth transition
+                await new Promise((resolve) => setTimeout(resolve, 150))
+
                 startTransition(() => {
                     dispatch(updateCodeReviewItemStatus({ documentId: selectedDocumentId, itemId, status }))
                 })
+
+                // Clear the updating state after a brief moment
+                setTimeout(() => setUpdatingItemId(null), 300)
             }
         },
-        [selectedDocumentId, dispatch],
+        [selectedDocumentId, dispatch, updatingItemId],
     )
 
     const handleFormDataUpdate = useCallback(
@@ -330,7 +340,7 @@ export default function AuditorReviewForm({
                     </div>
                 </div>
 
-                <div className="flex flex-col h-full p-3 space-y-3 overflow-y-auto">
+                <div className="flex flex-col h-full px-2 pb-1 space-y-3 overflow-y-auto">
                     {/* Optimized Form Fields */}
                     <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-3">
@@ -390,7 +400,7 @@ export default function AuditorReviewForm({
                                         handleFormDataUpdate({ auditRemarks: e.target.value })
                                     }}
                                     rows={2}
-                                    className="text-xs transition-all duration-200 focus:ring-2 focus:ring-blue-200"
+                                    className="text-xs transition-all duration-200 focus:ring-2 focus:ring-blue-200 max-h-[60px]"
                                 />
                                 {formErrors.auditRemarks && !(formData.auditRemarks?.length >= 10) && (
                                     <p className="text-xs text-red-500">{formErrors.auditRemarks}</p>
@@ -526,15 +536,15 @@ export default function AuditorReviewForm({
 
                     {/* Optimized Code Cards */}
                     <div className="flex-1 min-h-0">
-                        <div className="h-full space-y-2 pr-1 overflow-y-auto max-h-[450px]">
+                        <div className="h-full space-y-2 pr-1 overflow-y-auto overflow-x-hidden max-h-[450px]">
                             <AnimatePresence mode="popLayout">
                                 {filteredItems.map((item, index) => (
                                     <motion.div
                                         key={item.id}
                                         layout
-                                        initial={{ opacity: 0, y: 10 }}
+                                        initial={{ opacity: 0, y: 0 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
+                                        exit={{ opacity: 0, y: 0 }}
                                         transition={{
                                             duration: 0.2,
                                             delay: Math.min(index * 0.02, 0.1),
@@ -608,32 +618,58 @@ export default function AuditorReviewForm({
 
                                                     {/* Action Buttons */}
                                                     <div className="flex flex-col gap-1.5">
-                                                        <Button
-                                                            size="sm"
-                                                            variant={item.status === "accepted" ? "default" : "outline"}
-                                                            onClick={() => handleStatusUpdate(item.id, "accepted")}
-                                                            className={cn(
-                                                                "w-16 h-6 text-xs px-2 transition-all duration-200",
-                                                                item.status === "accepted"
-                                                                    ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
-                                                                    : "hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700",
-                                                            )}
-                                                        >
-                                                            <Check className="h-3 w-3" />
-                                                        </Button>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant={item.status === "accepted" ? "default" : "outline"}
+                                                                    onClick={() => handleStatusUpdate(item.id, "accepted")}
+                                                                    disabled={updatingItemId === item.id}
+                                                                    className={cn(
+                                                                        "w-16 h-6 text-xs px-2 transition-all duration-300",
+                                                                        item.status === "accepted"
+                                                                            ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                                                                            : "hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700",
+                                                                        updatingItemId === item.id && "opacity-70 cursor-not-allowed",
+                                                                    )}
+                                                                >
+                                                                    {updatingItemId === item.id && item.status !== "accepted" ? (
+                                                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                                                    ) : (
+                                                                        <Check className="h-3 w-3" />
+                                                                    )}
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent side="left" className="bg-emerald-600 text-white">
+                                                                <p className="text-xs">Accept Code</p>
+                                                            </TooltipContent>
+                                                        </Tooltip>
 
-                                                        <Button
-                                                            size="sm"
-                                                            variant={item.status === "rejected" ? "destructive" : "outline"}
-                                                            onClick={() => handleStatusUpdate(item.id, "rejected")}
-                                                            className={cn(
-                                                                "w-16 h-6 text-xs px-2 transition-all duration-200",
-                                                                item.status !== "rejected" &&
-                                                                "hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700",
-                                                            )}
-                                                        >
-                                                            <X className="h-3 w-3" />
-                                                        </Button>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant={item.status === "rejected" ? "destructive" : "outline"}
+                                                                    onClick={() => handleStatusUpdate(item.id, "rejected")}
+                                                                    disabled={updatingItemId === item.id}
+                                                                    className={cn(
+                                                                        "w-16 h-6 text-xs px-2 transition-all duration-300",
+                                                                        item.status !== "rejected" &&
+                                                                        "hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700",
+                                                                        updatingItemId === item.id && "opacity-70 cursor-not-allowed",
+                                                                    )}
+                                                                >
+                                                                    {updatingItemId === item.id && item.status !== "rejected" ? (
+                                                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                                                    ) : (
+                                                                        <X className="h-3 w-3" />
+                                                                    )}
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent side="left" className="bg-rose-600 text-white">
+                                                                <p className="text-xs">Reject Code</p>
+                                                            </TooltipContent>
+                                                        </Tooltip>
                                                     </div>
                                                 </div>
                                             </CardContent>

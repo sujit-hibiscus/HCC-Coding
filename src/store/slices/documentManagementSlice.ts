@@ -113,16 +113,6 @@ const getInitialCodeReviewData = (documentId: string): CodeReviewData => ({
             addedAt: Date.now() - 172800000,
         },
         {
-            id: `${documentId}-3`,
-            icdCode: "I10",
-            description: "Essential (primary) hypertension",
-            hccCode: "HCC 85",
-            evidence: "BP consistently >140/90, on ACE inhibitor, no secondary causes.",
-            reference: "ICD-10-CM Guidelines Section I.C.9.a.1",
-            status: "rejected",
-            addedAt: Date.now() - 259200000,
-        },
-        {
             id: `${documentId}-4`,
             icdCode: "N18.6",
             description: "End stage renal disease",
