@@ -15,19 +15,19 @@ import {
   startReviewWithApi,
   updateElapsedTime,
   updateFormData,
-  removeCartItem,
-  removeStaticCartItem,
+  resetCodeReview,
 } from "@/store/slices/documentManagementSlice"
 import { AnimatePresence, motion } from "framer-motion"
-import { Loader2, Play, Trash2 } from "lucide-react"
+import { Loader2, Play, Maximize2, Minimize2 } from "lucide-react"
 import PdfUI from "../ui/pdfUI"
 import { PreventSaveProvider } from "../layout/prevent-save-provider"
-import CodeCartForm from "./code-cart-form"
+import ImprovedCodeReviewForm from "./code-cart-form"
 import AuditorReviewForm from "./auditor-review-form"
 
 export default function PdfViewer({
   onReviewComplete,
   toggleFullScreen,
+  isFullScreenMode = false,
 }: {
   onReviewComplete?: () => void
   isFullScreenMode?: boolean
@@ -41,7 +41,7 @@ export default function PdfViewer({
     pdfUrl = "",
     pdfLoading,
     formData: allFormData,
-    staticCartItems,
+    codeReview: allCodeReview,
   } = selector((state: RootState) => state.documentManagement)
   const { userType } = selector((state) => state.user)
 
@@ -60,6 +60,21 @@ export default function PdfViewer({
   // Get form data for the selected document from Redux store
   const currentFormData = selectedDocumentId ? allFormData[selectedDocumentId] : null
 
+  // Get code review data for the selected document
+  const currentCodeReview = selectedDocumentId
+    ? allCodeReview[selectedDocumentId] || {
+      items: [],
+      analystNotes: "",
+      auditorNotes: "",
+      searchTerm: "",
+    }
+    : {
+      items: [],
+      analystNotes: "",
+      auditorNotes: "",
+      searchTerm: "",
+    }
+
   const [formErrors, setFormErrors] = useState<{
     codesMissed?: string[]
     codesCorrected?: string[]
@@ -70,36 +85,6 @@ export default function PdfViewer({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isStartingReview, setIsStartingReview] = useState(false)
   const [isCompletingReview, setIsCompletingReview] = useState(false)
-
-  // State for delete confirmation
-  const [deleteConfirmation, setDeleteConfirmation] = useState<{
-    isOpen: boolean
-    index: number
-    type: "static" | "dynamic"
-  } | null>(null)
-
-  const currentCodeCart =
-    selectedDocumentId && currentFormData?.codeCart
-      ? currentFormData.codeCart
-      : {
-        items: [],
-        notes: "",
-        searchTerm: "",
-      }
-
-  // Filter static items based on search term
-  const filteredStaticItems = staticCartItems.filter(
-    (item) =>
-      item.code.toLowerCase().includes(currentCodeCart.searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(currentCodeCart.searchTerm.toLowerCase()),
-  )
-
-  // Filter dynamic items based on search term
-  const filteredDynamicItems = currentCodeCart.items.filter(
-    (item) =>
-      item.code.toLowerCase().includes(currentCodeCart.searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(currentCodeCart.searchTerm.toLowerCase()),
-  )
 
   useEffect(() => {
     if (selectedDocument) {
@@ -181,10 +166,32 @@ export default function PdfViewer({
 
   if (!selectedDocument) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <p className="text-muted-foreground text-xl font-medium">
-          {!(documents?.length > 0) ? "No Document available!" : "Select a document to review"}
-        </p>
+      <div className="h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <motion.div
+          className="text-center space-y-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="w-24 h-24 mx-auto bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center">
+            <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+          </div>
+          <p className="text-gray-500 text-xl font-medium">
+            {!(documents?.length > 0) ? "No documents available!" : "Select a document to review"}
+          </p>
+          <p className="text-gray-400 text-sm">
+            {!(documents?.length > 0)
+              ? "Check back later for new assignments"
+              : "Choose from the document list to get started"}
+          </p>
+        </motion.div>
       </div>
     )
   }
@@ -265,17 +272,21 @@ export default function PdfViewer({
   const submitChartApiCall = async () => {
     setIsCompletingReview(true)
     try {
-      // Include cart data in the API call
+      // Include code review data in the API call
       const resultAction = await dispatch(
         completeReviewWithAPI({
           ...selectedDocument,
           // This would be sent to the API if needed
-          cartData: currentCodeCart,
+          reviewData: currentCodeReview,
         }),
       )
       if (completeReviewWithAPI.fulfilled.match(resultAction)) {
         dispatch(fetchDocuments())
         setShowControls(false)
+        // Reset code review data after successful completion
+        if (selectedDocumentId) {
+          dispatch(resetCodeReview(selectedDocumentId))
+        }
         if (onReviewComplete) {
           onReviewComplete()
         }
@@ -347,128 +358,158 @@ export default function PdfViewer({
     rating: 0,
   }
 
-  const handleRemoveCartItem = (index: number) => {
-    if (selectedDocumentId) {
-      dispatch(removeCartItem({ documentId: selectedDocumentId, index }))
-    }
-  }
-
-  const handleRemoveStaticItem = (index: number) => {
-    if (selectedDocumentId) {
-      dispatch(removeStaticCartItem({ documentId: selectedDocumentId, index }))
-    }
-  }
-
   return (
-    <div className="h-full flex flex-col">
-      {toggleFullScreen && (
-        <div className="absolute top-2 right-2 z-10">
-          <Button
-            variant="outline"
-            size="sm"
-            className="bg-white/80 backdrop-blur-sm hover:bg-white/90 border shadow-sm"
-            onClick={toggleFullScreen}
-          ></Button>
-        </div>
-      )}
+    <div className="h-full flex flex-col bg-gray-50">
+      {/* Enhanced Fullscreen Toggle */}
       <div className="flex-1 relative flex flex-col md:flex-row">
-        <div
+        {/* PDF Viewer Section */}
+        <motion.div
           className={`${userType === "Auditor" && showSidebar ? "w-full md:w-full" : "w-full"
-            } h-full bg-gray-100 relative transition-all duration-300`}
+            } h-full bg-white relative transition-all duration-300 shadow-sm`}
+          layout
         >
           <div
-            className={`h-full overflow-auto ${userType === "Auditor" ? "max-h-[89.2vh]" : "max-h-[94.2vh] bg-red"}`}
+            className={`h-full overflow-auto ${userType === "Auditor" ? "max-h-[89.2vh]" : "max-h-[94.2vh]"
+              } rounded-lg`}
           >
             {pdfLoading && selectedDocument.status === "In Review" ? (
-              <div className="flex items-center justify-center h-full">
-                <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                <span className="ml-2 text-lg font-medium">Loading PDF...</span>
-              </div>
+              <motion.div
+                className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-blue-50 to-purple-50"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                >
+                  <Loader2 className="h-12 w-12 text-blue-600" />
+                </motion.div>
+                <motion.span
+                  className="ml-2 text-lg font-medium text-gray-700 mt-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  Loading PDF...
+                </motion.span>
+              </motion.div>
             ) : (
               <PreventSaveProvider>
                 {(pdfUrl as string)?.length > 0 ? (
                   <PdfUI url={pdfUrl as string} />
                 ) : (
-                  <div className="h-full w-full flex justify-center items-center">{"No Document available"}</div>
+                  <div className="h-full w-full flex justify-center items-center bg-gradient-to-br from-gray-50 to-gray-100">
+                    <motion.div
+                      className="text-center space-y-4"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <div className="w-16 h-16 mx-auto bg-gradient-to-br from-red-100 to-orange-100 rounded-full flex items-center justify-center">
+                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"
+                          />
+                        </svg>
+                      </div>
+                      <p className="text-gray-500 font-medium">No Document Available</p>
+                    </motion.div>
+                  </div>
                 )}
               </PreventSaveProvider>
             )}
           </div>
 
+          {/* Enhanced Start Review Overlay */}
           <AnimatePresence>
             {!showControls && selectedDocument.status !== "completed" && (
               <motion.div
                 key="reviewOverlay"
-                className="absolute inset-0 backdrop-blur-sm bg-black/30 flex flex-col items-center justify-center"
+                className="absolute inset-0 backdrop-blur-md bg-gradient-to-br from-black/20 to-black/40 flex flex-col items-center justify-center"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
               >
-                <motion.div whileHover={{ scale: isStartingReview ? 1 : 1.1 }}>
-                  <Button
-                    size="lg"
-                    className="rounded-full w-16 h-16 mb-4 group"
-                    onClick={() => {
-                      if (userType === "Auditor") {
-                        setShowSidebar(true)
-                        if (selectedDocument.status === "on_hold") {
-                          handleResume()
-                        } else {
-                          handleStart()
-                        }
-                      } else {
-                        if (selectedDocument.status === "on_hold") {
-                          handleResume()
-                        } else {
-                          handleStart()
-                        }
-                      }
-                    }}
-                    disabled={isStartingReview}
+                <motion.div
+                  className="text-center space-y-6"
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                >
+                  <motion.div
+                    whileHover={{ scale: isStartingReview ? 1 : 1.1 }}
+                    whileTap={{ scale: isStartingReview ? 1 : 0.95 }}
                   >
-                    <motion.div
-                      className="flex items-center justify-center"
-                      initial={{ scale: 1 }}
-                      whileHover={{ scale: isStartingReview ? 1 : 1.2 }}
-                      transition={{ duration: 0.3, ease: "easeOut" }}
+                    <Button
+                      size="lg"
+                      className="rounded-full w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-2xl border-4 border-white/20"
+                      onClick={() => {
+                        if (userType === "Auditor") {
+                          setShowSidebar(true)
+                          if (selectedDocument.status === "on_hold") {
+                            handleResume()
+                          } else {
+                            handleStart()
+                          }
+                        } else {
+                          if (selectedDocument.status === "on_hold") {
+                            handleResume()
+                          } else {
+                            handleStart()
+                          }
+                        }
+                      }}
+                      disabled={isStartingReview}
                     >
-                      {isStartingReview ? (
-                        <Loader2
-                          className="text-white animate-spin"
-                          style={{
-                            height: "2rem",
-                            width: "2rem",
-                          }}
-                        />
-                      ) : (
-                        <Play
-                          className="text-white transition-all duration-300 ease-in-out"
-                          style={{
-                            height: "2rem",
-                            width: "2rem",
-                          }}
-                        />
-                      )}
-                    </motion.div>
-                  </Button>
+                      <motion.div
+                        className="flex items-center justify-center"
+                        initial={{ scale: 1 }}
+                        whileHover={{ scale: isStartingReview ? 1 : 1.2 }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                      >
+                        {isStartingReview ? (
+                          <Loader2 className="text-white animate-spin h-8 w-8" />
+                        ) : (
+                          <Play className="text-white h-8 w-8 ml-1" />
+                        )}
+                      </motion.div>
+                    </Button>
+                  </motion.div>
+
+                  <motion.div
+                    className="space-y-2"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <p className="text-white font-semibold text-xl">
+                      {isStartingReview
+                        ? "Starting Review..."
+                        : selectedDocument.status === "on_hold"
+                          ? "Resume Review"
+                          : "Start Review"}
+                    </p>
+                    <p className="text-white/80 text-sm">
+                      {selectedDocument.status === "on_hold"
+                        ? "Continue where you left off"
+                        : "Begin analyzing this document"}
+                    </p>
+                  </motion.div>
                 </motion.div>
-                <p className="text-white font-medium">
-                  {isStartingReview
-                    ? "Starting..."
-                    : selectedDocument.status === "on_hold"
-                      ? "Resume Review"
-                      : "Start Review"}
-                </p>
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
+        </motion.div>
 
-        {/* Right-side Review Panel */}
-        <AnimatePresence>
-          {isSidebar && (userType === "Auditor" ? (
-            <>
+        {/* Enhanced Right-side Review Panel */}
+        <AnimatePresence mode="wait">
+          {isSidebar &&
+            (userType === "Auditor" ? (
               <AuditorReviewForm
                 selectedDocumentId={selectedDocumentId}
                 formData={formData}
@@ -477,98 +518,18 @@ export default function PdfViewer({
                 isCompletingReview={isCompletingReview}
                 onSubmit={submitReview}
               />
-
-            </>
-          ) : <>
-            <CodeCartForm
-              selectedDocumentId={selectedDocumentId}
-              currentCodeCart={currentCodeCart}
-              staticCartItems={staticCartItems}
-              selectedDocument={selectedDocument}
-              showSidebar={showSidebar}
-              isCompletingReview={isCompletingReview}
-              onComplete={handleComplete}
-              onRemoveCartItem={handleRemoveCartItem}
-              onRemoveStaticItem={handleRemoveStaticItem}
-              deleteConfirmation={deleteConfirmation}
-              setDeleteConfirmation={setDeleteConfirmation}
-            />
-          </>)}
-
+            ) : (
+              <ImprovedCodeReviewForm
+                selectedDocumentId={selectedDocumentId}
+                currentCodeReview={currentCodeReview}
+                selectedDocument={selectedDocument}
+                showSidebar={showSidebar}
+                isCompletingReview={isCompletingReview}
+                onComplete={handleComplete}
+              />
+            ))}
         </AnimatePresence>
       </div>
-      {/* Delete Confirmation Modal */}
-      <AnimatePresence>
-        {deleteConfirmation?.isOpen && (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            {/* Backdrop */}
-            <motion.div
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setDeleteConfirmation(null)}
-            />
-
-            {/* Modal */}
-            <motion.div
-              className="relative bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4"
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{
-                duration: 0.2,
-                ease: "easeOut",
-              }}
-            >
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
-                    <Trash2 className="h-4 w-4 text-red-600" />
-                  </div>
-                  <h4 className="text-lg font-semibold text-gray-900">Confirm Delete</h4>
-                </div>
-
-                <p className="text-sm text-gray-600">
-                  Are you sure you want to delete this item? This action cannot be undone.
-                </p>
-
-                <div className="flex justify-end space-x-3 pt-2">
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button variant="outline" size="sm" onClick={() => setDeleteConfirmation(null)} className="px-4">
-                      Cancel
-                    </Button>
-                  </motion.div>
-
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => {
-                        if (deleteConfirmation.type === "static") {
-                          handleRemoveStaticItem(deleteConfirmation.index)
-                        } else {
-                          handleRemoveCartItem(deleteConfirmation.index)
-                        }
-                        setDeleteConfirmation(null)
-                      }}
-                      className="px-4"
-                    >
-                      Delete
-                    </Button>
-                  </motion.div>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   )
 }

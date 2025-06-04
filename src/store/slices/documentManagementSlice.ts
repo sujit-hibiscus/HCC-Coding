@@ -16,30 +16,20 @@ export interface Document {
     fileSize?: number | string
 }
 
-// Define the CodeCartItem interface
-export interface CodeCartItem {
-    code: string
-    description: string
-}
-
-// Define the CodeCart interface
-export interface CodeCart {
-    items: CodeCartItem[]
-    notes: string
-    searchTerm: string
-}
-
-// New interfaces for code management
-export interface CodeManagementItem {
+// Code Review interfaces (replacing old code-cart)
+export interface CodeReviewItem {
     id: string
-    code: string
+    icdCode: string
     description: string
+    hccCode: string
+    evidence: string
+    reference: string
     status: "pending" | "accepted" | "rejected"
     addedAt: number
 }
 
-export interface CodeManagementData {
-    codes: CodeManagementItem[]
+export interface CodeReviewData {
+    items: CodeReviewItem[]
     analystNotes: string
     auditorNotes: string
     searchTerm: string
@@ -50,7 +40,6 @@ export interface FormData {
     codesCorrected: Array<{ value: string; label: string }>
     auditRemarks: string
     rating: number
-    codeCart?: CodeCart // Add the codeCart property to FormData
 }
 
 interface DocumentManagementState {
@@ -69,10 +58,7 @@ interface DocumentManagementState {
     startTime: number | null
 
     formData: Record<string, FormData>
-    staticCartItems: CodeCartItem[]
-
-    // New state for code management
-    codeManagement: Record<string, CodeManagementData>
+    codeReview: Record<string, CodeReviewData>
 }
 
 type AnalystAssignment = {
@@ -80,6 +66,7 @@ type AnalystAssignment = {
     assigned_date: string
     chart_start: string
 }
+
 type auditor_assignments = {
     id: number
     assigned_date: string
@@ -101,6 +88,55 @@ interface ApiResponse {
     status: "Success" | "Not Found" | "Error"
     message: string
 }
+
+// Initial static data for code review
+const getInitialCodeReviewData = (documentId: string): CodeReviewData => ({
+    items: [
+        {
+            id: `${documentId}-1`,
+            icdCode: "J18.20",
+            description: "Lobar pneumonia, unspecified organism",
+            hccCode: "HCC 114",
+            evidence: "Fever, productive cough, chest pain. CXR shows RUL consolidation.",
+            reference: "ICD-10-CM Guidelines Section I.C.10.a.1",
+            status: "pending",
+            addedAt: Date.now() - 86400000,
+        },
+        {
+            id: `${documentId}-2`,
+            icdCode: "E11.9",
+            description: "Type 2 diabetes mellitus without complications",
+            hccCode: "HCC 19",
+            evidence: "HbA1c 7.2%, on metformin therapy, documented T2DM history.",
+            reference: "ICD-10-CM Guidelines Section I.C.4.a.2",
+            status: "accepted",
+            addedAt: Date.now() - 172800000,
+        },
+        {
+            id: `${documentId}-3`,
+            icdCode: "I10",
+            description: "Essential (primary) hypertension",
+            hccCode: "HCC 85",
+            evidence: "BP consistently >140/90, on ACE inhibitor, no secondary causes.",
+            reference: "ICD-10-CM Guidelines Section I.C.9.a.1",
+            status: "rejected",
+            addedAt: Date.now() - 259200000,
+        },
+        {
+            id: `${documentId}-4`,
+            icdCode: "N18.6",
+            description: "End stage renal disease",
+            hccCode: "HCC 134",
+            evidence: "CKD stage 5, GFR <15, on hemodialysis 3x/week., CKD stage 5, GFR <15, on hemodialysis 3x/week.. CKD stage 5, GFR <15, on hemodialysis 3x/week.",
+            reference: "ICD-10-CM Guidelines Section I.C.14.a.2",
+            status: "pending",
+            addedAt: Date.now() - 345600000,
+        },
+    ],
+    analystNotes: "",
+    auditorNotes: "",
+    searchTerm: "",
+})
 
 // Async thunks
 export const fetchDocuments = createAsyncThunk("documentManagement/fetchDocuments", async (_, { getState }) => {
@@ -175,9 +211,8 @@ export const startReviewWithApi = createAsyncThunk(
 
 export const completeReviewWithAPI = createAsyncThunk(
     "documentManagement/completeReviewWithApi",
-    async (document: Document & { cartData?: CodeCart }, { rejectWithValue }) => {
+    async (document: Document & { reviewData?: CodeReviewData }, { rejectWithValue }) => {
         try {
-            // Include cart data in the API call if needed
             const payload = {
                 id: document.id,
                 assignment_id: document.assignId || "",
@@ -186,17 +221,11 @@ export const completeReviewWithAPI = createAsyncThunk(
                 end_time: "True",
             }
 
-            // If you need to send cart data to the API, you can add it here
-            // if (document.cartData) {
-            //     payload.cart_items = document.cartData.items;
-            //     payload.cart_notes = document.cartData.notes;
-            // }
-
             const response = await postData("update_analyst_charts/", payload)
             const apiRes = response.data as ApiResponse
             return apiRes
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "Failed to start review"
+            const errorMessage = error instanceof Error ? error.message : "Failed to complete review"
             toast.error(errorMessage)
             return rejectWithValue(errorMessage)
         }
@@ -204,7 +233,7 @@ export const completeReviewWithAPI = createAsyncThunk(
 )
 
 export const startReviewAuditorWithApi = createAsyncThunk(
-    "documentManagement/startReviewWithApi",
+    "documentManagement/startReviewAuditorWithApi",
     async (document: Document, { rejectWithValue }) => {
         try {
             await postData("update_auditor_charts/", {
@@ -236,7 +265,7 @@ export const completeReviewAuditorWithAPI = createAsyncThunk<
     ApiResponse,
     AuditorReviewPayload,
     { rejectValue: string }
->("documentManagement/completeReviewWithApi", async ({ doc, body }, { rejectWithValue }) => {
+>("documentManagement/completeReviewAuditorWithApi", async ({ doc, body }, { rejectWithValue }) => {
     try {
         const response = await postData("update_auditor_charts/", {
             id: doc.id,
@@ -249,13 +278,12 @@ export const completeReviewAuditorWithAPI = createAsyncThunk<
 
         return response.data as ApiResponse
     } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Failed to start review"
+        const errorMessage = error instanceof Error ? error.message : "Failed to complete review"
         toast.error(errorMessage)
         return rejectWithValue(errorMessage)
     }
 })
 
-// Update fetchPdfFile to check if we've already fetched this PDF
 export const fetchPdfFile = createAsyncThunk<string, string>(
     "pdf/fetchPdfFile",
     async (pdfFilePath, { rejectWithValue, getState }) => {
@@ -307,7 +335,7 @@ export const autoAssign = createAsyncThunk(
                 return "Failed to assign charts"
             }
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "Failed to start review"
+            const errorMessage = error instanceof Error ? error.message : "Failed to assign charts"
             toast.error(errorMessage)
             return rejectWithValue(errorMessage)
         }
@@ -327,24 +355,14 @@ const initialState: DocumentManagementState = {
     elapsedTime: 0,
     startTime: null,
     formData: {},
-    staticCartItems: [
-        { code: "J18.20", description: "Lobar pneumonia, unspecified organism" },
-        { code: "J20.9", description: "Acute bronchitis, unspecified" },
-        { code: "I10", description: "Essential (primary) hypertension" },
-        { code: "E11.9", description: "Type 2 diabetes mellitus without complications" },
-        { code: "J44.1", description: "Chronic obstructive pulmonary disease with acute exacerbation" },
-        { code: "N18.6", description: "End stage renal disease" },
-        { code: "F32.9", description: "Major depressive disorder, single episode, unspecified" },
-        { code: "M79.3", description: "Panniculitis, unspecified" },
-    ],
-    // Initialize new code management state
-    codeManagement: {},
+    codeReview: {},
 }
 
 const documentManagementSlice = createSlice({
     name: "documentManagement",
     initialState,
     reducers: {
+        // Document and timer reducers
         pauseReview: (state, action: PayloadAction<string>) => {
             const document = state.documents.find((doc) => doc.id === action.payload)
             if (document && document.startTime) {
@@ -358,6 +376,7 @@ const documentManagementSlice = createSlice({
                 document.startTime = undefined
             }
         },
+
         resumeReview: (state, action: PayloadAction<string>) => {
             const document = state.documents.find((doc) => doc.id === action.payload)
             if (document) {
@@ -372,12 +391,14 @@ const documentManagementSlice = createSlice({
                 }
             }
         },
+
         updateDocumentTime: (state, action: PayloadAction<{ id: string; time: number }>) => {
             const document = state.documents.find((doc) => doc.id === action.payload.id)
             if (document) {
                 document.timeSpent = action.payload.time
             }
         },
+
         recalculateDocumentTimes: (state) => {
             state.documents.forEach((doc) => {
                 if (doc.status === "In Review" && doc.startTime) {
@@ -399,21 +420,29 @@ const documentManagementSlice = createSlice({
                 } else {
                     state.isRunning = false
                 }
+
+                // Initialize code review data with static data if it doesn't exist
+                if (!state.codeReview[action.payload]) {
+                    state.codeReview[action.payload] = getInitialCodeReviewData(action.payload)
+                }
             } else {
                 state.isRunning = false
             }
         },
+
         resetTimer: (state) => {
             state.isRunning = false
             state.elapsedTime = 0
             state.startTime = null
         },
+
         updateElapsedTime: (state) => {
             if (state.isRunning && state.startTime) {
                 const now = Date.now()
                 state.elapsedTime = Math.floor((now - state.startTime) / 1000)
             }
         },
+
         pauseTimerOnly: (state) => {
             state.isRunning = false
             if (state.startTime) {
@@ -423,7 +452,8 @@ const documentManagementSlice = createSlice({
                 state.startTime = null
             }
         },
-        // Existing form data reducers
+
+        // Form data reducers
         updateFormData: (state, action: PayloadAction<{ documentId: string; data: Partial<FormData> }>) => {
             const { documentId, data } = action.payload
 
@@ -433,11 +463,6 @@ const documentManagementSlice = createSlice({
                     codesCorrected: [],
                     auditRemarks: "",
                     rating: 0,
-                    codeCart: {
-                        items: [],
-                        notes: "",
-                        searchTerm: "",
-                    },
                 }
             }
 
@@ -446,6 +471,7 @@ const documentManagementSlice = createSlice({
                 ...data,
             }
         },
+
         resetFormData: (state, action: PayloadAction<string>) => {
             const documentId = action.payload
             if (state.formData[documentId]) {
@@ -454,134 +480,31 @@ const documentManagementSlice = createSlice({
                     codesCorrected: [],
                     auditRemarks: "",
                     rating: 0,
-                    codeCart: {
-                        items: [],
-                        notes: "",
-                        searchTerm: "",
-                    },
                 }
             }
         },
-        // Existing code cart reducers
-        updateCodeCart: (state, action: PayloadAction<{ documentId: string; cartData: Partial<CodeCart> }>) => {
-            const { documentId, cartData } = action.payload
 
-            if (!state.formData[documentId]) {
-                state.formData[documentId] = {
-                    codesMissed: [],
-                    codesCorrected: [],
-                    auditRemarks: "",
-                    rating: 0,
-                    codeCart: {
-                        items: [],
-                        notes: "",
-                        searchTerm: "",
-                    },
-                }
+        // Code Review reducers
+        updateSearchTerm: (state, action: PayloadAction<{ documentId: string; searchTerm: string }>) => {
+            const { documentId, searchTerm } = action.payload
+
+            if (!state.codeReview[documentId]) {
+                state.codeReview[documentId] = getInitialCodeReviewData(documentId)
             }
 
-            if (!state.formData[documentId].codeCart) {
-                state.formData[documentId].codeCart = {
-                    items: [],
-                    notes: "",
-                    searchTerm: "",
-                }
-            }
-
-            state.formData[documentId].codeCart = {
-                ...state.formData[documentId].codeCart!,
-                ...cartData,
-            }
-        },
-        addCartItem: (state, action: PayloadAction<{ documentId: string; item: CodeCartItem }>) => {
-            const { documentId, item } = action.payload
-
-            if (!state.formData[documentId]) {
-                state.formData[documentId] = {
-                    codesMissed: [],
-                    codesCorrected: [],
-                    auditRemarks: "",
-                    rating: 0,
-                    codeCart: {
-                        items: [],
-                        notes: "",
-                        searchTerm: "",
-                    },
-                }
-            }
-
-            if (!state.formData[documentId].codeCart) {
-                state.formData[documentId].codeCart = {
-                    items: [],
-                    notes: "",
-                    searchTerm: "",
-                }
-            }
-
-            state.formData[documentId].codeCart!.items.push(item)
-        },
-        removeCartItem: (state, action: PayloadAction<{ documentId: string; index: number }>) => {
-            const { documentId, index } = action.payload
-
-            if (
-                state.formData[documentId] &&
-                state.formData[documentId].codeCart &&
-                state.formData[documentId].codeCart!.items.length > index
-            ) {
-                state.formData[documentId].codeCart!.items.splice(index, 1)
-            }
-        },
-        removeStaticCartItem: (state, action: PayloadAction<{ documentId: string; index: number }>) => {
-            const { index } = action.payload
-            if (state.staticCartItems.length > index) {
-                state.staticCartItems.splice(index, 1)
-            }
+            state.codeReview[documentId].searchTerm = searchTerm
         },
 
-        // NEW CODE MANAGEMENT REDUCERS
-        updateCodeManagement: (state, action: PayloadAction<{ documentId: string; data: Partial<CodeManagementData> }>) => {
-            const { documentId, data } = action.payload
-
-            if (!state.codeManagement[documentId]) {
-                state.codeManagement[documentId] = {
-                    codes: [],
-                    analystNotes: "",
-                    auditorNotes: "",
-                    searchTerm: "",
-                }
-            }
-
-            state.codeManagement[documentId] = {
-                ...state.codeManagement[documentId],
-                ...data,
-            }
-        },
-
-        addCodeToTable: (state, action: PayloadAction<{ documentId: string; code: CodeManagementItem }>) => {
-            const { documentId, code } = action.payload
-
-            if (!state.codeManagement[documentId]) {
-                state.codeManagement[documentId] = {
-                    codes: [],
-                    analystNotes: "",
-                    auditorNotes: "",
-                    searchTerm: "",
-                }
-            }
-
-            state.codeManagement[documentId].codes.push(code)
-        },
-
-        updateCodeStatus: (
+        updateCodeReviewItemStatus: (
             state,
-            action: PayloadAction<{ documentId: string; codeId: string; status: "accepted" | "rejected" }>,
+            action: PayloadAction<{ documentId: string; itemId: string; status: "accepted" | "rejected" }>,
         ) => {
-            const { documentId, codeId, status } = action.payload
+            const { documentId, itemId, status } = action.payload
 
-            if (state.codeManagement[documentId]) {
-                const code = state.codeManagement[documentId].codes.find((c) => c.id === codeId)
-                if (code) {
-                    code.status = status
+            if (state.codeReview[documentId]) {
+                const item = state.codeReview[documentId].items.find((item) => item.id === itemId)
+                if (item) {
+                    item.status = status
                 }
             }
         },
@@ -589,40 +512,76 @@ const documentManagementSlice = createSlice({
         updateAnalystNotes: (state, action: PayloadAction<{ documentId: string; notes: string }>) => {
             const { documentId, notes } = action.payload
 
-            if (!state.codeManagement[documentId]) {
-                state.codeManagement[documentId] = {
-                    codes: [],
-                    analystNotes: "",
-                    auditorNotes: "",
-                    searchTerm: "",
-                }
+            if (!state.codeReview[documentId]) {
+                state.codeReview[documentId] = getInitialCodeReviewData(documentId)
             }
 
-            state.codeManagement[documentId].analystNotes = notes
+            state.codeReview[documentId].analystNotes = notes
         },
 
         updateAuditorNotes: (state, action: PayloadAction<{ documentId: string; notes: string }>) => {
             const { documentId, notes } = action.payload
 
-            if (!state.codeManagement[documentId]) {
-                state.codeManagement[documentId] = {
-                    codes: [],
-                    analystNotes: "",
-                    auditorNotes: "",
-                    searchTerm: "",
-                }
+            if (!state.codeReview[documentId]) {
+                state.codeReview[documentId] = getInitialCodeReviewData(documentId)
             }
 
-            state.codeManagement[documentId].auditorNotes = notes
+            state.codeReview[documentId].auditorNotes = notes
         },
 
-        removeCodeFromTable: (state, action: PayloadAction<{ documentId: string; codeId: string }>) => {
-            const { documentId, codeId } = action.payload
+        addCodeReviewItem: (state, action: PayloadAction<{ documentId: string; item: CodeReviewItem }>) => {
+            const { documentId, item } = action.payload
 
-            if (state.codeManagement[documentId]) {
-                state.codeManagement[documentId].codes = state.codeManagement[documentId].codes.filter(
-                    (code) => code.id !== codeId,
-                )
+            if (!state.codeReview[documentId]) {
+                state.codeReview[documentId] = getInitialCodeReviewData(documentId)
+            }
+
+            const existingItem = state.codeReview[documentId].items.find((existing) => existing.id === item.id)
+            if (!existingItem) {
+                state.codeReview[documentId].items.push(item)
+            }
+        },
+
+        removeCodeReviewItem: (state, action: PayloadAction<{ documentId: string; itemId: string }>) => {
+            const { documentId, itemId } = action.payload
+
+            if (state.codeReview[documentId]) {
+                state.codeReview[documentId].items = state.codeReview[documentId].items.filter((item) => item.id !== itemId)
+            }
+        },
+
+        resetCodeReview: (state, action: PayloadAction<string>) => {
+            const documentId = action.payload
+            if (state.codeReview[documentId]) {
+                state.codeReview[documentId] = getInitialCodeReviewData(documentId)
+            }
+        },
+
+        bulkUpdateCodeReviewStatus: (
+            state,
+            action: PayloadAction<{ documentId: string; itemIds: string[]; status: "accepted" | "rejected" }>,
+        ) => {
+            const { documentId, itemIds, status } = action.payload
+
+            if (state.codeReview[documentId]) {
+                state.codeReview[documentId].items.forEach((item) => {
+                    if (itemIds.includes(item.id)) {
+                        item.status = status
+                    }
+                })
+            }
+        },
+
+        updateCodeReviewData: (state, action: PayloadAction<{ documentId: string; data: Partial<CodeReviewData> }>) => {
+            const { documentId, data } = action.payload
+
+            if (!state.codeReview[documentId]) {
+                state.codeReview[documentId] = getInitialCodeReviewData(documentId)
+            }
+
+            state.codeReview[documentId] = {
+                ...state.codeReview[documentId],
+                ...data,
             }
         },
     },
@@ -658,6 +617,27 @@ const documentManagementSlice = createSlice({
                 state.error = action.error.message || "Failed to fetch PDF file"
                 toast.error("Failed to load PDF file")
             })
+            .addCase(startReviewWithApi.fulfilled, (state, action) => {
+                const documentId = action.meta.arg.id
+                const document = state.documents.find((doc) => doc.id === documentId)
+                if (document) {
+                    document.status = "In Review"
+                    document.startTime = Date.now()
+                }
+            })
+            .addCase(completeReviewWithAPI.fulfilled, (state, action) => {
+                const documentId = action.meta.arg.id
+                const document = state.documents.find((doc) => doc.id === documentId)
+                if (document) {
+                    document.status = "completed"
+                    if (document.startTime) {
+                        const completionTime = Date.now()
+                        const additionalTime = Math.floor((completionTime - document.startTime) / 1000)
+                        document.timeSpent = (document.timeSpent || 0) + additionalTime
+                        document.startTime = undefined
+                    }
+                }
+            })
     },
 })
 
@@ -672,18 +652,15 @@ export const {
     pauseTimerOnly,
     updateFormData,
     resetFormData,
-    // Export existing actions
-    updateCodeCart,
-    addCartItem,
-    removeCartItem,
-    removeStaticCartItem,
-    // Export new code management actions
-    updateCodeManagement,
-    addCodeToTable,
-    updateCodeStatus,
+    updateSearchTerm,
+    updateCodeReviewItemStatus,
     updateAnalystNotes,
     updateAuditorNotes,
-    removeCodeFromTable,
+    addCodeReviewItem,
+    removeCodeReviewItem,
+    resetCodeReview,
+    bulkUpdateCodeReviewStatus,
+    updateCodeReviewData,
 } = documentManagementSlice.actions
 
 export default documentManagementSlice.reducer

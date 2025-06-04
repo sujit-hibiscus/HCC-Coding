@@ -176,7 +176,6 @@ export const registerUser = createAsyncThunk<string, RegisterUserRequest>(
                 "prod_target": userData?.prodTarget, // Optional, required if the role_id is 3 (Analyst) or 4 (Auditor)
                 "bucket_threshold": userData?.maxAssign // Optional, required if the role_id is 3 (Analyst) or 4 (Auditor)
             });
-            console.log("🚀 ~ apiResponse:", apiResponse);
             await new Promise((resolve) => setTimeout(resolve, 800));
 
             const state = getState() as { user: UserState };

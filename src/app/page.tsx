@@ -1,6 +1,5 @@
 import LoginIMage from "@/components/common/LoginIMage";
 import LoginForm from "@/components/layout/LoginForm";
-import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { HomePageMetaData } from "@/lib/MetaData";
 
 import type { Metadata } from "next";
@@ -26,7 +25,7 @@ export default function LoginPage() {
                             <div className="w-full">
                                 <div className="flex justify-between items-center mb-6">
                                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Login</h2>
-                                    <ThemeToggle />
+                                    {/* <ThemeToggle /> */}
                                 </div>
 
                                 {/* Login Form */}

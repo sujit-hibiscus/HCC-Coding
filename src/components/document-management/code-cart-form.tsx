@@ -1,26 +1,39 @@
 "use client"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useRedux } from "@/hooks/use-redux"
-import { updateCodeCart, addCartItem } from "@/store/slices/documentManagementSlice"
-import { AnimatePresence, motion } from "framer-motion"
-import { CheckCircle, Loader2, Trash2, Plus, Search, Check, ChevronsUpDown } from "lucide-react"
-import { useState, useMemo } from "react"
 import { cn } from "@/lib/utils"
+import {
+    addCodeReviewItem,
+    updateAnalystNotes,
+    updateCodeReviewItemStatus,
+} from "@/store/slices/documentManagementSlice"
+import { AnimatePresence, motion } from "framer-motion"
+import { Check, CheckCircle, ChevronDown, ChevronUp, FileText, Info, Loader2, Search, X, Zap } from "lucide-react"
+import { useCallback, useMemo, useState, useTransition } from "react"
 
-interface CodeCartItem {
-    code: string
+// Interfaces
+interface CodeReviewItem {
+    id: string
+    icdCode: string
     description: string
+    hccCode: string
+    evidence: string
+    reference: string
+    status: "pending" | "accepted" | "rejected"
+    addedAt: number
 }
 
-interface CodeCart {
-    items: CodeCartItem[]
-    notes: string
+interface CodeReviewData {
+    items: CodeReviewItem[]
+    analystNotes: string
     searchTerm: string
 }
 
@@ -29,427 +42,542 @@ interface Document {
     status: string
 }
 
-interface DeleteConfirmation {
-    isOpen: boolean
-    index: number
-    type: "static" | "dynamic"
-}
-
-interface CodeCartFormProps {
+interface CodeReviewFormProps {
     selectedDocumentId: string | null
-    currentCodeCart: CodeCart
-    staticCartItems: CodeCartItem[]
+    currentCodeReview: CodeReviewData
     selectedDocument: Document
     showSidebar: boolean
     isCompletingReview: boolean
     onComplete: () => void
-    onRemoveCartItem: (index: number) => void
-    onRemoveStaticItem: (index: number) => void
-    deleteConfirmation: DeleteConfirmation | null
-    setDeleteConfirmation: (confirmation: DeleteConfirmation | null) => void
 }
 
-export default function CodeCartForm({
+// Optimized Animated Counter Component
+const AnimatedCounter = ({ value, label, color }: { value: number; label: string; color: string }) => {
+    return (
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <motion.div
+                    className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${color} cursor-pointer`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
+                >
+                    <span>{value}</span>
+                </motion.div>
+            </TooltipTrigger>
+            <TooltipContent>
+                <p className="text-xs">
+                    {value} {label}
+                </p>
+            </TooltipContent>
+        </Tooltip>
+    )
+}
+
+// Optimized Status Badge
+const StatusBadge = ({ status }: { status: string }) => {
+    const colorMap = {
+        pending: "bg-amber-500",
+        accepted: "bg-emerald-500",
+        rejected: "bg-rose-500",
+    }
+
+    return (
+        <div
+            className={`w-2 h-2 rounded-full transition-colors duration-200 ${colorMap[status as keyof typeof colorMap]}`}
+        />
+    )
+}
+
+export default function ImprovedCodeReviewForm({
     selectedDocumentId,
-    currentCodeCart,
-    staticCartItems,
+    currentCodeReview,
     selectedDocument,
     showSidebar,
     isCompletingReview,
     onComplete,
-    onRemoveCartItem,
-    onRemoveStaticItem,
-    deleteConfirmation,
-    setDeleteConfirmation,
-}: CodeCartFormProps) {
+}: CodeReviewFormProps) {
     const { dispatch } = useRedux()
-    const [open, setOpen] = useState(false)
-    const [selectedCode, setSelectedCode] = useState<CodeCartItem | null>(null)
+    const [expandedCard, setExpandedCard] = useState<string | null>(null)
+    const [filterStatus, setFilterStatus] = useState<string>("all")
+    const [localSearchTerm, setLocalSearchTerm] = useState("")
+    const [isPending, startTransition] = useTransition()
 
-    // Mock available codes for search - in real app this would come from an API
-    const availableCodes = useMemo(
-        () => [
-            { code: "A00.0", description: "Cholera due to Vibrio cholerae 01, biovar cholerae" },
-            { code: "A00.1", description: "Cholera due to Vibrio cholerae 01, biovar eltor" },
-            { code: "A00.9", description: "Cholera, unspecified" },
-            { code: "A01.0", description: "Typhoid fever" },
-            { code: "A01.1", description: "Paratyphoid fever A" },
-            { code: "A01.2", description: "Paratyphoid fever B" },
-            { code: "A01.3", description: "Paratyphoid fever C" },
-            { code: "A01.4", description: "Paratyphoid fever, unspecified" },
-            { code: "B00.0", description: "Eczema herpeticum" },
-            { code: "B00.1", description: "Herpesviral vesicular dermatitis" },
-            { code: "B00.2", description: "Herpesviral gingivostomatitis and pharyngotonsillitis" },
-            { code: "C00.0", description: "Malignant neoplasm of external upper lip" },
-            { code: "C00.1", description: "Malignant neoplasm of external lower lip" },
-            { code: "D00.0", description: "Carcinoma in situ of lip, oral cavity and pharynx" },
-            { code: "E10.0", description: "Type 1 diabetes mellitus with hyperosmolarity" },
-            { code: "E10.1", description: "Type 1 diabetes mellitus with ketoacidosis" },
-            { code: "F10.0", description: "Alcohol use disorders" },
-            { code: "G00.0", description: "Haemophilus meningitis" },
-            { code: "H00.0", description: "Hordeolum and other deep inflammation of eyelid" },
-            { code: "I00", description: "Rheumatic fever without heart involvement" },
-            { code: "J00", description: "Acute nasopharyngitis [common cold]" },
-            { code: "K00.0", description: "Anodontia" },
-            { code: "L00", description: "Staphylococcal scalded skin syndrome" },
-            { code: "M00.0", description: "Staphylococcal arthritis and polyarthritis" },
-            { code: "N00.0", description: "Acute nephritic syndrome with minor glomerular abnormality" },
-            { code: "O00.0", description: "Abdominal pregnancy" },
-            { code: "P00.0", description: "Newborn affected by maternal hypertensive disorders" },
-            { code: "Q00.0", description: "Anencephaly" },
-            { code: "R00.0", description: "Tachycardia, unspecified" },
-            { code: "S00.0", description: "Superficial injury of scalp" },
-            { code: "T00", description: "Superficial injuries involving multiple body regions" },
-            { code: "V00.0", description: "Pedestrian on foot injured in collision with roller-skater" },
-            { code: "W00", description: "Fall due to ice and snow" },
-            { code: "X00", description: "Exposure to uncontrolled fire in building or structure" },
-            { code: "Y00", description: "Assault by blunt object" },
-            { code: "Z00.0", description: "General adult medical examination" },
-        ],
-        [],
-    )
+    // Optimized filtering with better performance
+    const filteredItems = useMemo(() => {
+        let items = [...currentCodeReview.items]
 
-    // Filter static items based on search term (for display in table)
-    const filteredStaticItems = staticCartItems.filter(
-        (item) =>
-            item.code.toLowerCase().includes(currentCodeCart.searchTerm.toLowerCase()) ||
-            item.description.toLowerCase().includes(currentCodeCart.searchTerm.toLowerCase()),
-    )
-
-    const filteredDynamicItems = currentCodeCart.items.filter(
-        (item) =>
-            item.code.toLowerCase().includes(currentCodeCart.searchTerm.toLowerCase()) ||
-            item.description.toLowerCase().includes(currentCodeCart.searchTerm.toLowerCase()),
-    )
-
-    const handleSearchChange = (value: string) => {
-        if (selectedDocumentId) {
-            dispatch(
-                updateCodeCart({
-                    documentId: selectedDocumentId,
-                    cartData: { searchTerm: value },
-                }),
-            )
+        // Apply status filter first (most selective)
+        if (filterStatus !== "all") {
+            items = items.filter((item) => item.status === filterStatus)
         }
-    }
 
-    const handleAddCode = (item: CodeCartItem) => {
-        if (selectedDocumentId) {
-            // Check if item already exists in cart
-            const existsInCart = currentCodeCart.items.some((cartItem) => cartItem.code === item.code)
-            const existsInStatic = staticCartItems.some((staticItem) => staticItem.code === item.code)
+        // Apply search filter
+        const searchTerm = localSearchTerm.toLowerCase().trim()
+        if (searchTerm) {
+            items = items.filter((item) => {
+                return (
+                    item.icdCode.toLowerCase().includes(searchTerm) ||
+                    item.description.toLowerCase().includes(searchTerm) ||
+                    item.hccCode.toLowerCase().includes(searchTerm) ||
+                    item.evidence.toLowerCase().includes(searchTerm)
+                )
+            })
+        }
 
-            if (!existsInCart && !existsInStatic) {
-                dispatch(addCartItem({ documentId: selectedDocumentId, item }))
+        return items
+    }, [currentCodeReview.items, filterStatus, localSearchTerm])
+
+    // Optimized search handler
+    const handleSearchChange = useCallback((value: string) => {
+        setLocalSearchTerm(value)
+    }, [])
+
+    // Optimized filter change handler
+    const handleFilterChange = useCallback((value: string) => {
+        startTransition(() => {
+            setFilterStatus(value)
+        })
+    }, [])
+
+    const handleAddCode = useCallback(
+        (item: {
+            code: string
+            description: string
+            hccCode: string
+            evidence: string
+            reference: string
+        }) => {
+            if (selectedDocumentId) {
+                // Check if item already exists in cart
+                const existsInCart = currentCodeReview.items.some((cartItem) => cartItem.icdCode === item.code)
+
+                if (!existsInCart) {
+                    const newItem: CodeReviewItem = {
+                        id: `${item.code}-${Date.now()}`,
+                        icdCode: item.code,
+                        description: item.description,
+                        hccCode: item.hccCode,
+                        evidence: item.evidence,
+                        reference: item.reference,
+                        status: "pending",
+                        addedAt: Date.now(),
+                    }
+                    dispatch(addCodeReviewItem({ documentId: selectedDocumentId, item: newItem }))
+                }
+
+                // Clear search
+                setLocalSearchTerm("")
             }
+        },
+        [selectedDocumentId, currentCodeReview.items, dispatch],
+    )
 
-            // Clear search and hide results
-            setSelectedCode(null)
-            setOpen(false)
-            dispatch(
-                updateCodeCart({
-                    documentId: selectedDocumentId,
-                    cartData: { searchTerm: "" },
-                }),
-            )
-        }
-    }
+    const handleStatusUpdate = useCallback(
+        (itemId: string, status: "accepted" | "rejected") => {
+            if (selectedDocumentId) {
+                startTransition(() => {
+                    dispatch(updateCodeReviewItemStatus({ documentId: selectedDocumentId, itemId, status }))
+                })
+            }
+        },
+        [selectedDocumentId, dispatch],
+    )
+
+    const handleNotesUpdate = useCallback(
+        (notes: string) => {
+            if (selectedDocumentId) {
+                dispatch(updateAnalystNotes({ documentId: selectedDocumentId, notes }))
+            }
+        },
+        [selectedDocumentId, dispatch],
+    )
+
+    // Optimized status counts
+    const statusCounts = useMemo(() => {
+        return currentCodeReview.items.reduce(
+            (acc, item) => {
+                acc[item.status] = (acc[item.status] || 0) + 1
+                return acc
+            },
+            { pending: 0, accepted: 0, rejected: 0 } as Record<string, number>,
+        )
+    }, [currentCodeReview.items])
 
     return (
-        <motion.div
-            className="w-full flex flex-col md:w-[32rem] h-full border-t md:border-t-0 md:border-l overflow-y-auto bg-white p-2"
-            initial={{ x: "100%", opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: "100%", opacity: 0 }}
-            transition={{
-                type: "spring",
-                stiffness: 300,
-                damping: 30,
-                mass: 0.8,
-                velocity: 2,
-            }}
-        >
-            <h3 className="text-lg font-semibold mb-4">Code Cart</h3>
-
-            <div className="flex flex-col justify-between h-full">
-                <div className="flex flex-col h-full">
-                    {/* Searchable Select with Combobox */}
-                    <div className="mb-2">
-                        <Popover open={open} onOpenChange={setOpen}>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    role="combobox"
-                                    aria-expanded={open}
-                                    className="w-full !rounded-none justify-between text-sm h-8"
-                                >
-                                    <div className="flex items-center">
-                                        <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-                                        {selectedCode ? (
-                                            <span className="truncate">
-                                                {selectedCode.code} - {selectedCode.description}
-                                            </span>
-                                        ) : (
-                                            "Search DX code..."
-                                        )}
-                                    </div>
-                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-[--radix-popover-trigger-width] rounded-none p-0" align="start">
-                                <Command>
-                                    <CommandInput
-                                        placeholder="Search DX code..."
-                                        value={currentCodeCart.searchTerm}
-                                        onValueChange={handleSearchChange}
-                                    />
-                                    <CommandList>
-                                        <CommandEmpty>No codes found.</CommandEmpty>
-                                        <CommandGroup>
-                                            {availableCodes
-                                                .filter(
-                                                    (item) =>
-                                                        item.code.toLowerCase().includes(currentCodeCart.searchTerm.toLowerCase()) ||
-                                                        item.description.toLowerCase().includes(currentCodeCart.searchTerm.toLowerCase()),
-                                                )
-                                                .slice(0, 10)
-                                                .map((item) => {
-                                                    const existsInCart = currentCodeCart.items.some((cartItem) => cartItem.code === item.code)
-                                                    const existsInStatic = staticCartItems.some((staticItem) => staticItem.code === item.code)
-                                                    const isDisabled = existsInCart || existsInStatic
-
-                                                    return (
-                                                        <CommandItem
-                                                            key={item.code}
-                                                            value={`${item.code} ${item.description}`}
-                                                            onSelect={() => {
-                                                                if (!isDisabled) {
-                                                                    handleAddCode(item)
-                                                                }
-                                                            }}
-                                                            disabled={isDisabled}
-                                                            className={cn(
-                                                                "flex items-center justify-between",
-                                                                isDisabled && "opacity-50 cursor-not-allowed",
-                                                            )}
-                                                        >
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="font-medium text-sm">{item.code}</div>
-                                                                <div className="text-xs  truncate">{item.description}</div>
-                                                            </div>
-                                                            {isDisabled ? (
-                                                                <Check className="ml-2 h-4 w-4 text-green-600" />
-                                                            ) : (
-                                                                <Plus className="ml-2 h-4 w-4" />
-                                                            )}
-                                                        </CommandItem>
-                                                    )
-                                                })}
-                                        </CommandGroup>
-                                    </CommandList>
-                                </Command>
-                            </PopoverContent>
-                        </Popover>
+        <TooltipProvider>
+            <motion.div
+                className="w-full flex flex-col md:w-[36rem] h-full border-t md:border-t-0 md:border-l overflow-hidden bg-gradient-to-br from-slate-50 to-white"
+                initial={{ x: "100%", opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: "100%", opacity: 0 }}
+                transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30,
+                }}
+            >
+                {/* Optimized Header */}
+                <div className="flex items-center justify-between p-2">
+                    <div className="flex items-center gap-2">
+                        <motion.div
+                            className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg flex items-center justify-center"
+                            whileHover={{ rotate: 5, scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            transition={{ duration: 0.15 }}
+                        >
+                            <Zap className="w-4 h-4 text-white" />
+                        </motion.div>
+                        <h3 className="text-lg font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                            Code cart
+                        </h3>
                     </div>
 
-                    {/* Search Filter Input */}
-                    <div className="mb-3">
-                        <Input
-                            placeholder="Filter cart items..."
-                            value={currentCodeCart.searchTerm}
-                            onChange={(e) => handleSearchChange(e.target.value)}
-                            className="text-sm"
+                    <div className="flex gap-2">
+                        <AnimatedCounter
+                            value={statusCounts.pending}
+                            label="Pending"
+                            color="bg-amber-100 text-amber-800 border border-amber-500"
                         />
-                    </div>
-
-                    {/* Table */}
-                    <div className="flex-1 border border-gray-300 rounded-none mb-3">
-                        <div className="bg-selectedText text-white text-sm font-medium">
-                            <div className="grid grid-cols-12 gap-2 p-2">
-                                <div className="col-span-4 ">ICD-CMS-10</div>
-                                <div className="col-span-7">Description</div>
-                                <div className="col-span-1"></div>
-                            </div>
-                        </div>
-                        <div className="max-h-[60vh] overflow-y-auto">
-                            {/* Show filtered static items first */}
-                            {filteredStaticItems.map((item, index) => (
-                                <div key={`static-${index}`} className="grid grid-cols-12 gap-2 p-2 border-b border-gray-200 text-sm">
-                                    <div className="col-span-4 font-medium font-mono">{item.code}</div>
-                                    <div className="col-span-7">{item.description}</div>
-                                    <div className="col-span-1">
-                                        <button
-                                            onClick={() => setDeleteConfirmation({ isOpen: true, index, type: "static" })}
-                                            className="text-red-500 hover:text-red-700"
-                                            aria-label="Delete item"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                            {/* Then show filtered dynamic items from the cart */}
-                            {filteredDynamicItems.map((item, index) => (
-                                <div key={`dynamic-${index}`} className="grid grid-cols-12 gap-2 p-2 border-b border-gray-200 text-sm">
-                                    <div className="col-span-4 font-medium">{item.code}</div>
-                                    <div className="col-span-7">{item.description}</div>
-                                    <div className="col-span-1">
-                                        <button
-                                            onClick={() => setDeleteConfirmation({ isOpen: true, index, type: "dynamic" })}
-                                            className="text-red-500 hover:text-red-700"
-                                            aria-label="Delete item"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-
-                            {/* Show message when no items match the filter */}
-                            {filteredStaticItems.length === 0 && filteredDynamicItems.length === 0 && currentCodeCart.searchTerm && (
-                                <div className="flex flex-col items-center justify-center py-8 text-center">
-                                    <div className="text-gray-400 mb-2">
-                                        <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={1.5}
-                                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                                            />
-                                        </svg>
-                                    </div>
-                                    <p className="text-sm text-gray-500 font-medium">No items found</p>
-                                </div>
-                            )}
-
-                            {/* Show message when there are no items at all */}
-                            {filteredStaticItems.length === 0 && filteredDynamicItems.length === 0 && !currentCodeCart.searchTerm && (
-                                <div className="flex flex-col items-center justify-center py-8 text-center">
-                                    <div className="text-gray-400 mb-2">
-                                        <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={1.5}
-                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                            />
-                                        </svg>
-                                    </div>
-                                    <p className="text-sm text-gray-500 font-medium">No items in cart</p>
-                                    <p className="text-xs text-gray-400 mt-1">Add some codes to get started</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Notes */}
-                    <div className="mb-4">
-                        <Label className="text-sm font-medium mb-2 block">Notes</Label>
-                        <Textarea
-                            placeholder="Enter notes..."
-                            value={currentCodeCart.notes}
-                            onChange={(e) => {
-                                if (selectedDocumentId) {
-                                    dispatch(
-                                        updateCodeCart({
-                                            documentId: selectedDocumentId,
-                                            cartData: { notes: e.target.value },
-                                        }),
-                                    )
-                                }
-                            }}
-                            rows={4}
-                            className="text-sm max-h-[100px]"
+                        <AnimatedCounter
+                            value={statusCounts.accepted}
+                            label="Accepted"
+                            color="bg-emerald-100 border border-emerald-500 text-emerald-800"
+                        />
+                        <AnimatedCounter
+                            value={statusCounts.rejected}
+                            label="Rejected"
+                            color="bg-rose-100 text-rose-800 border border-rose-500"
                         />
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-3">
-                    {selectedDocument.status !== "completed" && !showSidebar && (
-                        <Button onClick={onComplete} disabled={isCompletingReview} className="text-white">
-                            {isCompletingReview ? (
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            ) : (
-                                <CheckCircle className="h-4 w-4 mr-2" />
+                <div className="flex flex-col h-full p-3 space-y-3">
+
+                    {
+                        /* Compact Search and Filter */
+                    }
+
+
+                    {
+                        /*      <motion.div
+                                                className="flex gap-2"
+                                                initial={{ y: 20, opacity: 0 }}
+                                                animate={{ y: 0, opacity: 1 }}
+                                                transition={{ delay: 0.2 }}
+                                            >
+                                                <div className="relative flex-1">
+                                                    <Popover open={open} onOpenChange={setOpen}>
+                                                        <PopoverTrigger asChild>
+                                                            <Button
+                                                                variant="outline"
+                                                                role="combobox"
+                                                                aria-expanded={open}
+                                                                className="w-full justify-between text-sm h-9 border-gray-200 focus:border-blue-400 transition-colors"
+                                                            >
+                                                                <div className="flex items-center">
+                                                                    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                                                                    {selectedCode ? (
+                                                                        <span className="truncate">
+                                                                            {selectedCode.icdCode} - {selectedCode.description}
+                                                                        </span>
+                                                                    ) : (
+                                                                        "Search DX code..."
+                                                                    )}
+                                                                </div>
+                                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                                                            <Command>
+                                                                <CommandInput
+                                                                    placeholder="Search DX code..."
+                                                                    value={currentCodeReview.searchTerm}
+                                                                    onValueChange={handleSearchChange}
+                                                                />
+                                                                <CommandList>
+                                                                    <CommandEmpty>No codes found.</CommandEmpty>
+                                                                    <CommandGroup>
+                                                                        {availableCodes
+                                                                            .filter(
+                                                                                (item) =>
+                                                                                    item.code.toLowerCase().includes(currentCodeReview.searchTerm.toLowerCase()) ||
+                                                                                    item.description.toLowerCase().includes(currentCodeReview.searchTerm.toLowerCase()),
+                                                                            )
+                                                                            .slice(0, 10)
+                                                                            .map((item) => {
+                                                                                const existsInCart = currentCodeReview.items.some(
+                                                                                    (cartItem) => cartItem.icdCode === item.code,
+                                                                                )
+                                                                                const isDisabled = existsInCart
+                                                                                return (
+                                                                                    <CommandItem
+                                                                                        key={item.code}
+                                                                                        value={`${item.code} ${item.description}`}
+                                                                                        onSelect={() => {
+                                                                                            if (!isDisabled) {
+                                                                                                handleAddCode(item)
+                                                                                            }
+                                                                                        }}
+                                                                                        disabled={isDisabled}
+                                                                                        className={cn(
+                                                                                            "flex items-center justify-between",
+                                                                                            isDisabled && "opacity-50 cursor-not-allowed",
+                                                                                        )}
+                                                                                    >
+                                                                                        <div className="flex-1 min-w-0">
+                                                                                            <div className="flex items-center gap-2">
+                                                                                                <span className="font-medium text-sm">{item.code}</span>
+                                                                                                <span className="text-xs bg-purple-100 text-purple-700 px-1 rounded">
+                                                                                                    {item.hccCode}
+                                                                                                </span>
+                                                                                            </div>
+                                                                                            <div className="text-xs truncate">{item.description}</div>
+                                                                                        </div>
+                                                                                        {isDisabled ? (
+                                                                                            <Check className="ml-2 h-4 w-4 text-green-600" />
+                                                                                        ) : (
+                                                                                            <Plus className="ml-2 h-4 w-4" />
+                                                                                        )}
+                                                                                    </CommandItem>
+                                                                                )
+                                                                            })}
+                                                                    </CommandGroup>
+                                                                </CommandList>
+                                                            </Command>
+                                                        </PopoverContent>
+                                                    </Popover>
+                                                </div>
+                                                <motion.select
+                                                    value={filterStatus}
+                                                    onChange={(e) => setFilterStatus(e.target.value)}
+                                                    className="h-9 px-3 border border-gray-200 rounded-md text-sm focus:border-blue-400 focus:outline-none transition-colors"
+                                                    whileHover={{ scale: 1.02 }}
+                                                    whileTap={{ scale: 0.98 }}
+                                                >
+                                                    <option value="all">All</option>
+                                                    <option value="pending">Pending</option>
+                                                    <option value="accepted">Accepted</option>
+                                                    <option value="rejected">Rejected</option>
+                                                </motion.select>
+                                            </motion.div> */
+                    }
+                    {/* Optimized Search and Filter */}
+                    <div className="flex gap-2">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                                placeholder="Filter cart items..."
+                                value={localSearchTerm}
+                                onChange={(e) => handleSearchChange(e.target.value)}
+                                className="pl-10 text-sm h-9 transition-all duration-200 focus:ring-2 focus:ring-blue-200"
+                            />
+                        </div>
+
+                        <div className="w-24">
+                            <Select value={filterStatus} onValueChange={handleFilterChange}>
+                                <SelectTrigger className="h-9 text-sm transition-all duration-200 focus:ring-2 focus:ring-blue-200">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All</SelectItem>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="accepted">Accepted</SelectItem>
+                                    <SelectItem value="rejected">Rejected</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    {/* Loading indicator */}
+                    {isPending && (
+                        <div className="flex items-center justify-center py-2">
+                            <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                        </div>
+                    )}
+
+                    {/* Optimized Code Cards */}
+                    <div className="flex-1 overflow-hidden">
+                        <div className="h-full space-y-2 pr-1 overflow-y-auto max-h-[calc(100vh-22rem)]">
+                            <AnimatePresence mode="popLayout">
+                                {filteredItems.map((item, index) => (
+                                    <motion.div
+                                        key={item.id}
+                                        layout
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        transition={{
+                                            duration: 0.2,
+                                            delay: Math.min(index * 0.02, 0.1),
+                                        }}
+                                    >
+                                        <Card
+                                            className={cn(
+                                                "border transition-all duration-200 cursor-pointer overflow-hidden",
+                                                item.status === "accepted" && "border-emerald-200 bg-emerald-50/50",
+                                                item.status === "rejected" && "border-rose-200 bg-rose-50/50",
+                                                item.status === "pending" && "border-gray-200 hover:border-blue-300 hover:shadow-sm",
+                                                expandedCard === item.id && "ring-2 ring-blue-200",
+                                            )}
+                                        >
+                                            <CardContent className="p-3">
+                                                <div className="flex items-start justify-between gap-3">
+                                                    {/* Left Side Content */}
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            <StatusBadge status={item.status} />
+                                                            <Badge
+                                                                variant="outline"
+                                                                className="font-mono text-xs px-2 py-0 bg-blue-50 text-blue-700 border-blue-200"
+                                                            >
+                                                                {item.icdCode}
+                                                            </Badge>
+                                                            <Badge
+                                                                variant="outline"
+                                                                className="font-mono text-xs px-2 py-0 bg-purple-50 text-purple-700 border-purple-200"
+                                                            >
+                                                                {item.hccCode}
+                                                            </Badge>
+                                                        </div>
+
+                                                        <h4 className="text-sm font-medium text-gray-900 mb-1 line-clamp-1">{item.description}</h4>
+
+                                                        <div
+                                                            className={cn(
+                                                                "overflow-hidden transition-all duration-300",
+                                                                expandedCard === item.id ? "max-h-none" : "max-h-10 line-clamp-2",
+                                                            )}
+                                                        >
+                                                            <p className="text-xs text-gray-600 leading-relaxed">
+                                                                <span className="font-medium">Evidence:</span> {item.evidence}
+                                                            </p>
+                                                        </div>
+
+                                                        <div className="flex items-center justify-between mt-2">
+                                                            {item.evidence.length > 80 && (
+                                                                <button
+                                                                    onClick={() => setExpandedCard(expandedCard === item.id ? null : item.id)}
+                                                                    className="text-xs text-gray-500 hover:text-gray-700 transition-colors flex items-center gap-1"
+                                                                >
+                                                                    {expandedCard === item.id ? (
+                                                                        <>
+                                                                            Less <ChevronUp size={14} />
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            More <ChevronDown size={14} />
+                                                                        </>
+                                                                    )}
+                                                                </button>
+                                                            )}
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <button className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition-colors">
+                                                                        <Info className="h-3 w-3" />
+                                                                        Ref
+                                                                    </button>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent side="left" className="max-w-xs">
+                                                                    <p className="text-xs">{item.reference}</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+
+
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Action Buttons */}
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <Button
+                                                            size="sm"
+                                                            variant={item.status === "accepted" ? "default" : "outline"}
+                                                            onClick={() => handleStatusUpdate(item.id, "accepted")}
+                                                            className={cn(
+                                                                "w-16 h-7 text-xs px-2 transition-all duration-200",
+                                                                item.status === "accepted"
+                                                                    ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                                                                    : "hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700",
+                                                            )}
+                                                        >
+                                                            <Check className="h-3 w-3" />
+                                                        </Button>
+
+                                                        <Button
+                                                            size="sm"
+                                                            variant={item.status === "rejected" ? "destructive" : "outline"}
+                                                            onClick={() => handleStatusUpdate(item.id, "rejected")}
+                                                            className={cn(
+                                                                "w-16 h-7 text-xs px-2 transition-all duration-200",
+                                                                item.status !== "rejected" &&
+                                                                "hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700",
+                                                            )}
+                                                        >
+                                                            <X className="h-3 w-3" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
+
+                            {/* Empty State */}
+                            {filteredItems.length === 0 && !isPending && (
+                                <motion.div
+                                    className="flex flex-col items-center justify-center py-12 text-center"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.2 }}
+                                >
+                                    <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4">
+                                        <Search className="w-8 h-8 text-gray-400" />
+                                    </div>
+                                    <p className="text-sm text-gray-500 font-medium">No codes found</p>
+                                    <p className="text-xs text-gray-400 mt-1">
+                                        {localSearchTerm || filterStatus !== "all"
+                                            ? "Try adjusting your filters"
+                                            : "No codes available for review"}
+                                    </p>
+                                </motion.div>
                             )}
-                            {isCompletingReview ? "Submitting..." : "Submit"}
+                        </div>
+                    </div>
+
+                    {/* Notes Section */}
+                    <div className="space-y-2">
+                        <Label className="text-sm font-medium flex items-center gap-1">
+                            <FileText className="w-3 h-3" />
+                            Notes
+                        </Label>
+                        <Textarea
+                            placeholder="Add your analysis notes..."
+                            value={currentCodeReview.analystNotes}
+                            onChange={(e) => handleNotesUpdate(e.target.value)}
+                            rows={3}
+                            className="text-sm resize-none transition-all duration-200 focus:ring-2 focus:ring-blue-200 min-h-[100px]"
+                        />
+                    </div>
+
+                    {/* Submit Button */}
+                    {selectedDocument.status !== "completed" && !showSidebar && (
+                        <Button onClick={onComplete} disabled={isCompletingReview} className="w-full transition-all duration-200">
+                            {isCompletingReview ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    Submitting...
+                                </>
+                            ) : (
+                                <>
+                                    <CheckCircle className="h-4 w-4 mr-2" />
+                                    Complete Review
+                                </>
+                            )}
                         </Button>
                     )}
                 </div>
-            </div>
-
-            {/* Delete Confirmation Modal */}
-            <AnimatePresence>
-                {deleteConfirmation?.isOpen && (
-                    <motion.div
-                        className="fixed inset-0 z-50 flex items-center justify-center"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                    >
-                        {/* Backdrop */}
-                        <motion.div
-                            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setDeleteConfirmation(null)}
-                        />
-
-                        {/* Modal */}
-                        <motion.div
-                            className="relative bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4"
-                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            transition={{
-                                duration: 0.2,
-                                ease: "easeOut",
-                            }}
-                        >
-                            <div className="space-y-4">
-                                <div className="flex items-center space-x-2">
-                                    <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
-                                        <Trash2 className="h-4 w-4 text-red-600" />
-                                    </div>
-                                    <h4 className="text-lg font-semibold text-gray-900">Confirm Delete</h4>
-                                </div>
-
-                                <p className="text-sm text-gray-600">
-                                    Are you sure you want to delete this item? This action cannot be undone.
-                                </p>
-
-                                <div className="flex justify-end space-x-3 pt-2">
-                                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                                        <Button variant="outline" size="sm" onClick={() => setDeleteConfirmation(null)} className="px-4">
-                                            Cancel
-                                        </Button>
-                                    </motion.div>
-
-                                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                                        <Button
-                                            variant="destructive"
-                                            size="sm"
-                                            onClick={() => {
-                                                if (deleteConfirmation.type === "static") {
-                                                    onRemoveStaticItem(deleteConfirmation.index)
-                                                } else {
-                                                    onRemoveCartItem(deleteConfirmation.index)
-                                                }
-                                                setDeleteConfirmation(null)
-                                            }}
-                                            className="px-4"
-                                        >
-                                            Delete
-                                        </Button>
-                                    </motion.div>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </motion.div>
+            </motion.div>
+        </TooltipProvider>
     )
 }

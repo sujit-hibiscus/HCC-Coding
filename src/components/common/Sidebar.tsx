@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ChevronRight, FileText, Laptop, LayoutDashboard, LogOut, Moon, Settings, Sun, Table, UserPlus } from "lucide-react";
+import { ChevronRight, FileText, LayoutDashboard, LogOut, Settings, Table, UserPlus } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import type * as React from "react";
 
@@ -217,7 +217,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                         </SidebarMenuItem>
                     )}
 
-                    {!isMobile && (
+                    {/* {!isMobile && (
                         <DropdownMenu>
                             <TooltipProvider>
                                 <Tooltip>
@@ -277,7 +277,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                                 </motion.div>
                             </DropdownMenuContent>
                         </DropdownMenu>
-                    )}
+                    )} */}
                     <DropdownMenu modal={false}>
                         <TooltipProvider>
                             <Tooltip>

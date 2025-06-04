@@ -1,9 +1,40 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { logoutAction } from "@/app/action/auth-actions";
 
 export function usePreventSave(): void {
     const router = useRouter();
+
+    const [isDevToolOpen, setIsDevToolOpen] = useState(false);
+
+    useEffect(() => {
+        const detectDevTools = () => {
+            const threshold = 100;
+
+            const start = performance.now();
+            const duration = performance.now() - start;
+
+            if (duration > threshold) {
+                setIsDevToolOpen(true);
+            } else {
+                setIsDevToolOpen(false);
+            }
+        };
+
+        const interval = setInterval(detectDevTools, 2000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const logOutAndRedirect = async () => {
+        logoutAction().then(() => {
+            router.push("/unauthorized");
+        });
+    }
+    if (isDevToolOpen) {
+        logOutAndRedirect()
+    }
+
 
     useEffect(() => {
         const handleContextMenu = (e: MouseEvent): void => {
@@ -38,7 +69,7 @@ export function usePreventSave(): void {
         };
         const interval = setInterval(() => {
             if (detectDevTools()) {
-                router.push("/unauthorized");
+                logOutAndRedirect();
             }
         }, 1000);
 

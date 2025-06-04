@@ -19,28 +19,28 @@ export const UserTableColumns = (
     actionHandlers: ChartsActionHandlers,
 ): (ColumnDef<UserTypes> & { isDragable?: boolean })[] => {
     return [
-        {
-            isDragable: false,
-            accessorKey: "id",
-            header: ({ column }) => <DataTableColumnHeader searchType={"text"} column={column} title="ID" />,
-            cell: ({ row }) => {
-                const chartId = row?.original?.id;
-                return <div className="min-w-[3rem] cursor-default truncate">{+chartId}</div>;
-            },
-            filterFn: (row, id, value) => {
-                const rowValue = String(row.getValue(id)).toLowerCase();
-                const filterValue = String(value)?.trim().toLowerCase();
-                return rowValue.includes(filterValue);
-            },
-            sortingFn: (rowA, rowB, columnId) => {
-                const valueA = rowA.getValue(columnId) as number;
-                const valueB = rowB.getValue(columnId) as number;
-
-                return valueA - valueB;
-            },
-            enableSorting: true,
-            enableHiding: false,
-        },
+        /*  {
+             isDragable: false,
+             accessorKey: "id",
+             header: ({ column }) => <DataTableColumnHeader searchType={"text"} column={column} title="ID" />,
+             cell: ({ row }) => {
+                 const chartId = row?.original?.id;
+                 return <div className="min-w-[3rem] cursor-default truncate">{+chartId}</div>;
+             },
+             filterFn: (row, id, value) => {
+                 const rowValue = String(row.getValue(id)).toLowerCase();
+                 const filterValue = String(value)?.trim().toLowerCase();
+                 return rowValue.includes(filterValue);
+             },
+             sortingFn: (rowA, rowB, columnId) => {
+                 const valueA = rowA.getValue(columnId) as number;
+                 const valueB = rowB.getValue(columnId) as number;
+ 
+                 return valueA - valueB;
+             },
+             enableSorting: true,
+             enableHiding: false,
+         }, */
 
         {
             accessorKey: "Fname",
