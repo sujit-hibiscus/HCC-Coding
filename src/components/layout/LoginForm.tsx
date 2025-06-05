@@ -74,18 +74,17 @@ export default function LoginForm() {
                     }, 500);
                 } else {
                     dispatch(setError(response.error || "Login failed"));
-                    reject(new Error(response.error || "Invalid email or password. Please try again."));
+                    // reject(new Error(response.error || "Invalid email or password. Please try again."));
                 }
             } catch (e) {
                 console.error("Login error:", e);
                 dispatch(setError("An error occurred during login"));
-                reject(new Error("An error occurred during login. Please try again later."));
+                // reject(new Error("An error occurred during login. Please try again later."));
             } finally {
                 setIsSubmitting(false);
                 dispatch(setLoading(false));
             }
         });
-        console.info(loginPromise, "loginPromise");
     }
 
 

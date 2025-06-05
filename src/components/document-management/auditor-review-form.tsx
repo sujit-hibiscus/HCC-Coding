@@ -13,7 +13,7 @@ import { useRedux } from "@/hooks/use-redux"
 import { cn } from "@/lib/utils"
 import type { RootState } from "@/store"
 import {
-    addCodeReviewItem,
+    type Document,
     updateAnalystNotes,
     updateAuditorNotes,
     updateCodeReviewItemStatus,
@@ -39,6 +39,7 @@ interface FormErrors {
 
 interface AuditorReviewFormProps {
     selectedDocumentId: string | null
+    selectedDocument: Document
     formData: FormData
     formErrors: FormErrors
     isSubmitting: boolean
@@ -53,12 +54,12 @@ interface CodeReviewItem {
     hccCode: string
     evidence: string
     reference: string
-    status: "pending" | "accepted" | "rejected"
+    status: "accepted" | "rejected"
     addedAt: number
 }
 
 // Sample DX codes for the searchable select
-const DX_CODES = [
+/* const DX_CODES = [
     {
         code: "F32.9",
         description: "Major depressive disorder, single episode",
@@ -94,7 +95,7 @@ const DX_CODES = [
         evidence: "Former smoker, quit 2 years ago, 20 pack-year history.",
         reference: "ICD-10-CM Guidelines Section I.C.21.a.1",
     },
-]
+] */
 
 // Optimized Animated Counter Component
 const AnimatedCounter = ({ value, label, color }: { value: number; label: string; color: string }) => {
@@ -139,6 +140,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 
 export default function AuditorReviewForm({
     selectedDocumentId,
+    selectedDocument,
     formData,
     formErrors,
     isSubmitting,
@@ -147,8 +149,6 @@ export default function AuditorReviewForm({
 }: AuditorReviewFormProps) {
     const { dispatch, selector } = useRedux()
     const { codeReview } = selector((state: RootState) => state.documentManagement)
-
-    const [open, setOpen] = useState(false)
     const [expandedCard, setExpandedCard] = useState<string | null>(null)
     const [filterStatus, setFilterStatus] = useState<string>("all")
     const [localSearchTerm, setLocalSearchTerm] = useState("")
@@ -199,7 +199,7 @@ export default function AuditorReviewForm({
                 acc[item.status] = (acc[item.status] || 0) + 1
                 return acc
             },
-            { pending: 0, accepted: 0, rejected: 0 } as Record<string, number>,
+            { accepted: 0, rejected: 0 } as Record<string, number>,
         )
     }, [currentCodeReview.items])
 
@@ -214,37 +214,37 @@ export default function AuditorReviewForm({
         })
     }, [])
 
-    const handleAddCode = useCallback(
-        (codeItem: {
-            code: string
-            description: string
-            hccCode: string
-            evidence: string
-            reference: string
-        }) => {
-            if (!selectedDocumentId) return
-
-            // Check if code already exists
-            const exists = currentCodeReview.items.some((item) => item.icdCode === codeItem.code)
-            if (exists) return
-
-            const newCode: CodeReviewItem = {
-                id: `${codeItem.code}-${Date.now()}`,
-                icdCode: codeItem.code,
-                description: codeItem.description,
-                hccCode: codeItem.hccCode,
-                evidence: codeItem.evidence,
-                reference: codeItem.reference,
-                status: "pending",
-                addedAt: Date.now(),
-            }
-
-            dispatch(addCodeReviewItem({ documentId: selectedDocumentId, item: newCode }))
-            setOpen(false)
-            setLocalSearchTerm("")
-        },
-        [selectedDocumentId, currentCodeReview.items, dispatch],
-    )
+    /*   const handleAddCode = useCallback(
+            (codeItem: {
+                code: string
+                description: string
+                hccCode: string
+                evidence: string
+                reference: string
+            }) => {
+                if (!selectedDocumentId) return
+    
+                // Check if code already exists
+                const exists = currentCodeReview.items.some((item) => item.icdCode === codeItem.code)
+                if (exists) return
+    
+                const newCode: CodeReviewItem = {
+                    id: `${codeItem.code}-${Date.now()}`,
+                    icdCode: codeItem.code,
+                    description: codeItem.description,
+                    hccCode: codeItem.hccCode,
+                    evidence: codeItem.evidence,
+                    reference: codeItem.reference,
+                    status: "accepted",
+                    addedAt: Date.now(),
+                }
+    
+                dispatch(addCodeReviewItem({ documentId: selectedDocumentId, item: newCode }))
+                setOpen(false)
+                setLocalSearchTerm("")
+            },
+            [selectedDocumentId, currentCodeReview.items, dispatch],
+        ) */
 
     const handleStatusUpdate = useCallback(
         async (itemId: string, status: "accepted" | "rejected") => {
@@ -323,11 +323,6 @@ export default function AuditorReviewForm({
 
                     <div className="flex gap-2">
                         <AnimatedCounter
-                            value={statusCounts.pending}
-                            label="Pending"
-                            color="bg-amber-100 text-amber-800 border border-amber-500"
-                        />
-                        <AnimatedCounter
                             value={statusCounts.accepted}
                             label="Accepted"
                             color="bg-emerald-100 text-emerald-800 border border-emerald-500"
@@ -348,85 +343,178 @@ export default function AuditorReviewForm({
                                 <Label htmlFor="codes-missed" className="text-xs font-medium">
                                     Codes Missed
                                 </Label>
-                                <CreatableSelect
-                                    id="codes-missed"
-                                    isMulti
-                                    placeholder="Add missed codes..."
-                                    value={formData.codesMissed}
-                                    onChange={(newValue) => {
-                                        handleFormDataUpdate({
-                                            codesMissed: newValue as { value: string; label: string }[],
-                                        })
-                                    }}
-                                    className="text-xs"
-                                />
-                                {formErrors.codesMissed && !(formData.codesMissed?.length > 0) && (
-                                    <p className="text-xs text-red-500">{formErrors.codesMissed}</p>
-                                )}
+                                <div className="relative">
+                                    <CreatableSelect
+                                        id="codes-missed"
+                                        isMulti
+                                        placeholder="Add missed codes..."
+                                        value={formData.codesMissed}
+                                        onChange={(newValue) => {
+                                            handleFormDataUpdate({
+                                                codesMissed: newValue as { value: string; label: string }[],
+                                            })
+                                        }}
+                                        className={cn(
+                                            "text-xs",
+                                            formErrors.codesMissed && !(formData.codesMissed?.length > 0) && "border-red-500",
+                                        )}
+                                        styles={{
+                                            control: (base, state) => ({
+                                                ...base,
+                                                borderColor:
+                                                    formErrors.codesMissed && !(formData.codesMissed?.length > 0) ? "#ef4444" : base.borderColor,
+                                                "&:hover": {
+                                                    borderColor:
+                                                        formErrors.codesMissed && !(formData.codesMissed?.length > 0)
+                                                            ? "#b91c1c"
+                                                            : base.borderColor,
+                                                },
+                                                boxShadow:
+                                                    formErrors.codesMissed && !(formData.codesMissed?.length > 0)
+                                                        ? "0 0 0 1px #ef4444"
+                                                        : base.boxShadow,
+                                            }),
+                                        }}
+                                    />
+                                    {formErrors.codesMissed && !(formData.codesMissed?.length > 0) && (
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-red-500">
+                                                    <Info className="h-4 w-4" />
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" className="bg-red-500 text-white">
+                                                <p className="text-xs">{formErrors.codesMissed}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="space-y-2">
                                 <Label htmlFor="codes-corrected" className="text-xs font-medium">
                                     Codes Corrected
                                 </Label>
-                                <CreatableSelect
-                                    id="codes-corrected"
-                                    isMulti
-                                    placeholder="Add corrected codes..."
-                                    value={formData.codesCorrected}
-                                    onChange={(newValue) => {
-                                        handleFormDataUpdate({
-                                            codesCorrected: newValue as { value: string; label: string }[],
-                                        })
-                                    }}
-                                    className="text-xs"
-                                />
-                                {formErrors.codesCorrected && !(formData.codesCorrected?.length > 0) && (
-                                    <p className="text-xs text-red-500">{formErrors.codesCorrected}</p>
-                                )}
+                                <div className="relative">
+                                    <CreatableSelect
+                                        id="codes-corrected"
+                                        isMulti
+                                        placeholder="Add corrected codes..."
+                                        value={formData.codesCorrected}
+                                        onChange={(newValue) => {
+                                            handleFormDataUpdate({
+                                                codesCorrected: newValue as { value: string; label: string }[],
+                                            })
+                                        }}
+                                        className="text-xs"
+                                        styles={{
+                                            control: (base, state) => ({
+                                                ...base,
+                                                borderColor:
+                                                    formErrors.codesCorrected && !(formData.codesCorrected?.length > 0)
+                                                        ? "#ef4444"
+                                                        : base.borderColor,
+                                                "&:hover": {
+                                                    borderColor:
+                                                        formErrors.codesCorrected && !(formData.codesCorrected?.length > 0)
+                                                            ? "#b91c1c"
+                                                            : base.borderColor,
+                                                },
+                                                boxShadow:
+                                                    formErrors.codesCorrected && !(formData.codesCorrected?.length > 0)
+                                                        ? "0 0 0 1px #ef4444"
+                                                        : base.boxShadow,
+                                            }),
+                                        }}
+                                    />
+                                    {formErrors.codesCorrected && !(formData.codesCorrected?.length > 0) && (
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-red-500">
+                                                    <Info className="h-4 w-4" />
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" className="bg-red-500 text-white">
+                                                <p className="text-xs">{formErrors.codesCorrected}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-2">
+                        <div className="flex w-full items-start bg-red gap-3">
+                            <div className="space-y-2 w-full">
                                 <Label htmlFor="audit-remarks" className="text-xs font-medium">
                                     Audit Remarks
                                 </Label>
-                                <Textarea
-                                    id="audit-remarks"
-                                    placeholder="Enter audit remarks..."
-                                    value={formData.auditRemarks}
-                                    onChange={(e) => {
-                                        handleFormDataUpdate({ auditRemarks: e.target.value })
-                                    }}
-                                    rows={2}
-                                    className="text-xs transition-all duration-200 focus:ring-2 focus:ring-blue-200 max-h-[60px]"
-                                />
-                                {formErrors.auditRemarks && !(formData.auditRemarks?.length >= 10) && (
-                                    <p className="text-xs text-red-500">{formErrors.auditRemarks}</p>
-                                )}
+                                <div className="relative">
+                                    <Textarea
+                                        id="audit-remarks"
+                                        placeholder="Enter audit remarks..."
+                                        value={formData.auditRemarks}
+                                        onChange={(e) => {
+                                            handleFormDataUpdate({ auditRemarks: e.target.value })
+                                        }}
+                                        rows={2}
+                                        className={cn(
+                                            "text-xs transition-all duration-200 focus:ring-2 focus:ring-blue-200 max-h-[60px]",
+                                            formErrors.auditRemarks &&
+                                            !(formData.auditRemarks?.length >= 10) &&
+                                            "border-red-500 focus:border-red-500",
+                                        )}
+                                    />
+                                    {formErrors.auditRemarks && !(formData.auditRemarks?.length >= 10) && (
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div className="absolute right-2 top-2 text-red-500">
+                                                    <Info className="h-4 w-4" />
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" className="bg-red-500 text-white">
+                                                <p className="text-xs">{formErrors.auditRemarks}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    )}
+                                </div>
                             </div>
 
-                            <div className="space-y-2">
+                            <div className="space-y-2 pr-2 whitespace-nowrap">
                                 <Label htmlFor="rating" className="text-xs font-medium">
                                     Quality Rating
                                 </Label>
                                 <div className="flex items-center gap-2">
-                                    <Input
-                                        id="rating"
-                                        type="number"
-                                        min={0}
-                                        max={100}
-                                        step={1}
-                                        value={formData.rating || 0}
-                                        onChange={(e) => {
-                                            const value = Number.parseFloat(e.target.value)
-                                            handleFormDataUpdate({ rating: value })
-                                        }}
-                                        className="h-8 text-xs transition-all duration-200 focus:ring-2 focus:ring-blue-200"
-                                    />
+                                    <div className="relative">
+                                        <Input
+                                            id="rating"
+                                            type="number"
+                                            min={0}
+                                            max={100}
+                                            step={1}
+                                            value={formData.rating || 0}
+                                            onChange={(e) => {
+                                                const value = Number.parseFloat(e.target.value)
+                                                handleFormDataUpdate({ rating: value })
+                                            }}
+                                            className={cn(
+                                                "h-8 text-xs transition-all duration-200 focus:ring-2 focus:ring-blue-200",
+                                                formErrors.rating && "border-red-500 focus:border-red-500",
+                                            )}
+                                        />
+                                        {formErrors.rating && (
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-red-500">
+                                                        <Info className="h-4 w-4" />
+                                                    </div>
+                                                </TooltipTrigger>
+                                                <TooltipContent side="top" className="bg-red-500 text-white">
+                                                    <p className="text-xs">{formErrors.rating}</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        )}
+                                    </div>
                                 </div>
-                                {formErrors.rating && <p className="text-xs text-red-500">{formErrors.rating}</p>}
                             </div>
                         </div>
                     </div>
@@ -536,7 +624,7 @@ export default function AuditorReviewForm({
 
                     {/* Optimized Code Cards */}
                     <div className="flex-1 min-h-0">
-                        <div className="h-full space-y-2 pr-1 overflow-y-auto overflow-x-hidden max-h-[450px]">
+                        <div className="h-full space-y-2 pr-1 overflow-y-auto overflow-x-hidden max-h-[470px]">
                             <AnimatePresence mode="popLayout">
                                 {filteredItems.map((item, index) => (
                                     <motion.div
@@ -555,7 +643,6 @@ export default function AuditorReviewForm({
                                                 "border  transition-all duration-200 cursor-pointer overflow-hidden",
                                                 item.status === "accepted" && "border-emerald-200 bg-emerald-50/50",
                                                 item.status === "rejected" && "border-rose-200 bg-rose-50/50",
-                                                item.status === "pending" && "border-gray-200 hover:border-blue-300 hover:shadow-sm",
                                                 expandedCard === item.id && "ring-2 ring-blue-200",
                                             )}
                                         >
@@ -707,10 +794,11 @@ export default function AuditorReviewForm({
                                 <Label className="text-xs font-medium text-gray-700">Analyst Notes</Label>
                                 <Textarea
                                     placeholder="Analyst notes..."
-                                    value={currentCodeReview.analystNotes}
+                                    value={selectedDocument?.analystNote}
                                     onChange={(e) => handleAnalystNotesChange(e.target.value)}
                                     rows={2}
-                                    className="text-xs resize-none transition-all duration-200 focus:ring-2 focus:ring-blue-200"
+                                    disabled
+                                    className="text-xs resize-none !opacity-80 transition-all duration-200 focus:ring-2 focus:ring-blue-200"
                                 />
                             </div>
                             <div className="space-y-1">

@@ -34,7 +34,7 @@ const CustomOption = (props: OptionProps<any, boolean, GroupBase<any>>) => {
 
 export const CreatableSelect = ({ className, isMulti = false, ...props }: CreatableSelectProps) => {
     const [showAllOptions, setShowAllOptions] = useState(false);
-    console.info("🚀 ~ CreatableSelect ~ showAllOptions:", showAllOptions);
+    console.info("🚀 ~ CreatableSelect ~ showAllOptions:", showAllOptions)
 
     /*  const filterOptions = useCallback((options: any[]) => {
          if (!options || showAllOptions) return options;

@@ -85,6 +85,7 @@ export default function PdfViewer({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isStartingReview, setIsStartingReview] = useState(false)
   const [isCompletingReview, setIsCompletingReview] = useState(false)
+  const [apiLoading, setApiLoading] = useState(false)
 
   useEffect(() => {
     if (selectedDocument) {
@@ -198,6 +199,7 @@ export default function PdfViewer({
 
   const handleStart = async () => {
     setIsStartingReview(true)
+    setApiLoading(true)
     if (userType === "Auditor") {
       try {
         const resultAction = await dispatch(startReviewAuditorWithApi(selectedDocument))
@@ -209,6 +211,7 @@ export default function PdfViewer({
         console.error("Error starting review:", error)
       } finally {
         setIsStartingReview(false)
+        setApiLoading(false)
       }
     } else {
       try {
@@ -221,6 +224,7 @@ export default function PdfViewer({
         console.error("Error starting review:", error)
       } finally {
         setIsStartingReview(false)
+        setApiLoading(false)
       }
     }
   }
@@ -242,6 +246,7 @@ export default function PdfViewer({
       setShowSidebar(true)
     } else {
       setIsCompletingReview(true)
+      setApiLoading(true)
       submitChartApiCall()
     }
     if (onReviewComplete) {
@@ -271,19 +276,22 @@ export default function PdfViewer({
 
   const submitChartApiCall = async () => {
     setIsCompletingReview(true)
+    setApiLoading(true)
     try {
       // Include code review data in the API call
       const resultAction = await dispatch(
         completeReviewWithAPI({
           ...selectedDocument,
-          // This would be sent to the API if needed
           reviewData: currentCodeReview,
+          bodyData: {
+            mc_ids: currentCodeReview?.items?.filter(i => i.status === "rejected")?.map(i => +i.id),
+            notes: currentCodeReview?.analystNotes
+          }
         }),
       )
       if (completeReviewWithAPI.fulfilled.match(resultAction)) {
         dispatch(fetchDocuments())
         setShowControls(false)
-        // Reset code review data after successful completion
         if (selectedDocumentId) {
           dispatch(resetCodeReview(selectedDocumentId))
         }
@@ -295,23 +303,28 @@ export default function PdfViewer({
       console.error("Error completing review:", error)
     } finally {
       setIsCompletingReview(false)
+      setApiLoading(false)
     }
   }
 
   const submitChartAuditorApiCall = async () => {
     setIsCompletingReview(true)
+    setApiLoading(true)
 
     const bodyData = {
       codes_corrected: formData.codesCorrected?.map((item) => item.value) || [],
       codes_missed: formData.codesMissed?.map((item) => item.value) || [],
       rating: formData.rating || "0",
       audit_remarks: formData.auditRemarks || "",
+      mc_ids: currentCodeReview?.items?.filter(i => i.status === "rejected")?.map(i => +i.id),
+      notes: currentCodeReview?.auditorNotes
     } as {
       codes_corrected: string[]
       codes_missed: string[]
       rating: number | string
       audit_remarks: string
     }
+
     try {
       const resultAction = await dispatch(completeReviewAuditorWithAPI({ doc: selectedDocument, body: bodyData }))
       if (completeReviewAuditorWithAPI.fulfilled.match(resultAction)) {
@@ -325,6 +338,7 @@ export default function PdfViewer({
       console.error("Error completing review:", error)
     } finally {
       setIsCompletingReview(false)
+      setApiLoading(false)
     }
   }
 
@@ -368,10 +382,7 @@ export default function PdfViewer({
             } h-full bg-white relative transition-all duration-300 shadow-sm`}
           layout
         >
-          <div
-            className={`h-full overflow-auto ${userType === "Auditor" ? "max-h-[89.2vh]" : "max-h-[94.2vh]"
-              } rounded-lg`}
-          >
+          <div className={`h-full overflow-auto max-h-[95.2vh]`}>
             {pdfLoading && selectedDocument.status === "In Review" ? (
               <motion.div
                 className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-blue-50 to-purple-50"
@@ -446,8 +457,8 @@ export default function PdfViewer({
                     whileTap={{ scale: isStartingReview ? 1 : 0.95 }}
                   >
                     <Button
-                      size="lg"
-                      className="rounded-full w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-2xl border-4 border-white/20"
+                      size="sm"
+                      className="rounded-full h-12 w-16"
                       onClick={() => {
                         if (userType === "Auditor") {
                           setShowSidebar(true)
@@ -467,15 +478,15 @@ export default function PdfViewer({
                       disabled={isStartingReview}
                     >
                       <motion.div
-                        className="flex items-center justify-center"
+                        className="flex items-center  h-full w-full p-2 justify-center"
                         initial={{ scale: 1 }}
                         whileHover={{ scale: isStartingReview ? 1 : 1.2 }}
                         transition={{ duration: 0.3, ease: "easeOut" }}
                       >
                         {isStartingReview ? (
-                          <Loader2 className="text-white animate-spin h-8 w-8" />
+                          <Loader2 className="text-white animate-spin h-[25px] w-[25px]" />
                         ) : (
-                          <Play className="text-white h-8 w-8 ml-1" />
+                          <Play className="text-white h-[25px] w-[25px] ml-1" />
                         )}
                       </motion.div>
                     </Button>
@@ -511,6 +522,7 @@ export default function PdfViewer({
           {isSidebar &&
             (userType === "Auditor" ? (
               <AuditorReviewForm
+                selectedDocument={selectedDocument}
                 selectedDocumentId={selectedDocumentId}
                 formData={formData}
                 formErrors={formErrors}
@@ -525,6 +537,7 @@ export default function PdfViewer({
                 selectedDocument={selectedDocument}
                 showSidebar={showSidebar}
                 isCompletingReview={isCompletingReview}
+                apiLoading={apiLoading}
                 onComplete={handleComplete}
               />
             ))}

@@ -4,17 +4,25 @@ import { useState, useEffect } from "react";
 import DocumentList from "@/components/document-management/document-list";
 import PdfViewer from "./pdf-viewer";
 import { useRedux } from "@/hooks/use-redux";
+import { startReviewWithApiData } from "@/store/slices/documentManagementSlice";
 
 export default function DocumentReviewSystem() {
-  const { selector } = useRedux();
+  const { selector, dispatch } = useRedux();
   const { selectedDocumentId, documents } = selector((state) => state.documentManagement);
   const [isFullScreenMode, setIsFullScreenMode] = useState(false);
 
+  const { userType } = selector((state) => state.user)
   const selectedDocument = documents?.find((doc: { id: any; }) => doc.id === selectedDocumentId);
+
 
   useEffect(() => {
     if (selectedDocument?.status === "In Review") {
       setIsFullScreenMode(true);
+
+      const hasNonPending = documents.some(item => item.status !== "pending");
+      if (hasNonPending) {
+        dispatch(startReviewWithApiData({ id: selectedDocument.id, type: userType === "Auditor" ? "Auditor" : "Analyst" }))
+      }
     } else {
       setIsFullScreenMode(false);
     }

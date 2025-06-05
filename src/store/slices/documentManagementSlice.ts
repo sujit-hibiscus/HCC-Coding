@@ -1,4 +1,4 @@
-import { postData } from "@/lib/api/api-client"
+import { fetchData, postData } from "@/lib/api/api-client"
 import { formatToMMDDYYYYIfNeeded, maskFileName } from "@/lib/utils"
 import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit"
 import toast from "react-hot-toast"
@@ -7,6 +7,8 @@ export interface Document {
     id: string
     name: string
     url: string
+    analystNote: string
+    auditorNote: string;
     status: "pending" | "In Review" | "on_hold" | "completed"
     assignedAt: string
     assignId: string
@@ -22,9 +24,10 @@ export interface CodeReviewItem {
     icdCode: string
     description: string
     hccCode: string
+    hccV28Code: string
     evidence: string
     reference: string
-    status: "pending" | "accepted" | "rejected"
+    status: "accepted" | "rejected"
     addedAt: number
 }
 
@@ -40,6 +43,33 @@ export interface FormData {
     codesCorrected: Array<{ value: string; label: string }>
     auditRemarks: string
     rating: number
+}
+
+// Medical Condition interface based on the sample response
+export interface MedicalCondition {
+    id: number
+    json_file_path: string
+    diagnosis: string
+    icd10_code: string
+    code_type: string
+    guideline_reference: string
+    code_explanation: string
+    criteria_met: string
+    confidence: number
+    document_section: string
+    V28HCC: string | null
+    RxHCC: string | null
+    IsAcceptedbyAnalyst: boolean
+    IsAcceptedbyQA: boolean
+    created_at: string
+    chart_id: number
+}
+
+// Medical Conditions API Response
+export interface MedicalConditionsResponse {
+    status: "Success" | "Not Found" | "Error"
+    message: string
+    data: MedicalCondition[]
 }
 
 interface DocumentManagementState {
@@ -59,6 +89,8 @@ interface DocumentManagementState {
 
     formData: Record<string, FormData>
     codeReview: Record<string, CodeReviewData>
+    medicalConditionsData: Record<string, MedicalCondition[]>
+    medicalConditionsLoading: boolean
 }
 
 type AnalystAssignment = {
@@ -76,6 +108,8 @@ type auditor_assignments = {
 type DataItem = {
     id: number
     title: string
+    QA_notes: string | null,
+    analyst_notes: string | null
     file_size: number
     file_path: string
     status: number
@@ -91,38 +125,7 @@ interface ApiResponse {
 
 // Initial static data for code review
 const getInitialCodeReviewData = (documentId: string): CodeReviewData => ({
-    items: [
-        {
-            id: `${documentId}-1`,
-            icdCode: "J18.20",
-            description: "Lobar pneumonia, unspecified organism",
-            hccCode: "HCC 114",
-            evidence: "Fever, productive cough, chest pain. CXR shows RUL consolidation.",
-            reference: "ICD-10-CM Guidelines Section I.C.10.a.1",
-            status: "pending",
-            addedAt: Date.now() - 86400000,
-        },
-        {
-            id: `${documentId}-2`,
-            icdCode: "E11.9",
-            description: "Type 2 diabetes mellitus without complications",
-            hccCode: "HCC 19",
-            evidence: "HbA1c 7.2%, on metformin therapy, documented T2DM history.",
-            reference: "ICD-10-CM Guidelines Section I.C.4.a.2",
-            status: "accepted",
-            addedAt: Date.now() - 172800000,
-        },
-        {
-            id: `${documentId}-4`,
-            icdCode: "N18.6",
-            description: "End stage renal disease",
-            hccCode: "HCC 134",
-            evidence: "CKD stage 5, GFR <15, on hemodialysis 3x/week., CKD stage 5, GFR <15, on hemodialysis 3x/week.. CKD stage 5, GFR <15, on hemodialysis 3x/week.",
-            reference: "ICD-10-CM Guidelines Section I.C.14.a.2",
-            status: "pending",
-            addedAt: Date.now() - 345600000,
-        },
-    ],
+    items: [],
     analystNotes: "",
     auditorNotes: "",
     searchTerm: "",
@@ -148,7 +151,7 @@ export const fetchDocuments = createAsyncThunk("documentManagement/fetchDocument
 
     if (apiRes.status === "Success") {
         const response = apiRes?.data?.map((item) => {
-            const { id = "", title = "", file_path = "", status } = item
+            const { id = "", analyst_notes = "", QA_notes = "", title = "", file_path = "", status } = item
             return {
                 id,
                 name: maskFileName(title),
@@ -157,7 +160,7 @@ export const fetchDocuments = createAsyncThunk("documentManagement/fetchDocument
                     userType === "Analyst"
                         ? (item.analyst_assignments?.[0]?.id ?? "")
                         : (item.auditor_assignments?.[0]?.id ?? ""),
-                status:
+                status: false ? "pending" :
                     status === (userType === "Analyst" ? 1 : 3)
                         ? "pending"
                         : status === (userType === "Analyst" ? 2 : 4)
@@ -168,6 +171,8 @@ export const fetchDocuments = createAsyncThunk("documentManagement/fetchDocument
                         ? (item.analyst_assignments?.[0]?.assigned_date ?? "")
                         : (item?.auditor_assignments?.[0]?.assigned_date ?? ""),
                 ),
+                analystNote: analyst_notes ? analyst_notes : "",
+                auditorNote: QA_notes ? QA_notes : "",
                 timeSpent: 0,
                 fileSize: item.file_size,
             } as Document
@@ -181,7 +186,7 @@ export const fetchDocuments = createAsyncThunk("documentManagement/fetchDocument
 
 export const startReviewWithApi = createAsyncThunk(
     "documentManagement/startReviewWithApi",
-    async (document: Document, { rejectWithValue }) => {
+    async (document: Document, { dispatch, rejectWithValue }) => {
         try {
             const response = await postData("update_analyst_charts/", {
                 id: document.id,
@@ -199,9 +204,57 @@ export const startReviewWithApi = createAsyncThunk(
     },
 )
 
+
+export interface conditionData {
+    id: number | string,
+    type: "Auditor" | "Analyst"
+}
+
+export const startReviewWithApiData = createAsyncThunk(
+    "documentManagement/startReviewWithApi/data",
+    async (conditionData: conditionData, { rejectWithValue }) => {
+        try {
+            // const response = await fetchData(`get_medical_conditions/?chart_id=172`)
+            const response = await fetchData(`get_medical_conditions/?chart_id=${conditionData?.id}`)
+            const medicalConditionsResponse = (response.data as MedicalConditionsResponse)
+            const convertedFormat = medicalConditionsResponse.data?.map(i => {
+                const { icd10_code = "", RxHCC = "", code_explanation = "", IsAcceptedbyAnalyst = true, IsAcceptedbyQA = true, criteria_met = "", guideline_reference = "", id = "", V28HCC = "", created_at = "" } = i
+                return {
+                    id: `${id}`,
+                    icdCode: icd10_code,
+                    description: code_explanation,
+                    hccCode: RxHCC ? RxHCC : "",
+                    hccV28Code: V28HCC ? V28HCC : "",
+                    evidence: criteria_met,
+                    reference: guideline_reference,
+                    status: (conditionData?.type === "Analyst" ? IsAcceptedbyAnalyst : IsAcceptedbyQA) ? "accepted" : "rejected",
+                    addedAt: new Date(created_at).getTime(),
+                }
+
+            })
+
+            await new Promise(resolve => setTimeout(resolve, 3000));
+
+            return {
+                data: convertedFormat || [],
+                documentId: conditionData?.id,
+            }
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Failed to fetch medical conditions"
+            toast.error(errorMessage)
+            return rejectWithValue(errorMessage)
+        }
+    },
+)
+
 export const completeReviewWithAPI = createAsyncThunk(
     "documentManagement/completeReviewWithApi",
-    async (document: Document & { reviewData?: CodeReviewData }, { rejectWithValue }) => {
+    async (document: Document & {
+        reviewData?: CodeReviewData, bodyData: {
+            mc_ids: number[],
+            notes: string
+        }
+    }, { rejectWithValue }) => {
         try {
             const payload = {
                 id: document.id,
@@ -209,8 +262,8 @@ export const completeReviewWithAPI = createAsyncThunk(
                 status: 3,
                 start_time: "False",
                 end_time: "True",
+                ...document.bodyData
             }
-
             const response = await postData("update_analyst_charts/", payload)
             const apiRes = response.data as ApiResponse
             return apiRes
@@ -222,10 +275,13 @@ export const completeReviewWithAPI = createAsyncThunk(
     },
 )
 
+
+
 export const startReviewAuditorWithApi = createAsyncThunk(
     "documentManagement/startReviewAuditorWithApi",
     async (document: Document, { rejectWithValue }) => {
         try {
+            // Call the main API
             await postData("update_auditor_charts/", {
                 id: document.id,
                 assignment_id: document.assignId || "",
@@ -233,6 +289,8 @@ export const startReviewAuditorWithApi = createAsyncThunk(
                 start_time: "True",
                 end_time: "False",
             })
+
+            return document.id
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "Failed to start review"
             toast.error(errorMessage)
@@ -346,6 +404,8 @@ const initialState: DocumentManagementState = {
     startTime: null,
     formData: {},
     codeReview: {},
+    medicalConditionsData: {},
+    medicalConditionsLoading: false,
 }
 
 const documentManagementSlice = createSlice({
@@ -574,6 +634,22 @@ const documentManagementSlice = createSlice({
                 ...data,
             }
         },
+
+        // Medical conditions reducers
+        updateMedicalConditionStatus: (
+            state,
+            action: PayloadAction<{ documentId: string | number; conditionId: number; isAccepted: boolean }>,
+        ) => {
+            const { documentId, conditionId, isAccepted } = action.payload
+            const docId = documentId.toString()
+
+            if (state.medicalConditionsData[docId]) {
+                const condition = state.medicalConditionsData[docId].find((c) => c.id === conditionId)
+                if (condition) {
+                    condition.IsAcceptedbyQA = isAccepted
+                }
+            }
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -628,6 +704,34 @@ const documentManagementSlice = createSlice({
                     }
                 }
             })
+            .addCase(startReviewAuditorWithApi.fulfilled, (state, action) => {
+                const documentId = action.payload
+                const document = state.documents.find((doc) => doc.id === documentId)
+                if (document) {
+                    document.status = "In Review"
+                    document.startTime = Date.now()
+                }
+            })
+            .addCase(startReviewWithApiData.pending, (state) => {
+                state.medicalConditionsLoading = true
+            })
+            .addCase(startReviewWithApiData.fulfilled, (state, action) => {
+                state.medicalConditionsLoading = false
+                if (action.payload) {
+                    const { documentId, data } = action.payload
+                    // Create a proper CodeReviewData structure
+                    state.codeReview[documentId] = {
+                        items: data as CodeReviewItem[],
+                        analystNotes: "",
+                        auditorNotes: "",
+                        searchTerm: "",
+                    }
+                }
+            })
+            .addCase(startReviewWithApiData.rejected, (state, action) => {
+                state.medicalConditionsLoading = false
+                state.error = action.error.message || "Failed to fetch medical conditions"
+            })
     },
 })
 
@@ -651,6 +755,7 @@ export const {
     resetCodeReview,
     bulkUpdateCodeReviewStatus,
     updateCodeReviewData,
+    updateMedicalConditionStatus,
 } = documentManagementSlice.actions
 
 export default documentManagementSlice.reducer

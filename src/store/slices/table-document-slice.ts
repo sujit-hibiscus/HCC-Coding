@@ -338,6 +338,12 @@ export const fetchAuditDocuments = createAsyncThunk<AuditDocument[], void, { rej
 
             if (apiRes.status === "Success") {
                 const response = apiRes.data.map((item) => {
+                    const analystFname = item?.analyst_assignments[0]?.first_name
+                    const analystLname = item?.analyst_assignments[0]?.last_name
+                    const analystName = `${analystFname?.length > 0 ? analystFname : ""} ${analystLname?.length > 0 ? analystLname : ""}`
+                    const auditorFname = item?.auditor_assignments[0]?.first_name
+                    const auditorLname = item?.auditor_assignments[0]?.last_name
+                    const auditorName = `${auditorFname?.length > 0 ? auditorFname : ""} ${auditorLname?.length > 0 ? auditorLname : ""}`
                     return {
                         id: item?.id.toString(),
                         title: item?.title?.replace(/^dev-/, ""),
@@ -346,8 +352,8 @@ export const fetchAuditDocuments = createAsyncThunk<AuditDocument[], void, { rej
                         fileSize: `${item.file_size} KB`,
                         category: "Medical",
                         status: getDocumentStatusFromNumber(item.status) || DOCUMENT_STATUS.PENDING,
-                        analyst: `${item?.analyst_assignments[0]?.first_name} ${item?.analyst_assignments[0]?.last_name}` || "",
-                        auditor: `${item?.auditor_assignments[0]?.first_name} ${item?.auditor_assignments[0]?.last_name}` || "",
+                        analyst: analystName || "",
+                        auditor: auditorName || "",
                     };
                 });
                 return response;

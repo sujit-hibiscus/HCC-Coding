@@ -26,8 +26,9 @@ interface CodeReviewItem {
     description: string
     hccCode: string
     evidence: string
+    hccV28Code: string
     reference: string
-    status: "pending" | "accepted" | "rejected"
+    status: "accepted" | "rejected"
     addedAt: number
 }
 
@@ -48,6 +49,7 @@ interface CodeReviewFormProps {
     selectedDocument: Document
     showSidebar: boolean
     isCompletingReview: boolean
+    apiLoading?: boolean
     onComplete: () => void
 }
 
@@ -98,14 +100,17 @@ export default function ImprovedCodeReviewForm({
     selectedDocument,
     showSidebar,
     isCompletingReview,
+    apiLoading = false,
     onComplete,
 }: CodeReviewFormProps) {
-    const { dispatch } = useRedux()
+    const { dispatch, selector } = useRedux()
+    const isCodeLoading = selector(state => state.documentManagement.medicalConditionsLoading)
     const [expandedCard, setExpandedCard] = useState<string | null>(null)
     const [filterStatus, setFilterStatus] = useState<string>("all")
     const [localSearchTerm, setLocalSearchTerm] = useState("")
     const [isPending, startTransition] = useTransition()
     const [updatingItemId, setUpdatingItemId] = useState<string | null>(null)
+    // const [apiLoading, setApiLoading] = useState(false)
 
     // Optimized filtering with better performance
     const filteredItems = useMemo(() => {
@@ -116,15 +121,15 @@ export default function ImprovedCodeReviewForm({
             items = items.filter((item) => item.status === filterStatus)
         }
 
-        // Apply search filter
+        // Apply search filter with null checks
         const searchTerm = localSearchTerm.toLowerCase().trim()
         if (searchTerm) {
             items = items.filter((item) => {
                 return (
-                    item.icdCode.toLowerCase().includes(searchTerm) ||
-                    item.description.toLowerCase().includes(searchTerm) ||
-                    item.hccCode.toLowerCase().includes(searchTerm) ||
-                    item.evidence.toLowerCase().includes(searchTerm)
+                    (item.icdCode || "").toLowerCase().includes(searchTerm) ||
+                    (item.description || "").toLowerCase().includes(searchTerm) ||
+                    (item.hccCode || "").toLowerCase().includes(searchTerm) ||
+                    (item.evidence || "").toLowerCase().includes(searchTerm)
                 )
             })
         }
@@ -144,43 +149,44 @@ export default function ImprovedCodeReviewForm({
         })
     }, [])
 
-    const handleAddCode = useCallback(
-        (item: {
-            code: string
-            description: string
-            hccCode: string
-            evidence: string
-            reference: string
-        }) => {
-            if (selectedDocumentId) {
-                // Check if item already exists in cart
-                const existsInCart = currentCodeReview.items.some((cartItem) => cartItem.icdCode === item.code)
-
-                if (!existsInCart) {
-                    const newItem: CodeReviewItem = {
-                        id: `${item.code}-${Date.now()}`,
-                        icdCode: item.code,
-                        description: item.description,
-                        hccCode: item.hccCode,
-                        evidence: item.evidence,
-                        reference: item.reference,
-                        status: "pending",
-                        addedAt: Date.now(),
-                    }
-                    dispatch(addCodeReviewItem({ documentId: selectedDocumentId, item: newItem }))
-                }
-
-                // Clear search
-                setLocalSearchTerm("")
-            }
-        },
-        [selectedDocumentId, currentCodeReview.items, dispatch],
-    )
+    /*  const handleAddCode = useCallback(
+         (item: {
+             code: string
+             description: string
+             hccCode: string
+             evidence: string
+             reference: string
+         }) => {
+             if (selectedDocumentId) {
+                 // Check if item already exists in cart
+                 const existsInCart = currentCodeReview.items.some((cartItem) => cartItem.icdCode === item.code)
+ 
+                 if (!existsInCart) {
+                     const newItem: CodeReviewItem = {
+                         id: `${item.code}-${Date.now()}`,
+                         icdCode: item.code,
+                         description: item.description,
+                         hccCode: item.hccCode,
+                         evidence: item.evidence,
+                         reference: item.reference,
+                         status: "accepted",
+                         addedAt: Date.now(),
+                     }
+                     dispatch(addCodeReviewItem({ documentId: selectedDocumentId, item: newItem }))
+                 }
+ 
+                 // Clear search
+                 setLocalSearchTerm("")
+             }
+         },
+         [selectedDocumentId, currentCodeReview.items, dispatch],
+     ) */
 
     const handleStatusUpdate = useCallback(
         async (itemId: string, status: "accepted" | "rejected") => {
             if (selectedDocumentId && !updatingItemId) {
                 setUpdatingItemId(itemId)
+                // setApiLoading(true)
 
                 // Add a small delay to prevent rapid clicking and ensure smooth transition
                 await new Promise((resolve) => setTimeout(resolve, 150))
@@ -190,7 +196,10 @@ export default function ImprovedCodeReviewForm({
                 })
 
                 // Clear the updating state after a brief moment
-                setTimeout(() => setUpdatingItemId(null), 300)
+                setTimeout(() => {
+                    setUpdatingItemId(null)
+                    // setApiLoading(false)
+                }, 300)
             }
         },
         [selectedDocumentId, dispatch, updatingItemId],
@@ -212,14 +221,14 @@ export default function ImprovedCodeReviewForm({
                 acc[item.status] = (acc[item.status] || 0) + 1
                 return acc
             },
-            { pending: 0, accepted: 0, rejected: 0 } as Record<string, number>,
+            { accepted: 0, rejected: 0 } as Record<string, number>,
         )
     }, [currentCodeReview.items])
 
     return (
         <TooltipProvider>
             <motion.div
-                className="w-full flex flex-col md:w-[36rem] h-full border-t md:border-t-0 md:border-l overflow-hidden bg-gradient-to-br from-slate-50 to-white"
+                className="w-full flex flex-col md:w-[40rem] h-full border-t md:border-t-0 md:border-l overflow-hidden bg-gradient-to-br from-slate-50 to-white"
                 initial={{ x: "100%", opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: "100%", opacity: 0 }}
@@ -246,11 +255,6 @@ export default function ImprovedCodeReviewForm({
                     </div>
 
                     <div className="flex gap-2">
-                        <AnimatedCounter
-                            value={statusCounts.pending}
-                            label="Pending"
-                            color="bg-amber-100 text-amber-800 border border-amber-500"
-                        />
                         <AnimatedCounter
                             value={statusCounts.accepted}
                             label="Accepted"
@@ -387,7 +391,6 @@ export default function ImprovedCodeReviewForm({
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All</SelectItem>
-                                    <SelectItem value="pending">Pending</SelectItem>
                                     <SelectItem value="accepted">Accepted</SelectItem>
                                     <SelectItem value="rejected">Rejected</SelectItem>
                                 </SelectContent>
@@ -404,158 +407,219 @@ export default function ImprovedCodeReviewForm({
 
                     {/* Optimized Code Cards */}
                     <div className="flex-1 overflow-hidden">
-                        <div className="h-full max-h-[calc(100vh-20rem)] space-y-2 pr-1 overflow-y-auto overflow-x-hidden">
-                            <AnimatePresence mode="popLayout">
-                                {filteredItems.map((item, index) => (
-                                    <motion.div
-                                        key={item.id}
-                                        layout="position"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        transition={{
-                                            duration: 0.2,
-                                            delay: Math.min(index * 0.01, 0.05),
-                                            layout: { duration: 0.3, ease: "easeInOut" },
-                                        }}
-                                    >
-                                        <Card
-                                            className={cn(
-                                                "border transition-colors duration-200 overflow-hidden min-h-[120px]",
-                                                item.status === "accepted" && "border-emerald-200 bg-emerald-50/50",
-                                                item.status === "rejected" && "border-rose-200 bg-rose-50/50",
-                                                item.status === "pending" && "border-gray-200 hover:border-blue-300 hover:shadow-sm",
-                                                expandedCard === item.id && "ring-2 ring-blue-200",
-                                            )}
+                        <div className="h-full max-h-[calc(100vh-21rem)] space-y-2 pr-1 overflow-y-auto overflow-x-hidden">
+                            {(apiLoading || isCodeLoading) ? (
+                                <motion.div
+                                    className="flex flex-col items-center justify-center py-12 text-center"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.2 }}
+                                >
+                                    <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4">
+                                        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                                    </div>
+                                    <p className="text-sm text-gray-500 font-medium">Loading medical conditions
+                                        <span className="animate-pulse">...</span>
+                                    </p>
+
+                                </motion.div>
+                            ) : (
+                                <AnimatePresence mode="popLayout">
+                                    {filteredItems.map((item, index) => (
+                                        <motion.div
+                                            key={item.id}
+                                            layout="position"
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            transition={{
+                                                duration: 0.2,
+                                                delay: Math.min(index * 0.01, 0.05),
+                                                layout: { duration: 0.3, ease: "easeInOut" },
+                                            }}
                                         >
-                                            <CardContent className="p-3">
-                                                <div className="flex items-start justify-between gap-3">
-                                                    {/* Left Side Content */}
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-2 mb-2">
-                                                            <StatusBadge status={item.status} />
-                                                            <Badge
-                                                                variant="outline"
-                                                                className="font-mono text-xs px-2 py-0 bg-blue-50 text-blue-700 border-blue-200"
-                                                            >
-                                                                {item.icdCode}
-                                                            </Badge>
-                                                            <Badge
-                                                                variant="outline"
-                                                                className="font-mono text-xs px-2 py-0 bg-purple-50 text-purple-700 border-purple-200"
-                                                            >
-                                                                {item.hccCode}
-                                                            </Badge>
-                                                        </div>
-
-                                                        <h4 className="text-sm font-medium text-gray-900 mb-1 line-clamp-1">{item.description}</h4>
-
-                                                        <div
-                                                            className={cn(
-                                                                "overflow-hidden transition-all duration-300",
-                                                                expandedCard === item.id ? "max-h-none" : "max-h-10 line-clamp-2",
-                                                            )}
-                                                        >
-                                                            <p className="text-xs text-gray-600 leading-relaxed">
-                                                                <span className="font-medium">Evidence:</span> {item.evidence}
-                                                            </p>
-                                                        </div>
-
-                                                        <div className="flex items-center justify-between mt-2">
-                                                            {item.evidence.length > 80 && (
-                                                                <button
-                                                                    onClick={() => setExpandedCard(expandedCard === item.id ? null : item.id)}
-                                                                    className="text-xs text-gray-500 hover:text-gray-700 transition-colors flex items-center gap-1"
-                                                                >
-                                                                    {expandedCard === item.id ? (
-                                                                        <>
-                                                                            Less <ChevronUp size={14} />
-                                                                        </>
-                                                                    ) : (
-                                                                        <>
-                                                                            More <ChevronDown size={14} />
-                                                                        </>
+                                            <Card
+                                                className={cn(
+                                                    "border transition-colors duration-200 overflow-hidden min-h-[120px]",
+                                                    item.status === "accepted" && "border-emerald-200 bg-emerald-50/50",
+                                                    item.status === "rejected" && "border-rose-200 bg-rose-50/50",
+                                                    expandedCard === item.id && "ring-2 ring-blue-200",
+                                                )}
+                                            >
+                                                <CardContent className="p-2">
+                                                    <div className="flex items-start justify-between gap-3">
+                                                        {/* Left Side Content */}
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex justify-between items-center">
+                                                                <div className="flex items-center gap-2 mb-2">
+                                                                    <StatusBadge status={item.status} />
+                                                                    {item.icdCode?.length > 0 && (
+                                                                        <Tooltip>
+                                                                            <TooltipTrigger asChild>
+                                                                                <Badge
+                                                                                    variant="outline"
+                                                                                    className="cursor-default font-mono text-xs px-2 py-0 bg-blue-50 text-blue-700 border-blue-200"
+                                                                                >
+                                                                                    {item.icdCode}
+                                                                                </Badge>
+                                                                            </TooltipTrigger>
+                                                                            <TooltipContent side="top" className="max-w-xs">
+                                                                                <p className="text-xs">ICD Code</p>
+                                                                            </TooltipContent>
+                                                                        </Tooltip>
                                                                     )}
-                                                                </button>
-                                                            )}
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <button className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition-colors">
-                                                                        <Info className="h-3 w-3" />
-                                                                        Ref
-                                                                    </button>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent side="left" className="max-w-xs">
-                                                                    <p className="text-xs">{item.reference}</p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
+
+                                                                    {item.hccCode?.length > 0 && (
+                                                                        <Tooltip>
+                                                                            <TooltipTrigger asChild>
+                                                                                <Badge
+                                                                                    variant="outline"
+                                                                                    className="cursor-default font-mono text-xs px-2 py-0 bg-purple-50 text-purple-700 border-purple-200"
+                                                                                >
+                                                                                    {item.hccCode}
+                                                                                </Badge>
+                                                                            </TooltipTrigger>
+                                                                            <TooltipContent side="top" className="max-w-xs">
+                                                                                <p className="text-xs">HCC Code</p>
+                                                                            </TooltipContent>
+                                                                        </Tooltip>
+                                                                    )}
+                                                                    {item.hccV28Code.length > 0 && (
+                                                                        <Tooltip>
+                                                                            <TooltipTrigger asChild>
+                                                                                <Badge
+                                                                                    variant="outline"
+                                                                                    className="cursor-default font-mono text-xs px-2 py-0 bg-green-50 text-green-700 border-green-200"
+                                                                                >
+                                                                                    {item.hccV28Code}
+                                                                                </Badge>
+                                                                            </TooltipTrigger>
+                                                                            <TooltipContent side="top" className="max-w-xs">
+                                                                                <p className="text-xs">V28-HCC Code</p>
+                                                                            </TooltipContent>
+                                                                        </Tooltip>
+                                                                    )}
+
+                                                                </div>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <button className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition-colors">
+                                                                            <Info className="h-3 w-3" />
+                                                                            Ref
+                                                                        </button>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent side="left" className="max-w-xs">
+                                                                        <p className="text-xs">{item.reference}</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            </div>
+
+                                                            <div>
+                                                                <h4 className="text-sm font-medium text-gray-900 mb-1">
+                                                                    {item.description}
+                                                                </h4>
+
+                                                                <div className="flex gap-1.5 justify-between">
+                                                                    <div className="">
+                                                                        <div
+                                                                            className={cn(
+                                                                                "overflow-hidden transition-all duration-300",
+                                                                                expandedCard === item.id ? "max-h-none" : "max-h-10 line-clamp-2",
+                                                                            )}
+                                                                        >
+                                                                            <p className="text-xs text-gray-600 leading-relaxed">
+                                                                                <span className="font-medium">Evidence:</span> {item.evidence}
+                                                                            </p>
+                                                                        </div>
+
+                                                                        <div className="flex items-center justify-between mt-2">
+                                                                            {item.evidence.length > 100 && (
+                                                                                <button
+                                                                                    onClick={() => setExpandedCard(expandedCard === item.id ? null : item.id)}
+                                                                                    className="text-xs text-gray-500 hover:text-gray-700 transition-colors flex items-center gap-1"
+                                                                                >
+                                                                                    {expandedCard === item.id ? (
+                                                                                        <>
+                                                                                            Less <ChevronUp size={14} />
+                                                                                        </>
+                                                                                    ) : (
+                                                                                        <>
+                                                                                            More <ChevronDown size={14} />
+                                                                                        </>
+                                                                                    )}
+                                                                                </button>
+                                                                            )}
+
+                                                                        </div>
+                                                                    </div>
+                                                                    {/* Action Buttons */}
+                                                                    <div className="flex flex-col gap-1.5">
+                                                                        <Tooltip>
+                                                                            <TooltipTrigger asChild>
+                                                                                <Button
+                                                                                    size="sm"
+                                                                                    variant={item.status === "accepted" ? "default" : "outline"}
+                                                                                    onClick={() => handleStatusUpdate(item.id, "accepted")}
+                                                                                    disabled={updatingItemId === item.id}
+                                                                                    className={cn(
+                                                                                        "w-16 h-7 text-xs px-2 transition-all duration-300",
+                                                                                        item.status === "accepted"
+                                                                                            ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                                                                                            : "hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700",
+                                                                                        updatingItemId === item.id && "opacity-70 cursor-not-allowed",
+                                                                                    )}
+                                                                                >
+                                                                                    {updatingItemId === item.id && item.status !== "accepted" ? (
+                                                                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                                                                    ) : (
+                                                                                        <Check className="h-3 w-3" />
+                                                                                    )}
+                                                                                </Button>
+                                                                            </TooltipTrigger>
+                                                                            <TooltipContent side="left" className="bg-emerald-600 text-white">
+                                                                                <p className="text-xs">Accept Code</p>
+                                                                            </TooltipContent>
+                                                                        </Tooltip>
+
+                                                                        <Tooltip>
+                                                                            <TooltipTrigger asChild>
+                                                                                <Button
+                                                                                    size="sm"
+                                                                                    variant={item.status === "rejected" ? "destructive" : "outline"}
+                                                                                    onClick={() => handleStatusUpdate(item.id, "rejected")}
+                                                                                    disabled={updatingItemId === item.id}
+                                                                                    className={cn(
+                                                                                        "w-16 h-7 text-xs px-2 transition-all duration-300",
+                                                                                        item.status !== "rejected" &&
+                                                                                        "hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700",
+                                                                                        updatingItemId === item.id && "opacity-70 cursor-not-allowed",
+                                                                                    )}
+                                                                                >
+                                                                                    {updatingItemId === item.id && item.status !== "rejected" ? (
+                                                                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                                                                    ) : (
+                                                                                        <X className="h-3 w-3" />
+                                                                                    )}
+                                                                                </Button>
+                                                                            </TooltipTrigger>
+                                                                            <TooltipContent side="left" className="bg-rose-600 text-white">
+                                                                                <p className="text-xs">Reject Code</p>
+                                                                            </TooltipContent>
+                                                                        </Tooltip>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
+                                                </CardContent>
+                                            </Card>
+                                        </motion.div>
+                                    ))}
+                                </AnimatePresence>
+                            )}
 
-                                                    {/* Action Buttons */}
-                                                    <div className="flex flex-col gap-1.5">
-                                                        <Tooltip>
-                                                            <TooltipTrigger asChild>
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant={item.status === "accepted" ? "default" : "outline"}
-                                                                    onClick={() => handleStatusUpdate(item.id, "accepted")}
-                                                                    disabled={updatingItemId === item.id}
-                                                                    className={cn(
-                                                                        "w-16 h-7 text-xs px-2 transition-all duration-300",
-                                                                        item.status === "accepted"
-                                                                            ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
-                                                                            : "hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700",
-                                                                        updatingItemId === item.id && "opacity-70 cursor-not-allowed",
-                                                                    )}
-                                                                >
-                                                                    {updatingItemId === item.id && item.status !== "accepted" ? (
-                                                                        <Loader2 className="h-3 w-3 animate-spin" />
-                                                                    ) : (
-                                                                        <Check className="h-3 w-3" />
-                                                                    )}
-                                                                </Button>
-                                                            </TooltipTrigger>
-                                                            <TooltipContent side="left" className="bg-emerald-600 text-white">
-                                                                <p className="text-xs">Accept Code</p>
-                                                            </TooltipContent>
-                                                        </Tooltip>
-
-                                                        <Tooltip>
-                                                            <TooltipTrigger asChild>
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant={item.status === "rejected" ? "destructive" : "outline"}
-                                                                    onClick={() => handleStatusUpdate(item.id, "rejected")}
-                                                                    disabled={updatingItemId === item.id}
-                                                                    className={cn(
-                                                                        "w-16 h-7 text-xs px-2 transition-all duration-300",
-                                                                        item.status !== "rejected" &&
-                                                                        "hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700",
-                                                                        updatingItemId === item.id && "opacity-70 cursor-not-allowed",
-                                                                    )}
-                                                                >
-                                                                    {updatingItemId === item.id && item.status !== "rejected" ? (
-                                                                        <Loader2 className="h-3 w-3 animate-spin" />
-                                                                    ) : (
-                                                                        <X className="h-3 w-3" />
-                                                                    )}
-                                                                </Button>
-                                                            </TooltipTrigger>
-                                                            <TooltipContent side="left" className="bg-rose-600 text-white">
-                                                                <p className="text-xs">Reject Code</p>
-                                                            </TooltipContent>
-                                                        </Tooltip>
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    </motion.div>
-                                ))}
-                            </AnimatePresence>
-
-                            {/* Empty State */}
-                            {filteredItems.length === 0 && !isPending && (
+                            {/* Empty State - only show when not loading */}
+                            {(!isCodeLoading) && filteredItems.length === 0 && !isPending && (
                                 <motion.div
                                     className="flex flex-col items-center justify-center py-12 text-center"
                                     initial={{ opacity: 0 }}
