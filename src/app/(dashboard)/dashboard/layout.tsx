@@ -2,8 +2,10 @@
 
 import ChromeTabBar from "@/components/common/Chrome-tab-bar";
 import { Header } from "@/components/common/Header";
+import LogoutTransition from "@/components/common/LogoutTransition";
 import { AppSidebar } from "@/components/common/Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { useRedux } from "@/hooks/use-redux";
 import { useTabs } from "@/hooks/use-tabs";
 import { type ReactNode } from "react";
 
@@ -13,6 +15,11 @@ export default function DashboardLayout({
   children: ReactNode;
 }>) {
   const { addTab } = useTabs();
+  const { selector } = useRedux();
+  const token = selector(state => state.user.token) || "";
+  if (!(token?.length > 0)) {
+    return <LogoutTransition />;
+  }
 
   return (
     <SidebarProvider>

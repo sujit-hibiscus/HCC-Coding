@@ -22,6 +22,7 @@ export interface Document {
 export interface CodeReviewItem {
     id: string
     icdCode: string
+    diagnosis: string;
     description: string
     hccCode: string
     hccV28Code: string
@@ -218,10 +219,11 @@ export const startReviewWithApiData = createAsyncThunk(
             const response = await fetchData(`get_medical_conditions/?chart_id=${conditionData?.id}`)
             const medicalConditionsResponse = (response.data as MedicalConditionsResponse)
             const convertedFormat = medicalConditionsResponse.data?.map(i => {
-                const { icd10_code = "", RxHCC = "", code_explanation = "", IsAcceptedbyAnalyst = true, IsAcceptedbyQA = true, criteria_met = "", guideline_reference = "", id = "", V28HCC = "", created_at = "" } = i
+                const { icd10_code = "", diagnosis = "", RxHCC = "", code_explanation = "", IsAcceptedbyAnalyst = true, IsAcceptedbyQA = true, criteria_met = "", guideline_reference = "", id = "", V28HCC = "", created_at = "" } = i
                 return {
                     id: `${id}`,
                     icdCode: icd10_code,
+                    diagnosis: diagnosis,
                     description: code_explanation,
                     hccCode: RxHCC ? RxHCC : "",
                     hccV28Code: V28HCC ? V28HCC : "",

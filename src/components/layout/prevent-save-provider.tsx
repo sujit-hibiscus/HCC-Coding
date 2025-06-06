@@ -9,6 +9,5 @@ interface PreventSaveProviderProps {
 
 export function PreventSaveProvider({ children }: PreventSaveProviderProps) {
     usePreventSave();
-
     return <>{children}</>;
 }

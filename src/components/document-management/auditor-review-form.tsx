@@ -20,7 +20,7 @@ import {
     updateFormData,
 } from "@/store/slices/documentManagementSlice"
 import { AnimatePresence, motion } from "framer-motion"
-import { Check, CheckCircle, Info, Loader2, Search, X, Zap } from "lucide-react"
+import { Check, CheckCircle, ChevronDown, ChevronUp, Info, Loader2, Search, X, Zap } from "lucide-react"
 import { useCallback, useMemo, useState, useTransition } from "react"
 
 interface FormData {
@@ -638,73 +638,98 @@ export default function AuditorReviewForm({
                                             delay: Math.min(index * 0.02, 0.1),
                                         }}
                                     >
-                                        <Card
-                                            className={cn(
-                                                "border  transition-all duration-200 cursor-pointer overflow-hidden",
-                                                item.status === "accepted" && "border-emerald-200 bg-emerald-50/50",
-                                                item.status === "rejected" && "border-rose-200 bg-rose-50/50",
-                                                expandedCard === item.id && "ring-2 ring-blue-200",
-                                            )}
-                                        >
-                                            <CardContent className="p-3">
-                                                <div className="flex items-start justify-between gap-3">
-                                                    {/* Left Side Content */}
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-2 mb-2">
-                                                            <StatusBadge status={item.status} />
-                                                            <Badge
-                                                                variant="outline"
-                                                                className="font-mono text-xs px-2 py-0 bg-blue-50 text-blue-700 border-blue-200"
-                                                            >
-                                                                {item.icdCode}
-                                                            </Badge>
-                                                            <Badge
-                                                                variant="outline"
-                                                                className="font-mono text-xs px-2 py-0 bg-purple-50 text-purple-700 border-purple-200"
-                                                            >
-                                                                {item.hccCode}
-                                                            </Badge>
+                                        <TooltipProvider>
+                                            <Card
+                                                className={cn(
+                                                    "border transition-all duration-200 overflow-hidden",
+                                                    item.status === "accepted" && "border-emerald-200 bg-emerald-50/30",
+                                                    item.status === "rejected" && "border-rose-200 bg-rose-50/30",
+                                                    expandedCard === item.id && "ring-2 ring-blue-200 shadow-md",
+                                                )}
+                                            >
+                                                <CardContent className="p-2 flex gap-2.5 items-center justify-between">
+                                                    <div>
+                                                        {/* Header Row */}
+                                                        <div className="flex items-start justify-between gap-3 mb-3">
+                                                            <div className="flex items-center gap-2 flex-wrap">
+                                                                <StatusBadge status={item.status} />
+                                                                {item.icdCode && (
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
+                                                                            <Badge
+                                                                                variant="outline"
+                                                                                className="font-mono text-xs bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                                                                            >
+                                                                                ICD:{item.icdCode}
+                                                                            </Badge>
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent>ICD Code</TooltipContent>
+                                                                    </Tooltip>
+                                                                )}
+                                                                {item.hccV28Code && (
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
+                                                                            <Badge
+                                                                                variant="outline"
+                                                                                className="font-mono text-xs bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                                                                            >
+                                                                                HCC:{item.hccV28Code}
+                                                                            </Badge>
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent>HCC Code</TooltipContent>
+                                                                    </Tooltip>
+                                                                )}
+                                                            </div>
                                                         </div>
 
-                                                        <h4 className="text-sm font-medium text-gray-900 mb-1 line-clamp-1">{item.description}</h4>
+                                                        {/* Main Content */}
+                                                        <div className="space-y-2">
+                                                            <div>
+                                                                <h3 className="font-semibold text-gray-900 text-sm leading-tight">{item.diagnosis}</h3>
+                                                                <p className="text-sm text-gray-600 mt-0.5">{item.description}</p>
+                                                            </div>
 
-                                                        <div
-                                                            className={cn(
-                                                                "overflow-hidden transition-all duration-300 ",
-                                                                expandedCard === item.id ? "max-h-none" : "max-h-10 line-clamp-2",
-                                                            )}
-                                                        >
-                                                            <p className="text-xs text-gray-600 leading-relaxed">
-                                                                <span className="font-medium">Evidence:</span> {item.evidence}
-                                                            </p>
-                                                        </div>
+                                                            {/* Evidence Section */}
+                                                            <div className="bg-gray-50 rounded-lg p-1.5 border">
+                                                                <div className="flex items-start justify-between gap-2">
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div
+                                                                            className={cn(
+                                                                                "overflow-hidden transition-all duration-300",
+                                                                                expandedCard === item.id ? "max-h-none" : "max-h-12",
+                                                                            )}
+                                                                        >
+                                                                            <p className="text-xs text-gray-700 leading-relaxed">
+                                                                                <span className="font-medium text-gray-900">Evidence:</span> {item.evidence}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
 
-                                                        <div className="flex items-center justify-between mt-2">
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <button className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition-colors">
-                                                                        <Info className="h-3 w-3" />
-                                                                        Ref
-                                                                    </button>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent side="bottom" className="max-w-xs">
-                                                                    <p className="text-xs">{item.reference}</p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
+                                                                    {item.evidence.length > 100 && (
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            onClick={() => setExpandedCard(expandedCard === item.id ? null : item.id)}
+                                                                            className="h-6 px-2 text-xs shrink-0"
+                                                                        >
+                                                                            {expandedCard === item.id ? (
+                                                                                <ChevronUp className="h-3 w-3" />
+                                                                            ) : (
+                                                                                <ChevronDown className="h-3 w-3" />
+                                                                            )}
+                                                                        </Button>
+                                                                    )}
+                                                                </div>
+                                                            </div>
 
-                                                            {item.evidence.length > 80 && (
-                                                                <button
-                                                                    onClick={() => setExpandedCard(expandedCard === item.id ? null : item.id)}
-                                                                    className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
-                                                                >
-                                                                    {expandedCard === item.id ? "Less" : "More"}
-                                                                </button>
-                                                            )}
+                                                            {/* Reference */}
+                                                            <div className="flex items-center justify-between text-xs text-gray-500">
+                                                                <span className="font-medium">Ref: {item.reference}</span>
+                                                            </div>
                                                         </div>
                                                     </div>
-
                                                     {/* Action Buttons */}
-                                                    <div className="flex flex-col gap-1.5">
+                                                    <div className="flex flex-col gap-1.5 shrink-0">
                                                         <Tooltip>
                                                             <TooltipTrigger asChild>
                                                                 <Button
@@ -713,11 +738,10 @@ export default function AuditorReviewForm({
                                                                     onClick={() => handleStatusUpdate(item.id, "accepted")}
                                                                     disabled={updatingItemId === item.id}
                                                                     className={cn(
-                                                                        "w-16 h-6 text-xs px-2 transition-all duration-300",
+                                                                        "h-10 w-10 p-0 transition-all",
                                                                         item.status === "accepted"
-                                                                            ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                                                                            ? "bg-emerald-600 hover:bg-emerald-700 text-white"
                                                                             : "hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700",
-                                                                        updatingItemId === item.id && "opacity-70 cursor-not-allowed",
                                                                     )}
                                                                 >
                                                                     {updatingItemId === item.id && item.status !== "accepted" ? (
@@ -727,9 +751,7 @@ export default function AuditorReviewForm({
                                                                     )}
                                                                 </Button>
                                                             </TooltipTrigger>
-                                                            <TooltipContent side="left" className="bg-emerald-600 text-white">
-                                                                <p className="text-xs">Accept Code</p>
-                                                            </TooltipContent>
+                                                            <TooltipContent>Accept</TooltipContent>
                                                         </Tooltip>
 
                                                         <Tooltip>
@@ -740,10 +762,8 @@ export default function AuditorReviewForm({
                                                                     onClick={() => handleStatusUpdate(item.id, "rejected")}
                                                                     disabled={updatingItemId === item.id}
                                                                     className={cn(
-                                                                        "w-16 h-6 text-xs px-2 transition-all duration-300",
-                                                                        item.status !== "rejected" &&
-                                                                        "hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700",
-                                                                        updatingItemId === item.id && "opacity-70 cursor-not-allowed",
+                                                                        "h-10 w-10 p-0 transition-all",
+                                                                        item.status !== "rejected" && "hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700",
                                                                     )}
                                                                 >
                                                                     {updatingItemId === item.id && item.status !== "rejected" ? (
@@ -753,14 +773,12 @@ export default function AuditorReviewForm({
                                                                     )}
                                                                 </Button>
                                                             </TooltipTrigger>
-                                                            <TooltipContent side="left" className="bg-rose-600 text-white">
-                                                                <p className="text-xs">Reject Code</p>
-                                                            </TooltipContent>
+                                                            <TooltipContent>Reject</TooltipContent>
                                                         </Tooltip>
                                                     </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
+                                                </CardContent>
+                                            </Card>
+                                        </TooltipProvider>
                                     </motion.div>
                                 ))}
                             </AnimatePresence>
