@@ -453,7 +453,7 @@ export default function ImprovedCodeReviewForm({
                                                             {/* Header Row */}
                                                             <div className="flex items-start justify-between gap-3 mb-3">
                                                                 <div className="flex items-center gap-2 flex-wrap">
-                                                                    <StatusBadge status={item.status} />
+                                                                    {/* <StatusBadge status={item.status} /> */}
                                                                     {item.icdCode && (
                                                                         <Tooltip>
                                                                             <TooltipTrigger asChild>
@@ -491,7 +491,7 @@ export default function ImprovedCodeReviewForm({
                                                                 </div>
 
                                                                 {/* Evidence Section */}
-                                                                <div className="bg-gray-50 rounded-lg p-1.5 border">
+                                                                <div className="bg-gray-50 p-1.5 border">
                                                                     <div className="flex items-start justify-between gap-2">
                                                                         <div className="flex-1 min-w-0">
                                                                             <div
@@ -539,7 +539,7 @@ export default function ImprovedCodeReviewForm({
                                                                         onClick={() => handleStatusUpdate(item.id, "accepted")}
                                                                         disabled={updatingItemId === item.id}
                                                                         className={cn(
-                                                                            "h-10 w-10 p-0 transition-all",
+                                                                            "h-10 w-10 p-0 !rounded-none transition-all",
                                                                             item.status === "accepted"
                                                                                 ? "bg-emerald-600 hover:bg-emerald-700 text-white"
                                                                                 : "hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700",
@@ -563,7 +563,7 @@ export default function ImprovedCodeReviewForm({
                                                                         onClick={() => handleStatusUpdate(item.id, "rejected")}
                                                                         disabled={updatingItemId === item.id}
                                                                         className={cn(
-                                                                            "h-10 w-10 p-0 transition-all",
+                                                                            "h-10 w-10 p-0 !rounded-none  transition-all",
                                                                             item.status !== "rejected" && "hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700",
                                                                         )}
                                                                     >
