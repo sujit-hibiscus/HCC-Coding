@@ -467,6 +467,19 @@ export default function ImprovedCodeReviewForm({
                                                                             <TooltipContent>ICD Code</TooltipContent>
                                                                         </Tooltip>
                                                                     )}
+                                                                    {item.hccCode && (
+                                                                        <Tooltip>
+                                                                            <TooltipTrigger asChild>
+                                                                                <Badge
+                                                                                    variant="outline"
+                                                                                    className="font-mono text-xs bg-blue-50 text-purple-700 border-purple-200 hover:bg-blue-100"
+                                                                                >
+                                                                                    RX-HCC:{item.hccCode}
+                                                                                </Badge>
+                                                                            </TooltipTrigger>
+                                                                            <TooltipContent className="bg-purple-500">RX-HCC Code</TooltipContent>
+                                                                        </Tooltip>
+                                                                    )}
                                                                     {item.hccV28Code && (
                                                                         <Tooltip>
                                                                             <TooltipTrigger asChild>
@@ -477,7 +490,7 @@ export default function ImprovedCodeReviewForm({
                                                                                     HCC:{item.hccV28Code}
                                                                                 </Badge>
                                                                             </TooltipTrigger>
-                                                                            <TooltipContent>HCC Code</TooltipContent>
+                                                                            <TooltipContent className="bg-green-500">HCC Code</TooltipContent>
                                                                         </Tooltip>
                                                                     )}
                                                                 </div>
