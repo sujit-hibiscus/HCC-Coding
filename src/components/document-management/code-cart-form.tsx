@@ -464,7 +464,7 @@ export default function ImprovedCodeReviewForm({
                                                                                     ICD:{item.icdCode}
                                                                                 </Badge>
                                                                             </TooltipTrigger>
-                                                                            <TooltipContent>ICD Code</TooltipContent>
+                                                                            {/* <TooltipContent>ICD Code</TooltipContent> */}
                                                                         </Tooltip>
                                                                     )}
                                                                     {item.hccCode && (
@@ -477,7 +477,7 @@ export default function ImprovedCodeReviewForm({
                                                                                     RX-HCC:{item.hccCode}
                                                                                 </Badge>
                                                                             </TooltipTrigger>
-                                                                            <TooltipContent className="bg-purple-500">RX-HCC Code</TooltipContent>
+                                                                            {/* <TooltipContent className="bg-purple-500">RX-HCC Code</TooltipContent> */}
                                                                         </Tooltip>
                                                                     )}
                                                                     {item.hccV28Code && (
@@ -490,7 +490,7 @@ export default function ImprovedCodeReviewForm({
                                                                                     HCC:{item.hccV28Code}
                                                                                 </Badge>
                                                                             </TooltipTrigger>
-                                                                            <TooltipContent className="bg-green-500">HCC Code</TooltipContent>
+                                                                            {/* <TooltipContent className="bg-green-500">HCC Code</TooltipContent> */}
                                                                         </Tooltip>
                                                                     )}
                                                                 </div>
