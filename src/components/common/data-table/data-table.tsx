@@ -1,13 +1,12 @@
+"use client"
 
-"use client";
-
-import { TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
-import { Typography } from "@/components/ui/Typography";
-import useFullPath from "@/hooks/use-fullpath";
-import { useRedux } from "@/hooks/use-redux";
-import { restrictToHorizontalAxis } from "@dnd-kit/modifiers";
-import { setStoreColumnOrder } from "@/store/slices/DashboardSlice";
-import { setSelectedRows, setTabFilters } from "@/store/slices/tableFiltersSlice";
+import { TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table"
+import { Typography } from "@/components/ui/Typography"
+import useFullPath from "@/hooks/use-fullpath"
+import { useRedux } from "@/hooks/use-redux"
+import { restrictToHorizontalAxis } from "@dnd-kit/modifiers"
+import { setStoreColumnOrder } from "@/store/slices/DashboardSlice"
+import { setSelectedRows, setTabFilters } from "@/store/slices/tableFiltersSlice"
 import {
   closestCenter,
   DndContext,
@@ -18,13 +17,13 @@ import {
   MeasuringStrategy,
   type DragEndEvent,
   DragOverlay,
-} from "@dnd-kit/core";
+} from "@dnd-kit/core"
 import {
   arrayMove,
   horizontalListSortingStrategy,
   SortableContext,
   sortableKeyboardCoordinates,
-} from "@dnd-kit/sortable";
+} from "@dnd-kit/sortable"
 import {
   flexRender,
   getCoreRowModel,
@@ -38,17 +37,17 @@ import {
   type ColumnFiltersState,
   type SortingState,
   type VisibilityState,
-} from "@tanstack/react-table";
-import { isWithinInterval } from "date-fns";
-import * as React from "react";
-import { useEffect, useState } from "react";
-import { DataTablePagination } from "./data-table-pagination";
-import { DataTableToolbar } from "./data-table-toolbar";
-import { SortableHeader } from "./sortable-header";
-import { cn, EndDateFilter, StartDateFilter } from "@/lib/utils";
-import { setSelectedDocuments } from "@/store/slices/table-document-slice";
-import { updateCountByKey } from "@/store/slices/user-slice";
-import { DragMonitor } from "./drag-monitor";
+} from "@tanstack/react-table"
+import { isWithinInterval, startOfDay } from "date-fns"
+import * as React from "react"
+import { useEffect, useState } from "react"
+import { DataTablePagination } from "./data-table-pagination"
+import { DataTableToolbar } from "./data-table-toolbar"
+import { SortableHeader } from "./sortable-header"
+import { cn, EndDateFilter, StartDateFilter } from "@/lib/utils"
+import { setSelectedDocuments } from "@/store/slices/table-document-slice"
+import { updateCountByKey } from "@/store/slices/user-slice"
+import { DragMonitor } from "./drag-monitor"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -71,29 +70,34 @@ export function DataTable<TData, TValue>({
   isFloating = true,
   defaultPageSize = 25,
 }: DataTableProps<TData, TValue>) {
-  const { dispatch, selector } = useRedux();
-  const { charts = "", target = "" } = useFullPath();
-  const tabKey = `${charts}${target}`;
-  const storedFilters = selector((state) => state.tableFilters[tabKey]);
+  const { dispatch, selector } = useRedux()
+  const { charts = "", target = "" } = useFullPath()
+  const tabKey = `${charts}${target}`
+  const storedFilters = selector((state) => state.tableFilters[tabKey])
 
   const initialRowSelection = React.useMemo(() => {
     if (storedFilters?.selectedRows && Array.isArray(storedFilters.selectedRows)) {
       return storedFilters.selectedRows.reduce((acc: Record<string, boolean>, id: string) => {
-        acc[id] = true;
-        return acc;
-      }, {});
+        acc[id] = true
+        return acc
+      }, {})
     }
-    return {};
-  }, [storedFilters?.selectedRows]);
+    return {}
+  }, [storedFilters?.selectedRows])
 
-  const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>(initialRowSelection);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(storedFilters?.columnVisibility || {});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(storedFilters?.columnFilters || []);
-  const [sorting, setSorting] = React.useState<SortingState>(storedFilters?.sorting || []);
-  const [dateRange, setDateRange] = React.useState<[Date | null, Date | null]>(storedFilters?.dateRange || [StartDateFilter, EndDateFilter]);
+  const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>(initialRowSelection)
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(storedFilters?.columnVisibility || {})
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(storedFilters?.columnFilters || [])
+  const [sorting, setSorting] = React.useState<SortingState>(storedFilters?.sorting || [])
+  const [dateRange, setDateRange] = React.useState<[Date | null, Date | null]>(
+    storedFilters?.dateRange || [StartDateFilter, EndDateFilter],
+  )
+  const [, setColumnOrder] = React.useState<string[]>(() =>
+    columns.map((col) => (typeof col.id === "string" ? col.id : "")),
+  )
 
-  const { fullPath: urlKey = "default" } = useFullPath();
-  const columnOrder = selector((state) => state.dashboard.columnOrders[urlKey || "default"]);
+  const { fullPath: urlKey = "default" } = useFullPath()
+  const columnOrder = selector((state) => state.dashboard.columnOrders[urlKey || "default"])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -104,9 +108,9 @@ export function DataTable<TData, TValue>({
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
-  );
+  )
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (tabKey) {
       dispatch(
         setTabFilters({
@@ -118,14 +122,14 @@ export function DataTable<TData, TValue>({
             dateRange,
           },
         }),
-      );
+      )
     }
-  }, [columnFilters, sorting, columnVisibility, dateRange, tabKey, dispatch]);
+  }, [columnFilters, sorting, columnVisibility, dateRange, tabKey, dispatch])
 
   // Add global styles for dragging
   React.useEffect(() => {
     // Add a style tag for cursor styles
-    const styleTag = document.createElement("style");
+    const styleTag = document.createElement("style")
     styleTag.innerHTML = `
       .cursor-grabbing {
         cursor: grabbing !important;
@@ -150,67 +154,66 @@ export function DataTable<TData, TValue>({
         font-weight: 600;
         text-transform: capitalize;
       }
-    `;
-    document.head.appendChild(styleTag);
+    `
+    document.head.appendChild(styleTag)
 
     return () => {
-      document.head.removeChild(styleTag);
-    };
-  }, []);
-
-
+      document.head.removeChild(styleTag)
+    }
+  }, [])
 
   useEffect(() => {
     if (storedFilters?.selectedRows && Array.isArray(storedFilters.selectedRows)) {
       const newRowSelection = storedFilters.selectedRows.reduce((acc: Record<string, boolean>, id: string) => {
-        acc[id] = true;
-        return acc;
-      }, {});
+        acc[id] = true
+        return acc
+      }, {})
 
       if (JSON.stringify(newRowSelection) !== JSON.stringify(rowSelection)) {
-        setRowSelection(newRowSelection);
+        setRowSelection(newRowSelection)
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [storedFilters?.selectedRows]);
+  }, [storedFilters?.selectedRows])
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const allColumns = table.getAllLeafColumns();
-    const activeColumn = allColumns.find((col) => col.id === active.id);
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const allColumns = table.getAllLeafColumns()
+    const activeColumn = allColumns.find((col) => col.id === active.id)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const isDragEnable = (activeColumn?.columnDef as any).isDragable;
-    const overColumn = allColumns.find((col) => col.id === over.id);
+    const isDragEnable = (activeColumn?.columnDef as any).isDragable
+    const overColumn = allColumns.find((col) => col.id === over.id)
 
-    if (!activeColumn || !overColumn) return;
+    if (!activeColumn || !overColumn) return
 
-    if (!isDragEnable) return;
+    if (!isDragEnable) return
 
-    const oldIndex = allColumns.findIndex((col) => col.id === active.id);
-    const newIndex = allColumns.findIndex((col) => col.id === over.id);
+    const oldIndex = allColumns.findIndex((col) => col.id === active.id)
+    const newIndex = allColumns.findIndex((col) => col.id === over.id)
 
-    const isMovingForward = newIndex > oldIndex;
+    const isMovingForward = newIndex > oldIndex
     const columnsInBetween = allColumns.slice(
       isMovingForward ? oldIndex + 1 : newIndex,
       isMovingForward ? newIndex + 1 : oldIndex,
-    );
+    )
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const hasNonDraggableInPath = columnsInBetween.some((col) => (col.columnDef as any).isDragable === false);
-    if (hasNonDraggableInPath) return;
+    const hasNonDraggableInPath = columnsInBetween.some((col) => (col.columnDef as any).isDragable === false)
+    if (hasNonDraggableInPath) return
 
-    if (!isDragEnable) return;
+    if (!isDragEnable) return
 
     const newColumnOrder = arrayMove(
       allColumns.map((col) => col.id),
       oldIndex,
       newIndex,
-    );
+    )
 
-    dispatch(setStoreColumnOrder({ key: urlKey, order: newColumnOrder }));
-  };
+    setColumnOrder(newColumnOrder)
+    dispatch(setStoreColumnOrder({ key: urlKey, order: newColumnOrder }))
+  }
 
-  const [filteredData, setFilteredData] = useState<TData[]>(data);
+  const [filteredData, setFilteredData] = useState<TData[]>(data)
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -222,13 +225,11 @@ export function DataTable<TData, TValue>({
       columnOrder,
     },
     enableRowSelection: true,
-    onRowSelectionChange: (updatedRowSelection) => {
-      setRowSelection(updatedRowSelection);
-    },
+    onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    // onColumnOrderChange: setColumnOrder,
+    onColumnOrderChange: setColumnOrder,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -240,108 +241,112 @@ export function DataTable<TData, TValue>({
         pageSize: defaultPageSize,
       },
     },
-  });
+  })
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (tabKey) {
-      const selectedRowIds = Object.keys(rowSelection).filter((id) => rowSelection[id]);
+      const selectedRowIds = Object.keys(rowSelection).filter((id) => rowSelection[id])
 
-
-      const selectedRowsDataId = selectedRowIds.map(id => {
-        const rowId = id ? (table.getRow(id)?.original as { id: string })?.id : null;
-        return rowId;
-      });
-
-
+      const selectedRowsDataId = selectedRowIds.map((id) => {
+        const rowId = id ? (table.getRow(id)?.original as { id: string })?.id : null
+        return rowId
+      })
 
       dispatch(
         setSelectedRows({
           tabKey,
           selectedRows: selectedRowIds,
         }),
-      );
+      )
 
       if (tabKey.includes("pending") || tabKey.includes("assigned") || tabKey.includes("audit")) {
-        const tabType = tabKey.includes("pending") ? "pending" : tabKey.includes("assigned") ? "assigned" : "audit";
+        const tabType = tabKey.includes("pending") ? "pending" : tabKey.includes("assigned") ? "assigned" : "audit"
 
         try {
           dispatch(
             setSelectedDocuments({
               tabKey: tabType,
               documentIds: selectedRowIds,
-              selectedRowsDataId: selectedRowsDataId as string[]
+              selectedRowsDataId: selectedRowsDataId as string[],
             }),
-          );
+          )
         } catch (error) {
-          console.error("Error updating document selection:", error);
+          console.error("Error updating document selection:", error)
         }
       }
     }
-  }, [rowSelection, tabKey, dispatch, table]);
+  }, [rowSelection, tabKey, dispatch, table])
 
   const filterTableByDateRange = (range: [Date | null, Date | null]) => {
     if (!range[0] && !range[1]) {
-      setFilteredData(data);
-      return;
+      setFilteredData(data)
+      return
     }
 
     const filtered = data.filter((item) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const typedItem = item as Record<string, any>;
-      if (!typedItem || !typedItem[dateKey]) return false;
+      const typedItem = item as Record<string, any>
+      if (!typedItem || !typedItem[dateKey]) return false
 
       try {
-        const dateStr = typedItem[dateKey] as string;
-        const [month, day, year] = dateStr.split("-").map(Number);
+        const dateStr = typedItem[dateKey] as string
+        const [month, day, year] = dateStr.split("-").map(Number)
 
-        if (!month || !day || !year) return false;
+        if (!month || !day || !year) return false
 
-        const rowDate = new Date(year, month - 1, day);
+        const rowDate = startOfDay(new Date(year, month - 1, day))
 
-        if (range[0] && range[1]) {
-          return isWithinInterval(rowDate, { start: range[0], end: range[1] });
+        const startDate = range[0] ? startOfDay(range[0]) : null
+        const endDate = range[1] ? startOfDay(range[1]) : null
+
+        if (startDate && endDate) {
+          return isWithinInterval(rowDate, { start: startDate, end: endDate })
+        } else if (startDate) {
+          return rowDate >= startDate
+        } else if (endDate) {
+          return rowDate <= endDate
         }
       } catch (error) {
-        console.error("Error parsing date:", error);
-        return false;
+        console.error("Error parsing date:", error)
+        return false
       }
 
-      return true;
-    });
-    setFilteredData(filtered);
-  };
+      return true
+    })
+    setFilteredData(filtered)
+  }
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (dateKey && (dateRange[0] || dateRange[1])) {
-      filterTableByDateRange(dateRange);
+      filterTableByDateRange(dateRange)
     } else {
-      setFilteredData(data);
+      setFilteredData(data)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, dateKey, dateRange]);
+  }, [data, dateKey, dateRange])
 
   const routeKeyMap: Record<string, string> = {
-    "pending": "Pending",
-    "assigned": "Assigned",
-    "audit": "Audit",
-    "completed": "Completed",
-  };
-  const activeTabKey = routeKeyMap[target.split("/").pop() || ""] || "";
-  useEffect(() => {
+    pending: "Pending",
+    assigned: "Assigned",
+    audit: "Audit",
+    completed: "Completed",
+  }
+  const activeTabKey = routeKeyMap[target.split("/").pop() || ""] || ""
+
+  /* React.useEffect(() => {
     if (activeTabKey) {
       dispatch(
         updateCountByKey({
           key: activeTabKey,
           count: table.getRowModel().rows.length,
-        })
-      );
+        }),
+      )
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [table.getRowModel(), activeTabKey]);
+  }, [table.getRowModel(), activeTabKey]) */
 
+  const [activeId, setActiveId] = useState<string | null>(null)
 
-
-  const [activeId, setActiveId] = useState<string | null>(null);
   return (
     <div className="flex h-full flex-col space-y">
       {isFloating ? (
@@ -402,19 +407,22 @@ export function DataTable<TData, TValue>({
                   {table.getRowModel().rows?.length ? (
                     table.getRowModel().rows.map((row, index) => {
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      const fileSizeRaw = (row?.original as any)?.fileSize ?? 0;
-                      const fileSizeNumber = Number.parseFloat(fileSizeRaw);
-                      const isLargeFile = fileSizeNumber > 600;
+                      const fileSizeRaw = (row?.original as any)?.fileSize ?? 0
+                      const fileSizeNumber = Number.parseFloat(fileSizeRaw)
+                      const isLargeFile = fileSizeNumber > 600
                       return (
                         <TableRow
                           key={row.id + index}
                           data-state={row.getIsSelected() && "selected"}
-                          className={cn(`
+                          className={cn(
+                            `
                           hover:bg-gray-50 dark:hover:bg-gray-700 bg-white dark:bg-gray-900
                           ${row.getIsSelected() ? "bg-gray-100 dark:bg-gray-800" : ""}
-                        `, isLargeFile &&
-                          `bg-[#fcff00]/50 hover:bg-[#fcff00]/80 dark:bg-[#fcff00] ${row.getIsSelected() ? "!bg-[#fcff00]" : ""
-                          }`)}
+                        `,
+                            isLargeFile &&
+                            `bg-[#fcff00]/50 hover:bg-[#fcff00]/80 dark:bg-[#fcff00] ${row.getIsSelected() ? "!bg-[#fcff00]" : ""
+                            }`,
+                          )}
                         >
                           {row.getVisibleCells().map((cell) => (
                             <TableCell key={cell.id}>
@@ -425,7 +433,7 @@ export function DataTable<TData, TValue>({
                             </TableCell>
                           ))}
                         </TableRow>
-                      );
+                      )
                     })
                   ) : (
                     <TableRow>
@@ -446,7 +454,7 @@ export function DataTable<TData, TValue>({
 
       <DataTablePagination table={table} />
     </div>
-  );
+  )
 }
 
-export default DataTable;
+export default DataTable

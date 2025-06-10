@@ -31,7 +31,6 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
   const initializedRef = useRef(false);
 
   const defaultPageSize = `${table.getState().pagination.pageSize}`;
-
   const [customPageSize, setCustomPageSize] = useState("");
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [availablePages] = useState<number[]>([25, 30, 40, 50]);
@@ -39,6 +38,7 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
   // This effect runs once to initialize pagination from stored data
   useEffect(() => {
     if (storedData?.pagination && !initializedRef.current) {
+
       initializedRef.current = true;
       table.setPagination(storedData.pagination);
 
@@ -50,9 +50,18 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
     }
   }, [storedData, table, availablePages]);
 
-  // This effect saves pagination state to Redux when it changes
   useEffect(() => {
-    const pagination = table.getState().pagination;
+    if (storedData?.pagination?.pageSize === 25) {
+      setShowCustomInput(false);
+      setCustomPageSize("");
+      table.setPageSize(25);
+    }
+  }, [storedData?.pagination?.pageSize]);
+
+
+  // This effect saves pagination state to Redux when it changes
+  const pagination = table.getState().pagination;
+  useEffect(() => {
 
     if (compositeTabKey && storedData) {
       dispatch(
@@ -92,6 +101,8 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
     setCustomPageSize("");
     table.setPageSize(25);
   };
+
+  // const changePageByButton = (pageCount: number) => { };
 
   return (
     <div className="flex items-center pt-1 justify-between px-2">
