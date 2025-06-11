@@ -198,7 +198,7 @@ export default function PdfViewer({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="w-24 h-24 mx-auto bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center">
+          <div className="w-24 h-24 mx-auto bg-gradient-to-br from-blue-100 to-blue-100 rounded-full flex items-center justify-center">
             <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -213,7 +213,7 @@ export default function PdfViewer({
           </p>
           <p className="text-gray-400 text-sm">
             {!(documents?.length > 0)
-              ? "Check back later for new assignments"
+              ? ""
               : "Choose from the document list to get started"}
           </p>
         </motion.div>

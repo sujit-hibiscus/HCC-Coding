@@ -47,70 +47,7 @@ interface AuditorReviewFormProps {
     onSubmit: () => void
 }
 
-// Sample DX codes for the searchable select
-/* const DX_CODES = [
-    {
-        code: "F32.9",
-        description: "Major depressive disorder, single episode",
-        hccCode: "HCC 58",
-        evidence: "Persistent depressed mood, anhedonia, PHQ-9 score 18.",
-        reference: "ICD-10-CM Guidelines Section I.C.5.a.1",
-    },
-    {
-        code: "M79.3",
-        description: "Panniculitis, unspecified",
-        hccCode: "HCC 40",
-        evidence: "Inflammation of subcutaneous fat tissue, localized swelling.",
-        reference: "ICD-10-CM Guidelines Section I.C.13.a.1",
-    },
-    {
-        code: "K59.00",
-        description: "Constipation, unspecified",
-        hccCode: "HCC 6",
-        evidence: "Infrequent bowel movements, hard stools, abdominal discomfort.",
-        reference: "ICD-10-CM Guidelines Section I.C.11.a.1",
-    },
-    {
-        code: "R50.9",
-        description: "Fever, unspecified",
-        hccCode: "HCC 2",
-        evidence: "Elevated body temperature >100.4°F, documented fever episodes.",
-        reference: "ICD-10-CM Guidelines Section I.C.18.a.1",
-    },
-    {
-        code: "Z87.891",
-        description: "Personal history of nicotine dependence",
-        hccCode: "HCC 54",
-        evidence: "Former smoker, quit 2 years ago, 20 pack-year history.",
-        reference: "ICD-10-CM Guidelines Section I.C.21.a.1",
-    },
-] */
 
-// Optimized Animated Counter Component
-const AnimatedCounter = ({ value, label, color }: { value: number; label: string; color: string }) => {
-    return (
-        <Tooltip>
-            <TooltipTrigger asChild>
-                <motion.div
-                    className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${color} cursor-pointer`}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    transition={{ duration: 0.15 }}
-                >
-                    <span>{value}</span>
-                </motion.div>
-            </TooltipTrigger>
-            <TooltipContent
-                variant={label === "Pending" ? "warning" : label === "Accepted" ? "success" : "error"}
-                side={label === "Rejected" ? "left" : "top"}
-            >
-                <p className="text-xs">
-                    {value} {label}
-                </p>
-            </TooltipContent>
-        </Tooltip>
-    )
-}
 
 export default function AuditorReviewForm({
     selectedDocumentId,
@@ -121,6 +58,7 @@ export default function AuditorReviewForm({
     isCompletingReview,
     onSubmit,
 }: AuditorReviewFormProps) {
+    console.log("🚀 ~ formErrors:", formErrors?.rating)
     const { dispatch, selector } = useRedux()
     // New state for checkbox filters
     const [showRxHcc, setShowRxHcc] = useState(true)
@@ -220,51 +158,17 @@ export default function AuditorReviewForm({
         })
     }, [])
 
-    /*   const handleAddCode = useCallback(
-              (codeItem: {
-                  code: string
-                  description: string
-                  hccCode: string
-                  evidence: string
-                  reference: string
-              }) => {
-                  if (!selectedDocumentId) return
-      
-                  // Check if code already exists
-                  const exists = currentCodeReview.items.some((item) => item.icdCode === codeItem.code)
-                  if (exists) return
-      
-                  const newCode: CodeReviewItem = {
-                      id: `${codeItem.code}-${Date.now()}`,
-                      icdCode: codeItem.code,
-                      description: codeItem.description,
-                      hccCode: codeItem.hccCode,
-                      evidence: codeItem.evidence,
-                      reference: codeItem.reference,
-                      status: "accepted",
-                      addedAt: Date.now(),
-                  }
-      
-                  dispatch(addCodeReviewItem({ documentId: selectedDocumentId, item: newCode }))
-                  setOpen(false)
-                  setLocalSearchTerm("")
-              },
-              [selectedDocumentId, currentCodeReview.items, dispatch],
-          ) */
-
     const handleStatusUpdate = useCallback(
         async (itemId: string, status: "accepted" | "rejected") => {
             if (selectedDocumentId && !updatingItemId) {
                 setUpdatingItemId(itemId)
 
-                // Add a small delay to prevent rapid clicking and ensure smooth transition
                 await new Promise((resolve) => setTimeout(resolve, 150))
 
                 startTransition(() => {
                     dispatch(updateCodeReviewItemStatus({ documentId: selectedDocumentId, itemId, status }))
                 })
 
-                // Clear the updating state after a brief moment
                 setTimeout(() => setUpdatingItemId(null), 300)
             }
         },
@@ -465,12 +369,12 @@ export default function AuditorReviewForm({
                                 </div>
                             </div>
 
-                            <div className="space-y-2 pr-2 whitespace-nowrap">
+                            <div className="space-y-2 min-w-[100px] pr-2 whitespace-nowrap">
                                 <div className="flex items-center gap-1">
                                     <Label htmlFor="rating" className="text-xs font-medium">
                                         Quality Rating
                                     </Label>
-                                    {formErrors.rating && (
+                                    {(formErrors.rating && !(formData.rating > 0)) && (
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <div className="text-red-500">
@@ -498,7 +402,7 @@ export default function AuditorReviewForm({
                                             }}
                                             className={cn(
                                                 "h-8 text-xs transition-all duration-200 focus:ring-2 focus:ring-blue-200",
-                                                formErrors.rating && "border-red-500 focus:border-red-500",
+                                                (formErrors.rating && !(formData.rating > 0)) && "border-red-500 focus:border-red-500",
                                             )}
                                         />
                                     </div>
@@ -835,7 +739,7 @@ export default function AuditorReviewForm({
                             )} */}
 
                             {/* Empty State */}
-                            {filteredItems.length === 0 && !isPending && (
+                            {(!isCodeLoading && filteredItems.length === 0 && !isPending) && (
                                 <motion.div
                                     className="flex flex-col items-center justify-center py-8 text-center"
                                     initial={{ opacity: 0 }}
