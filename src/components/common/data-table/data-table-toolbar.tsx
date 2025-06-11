@@ -36,6 +36,7 @@ function DataTableToolbarComponent<TData>({
   dateKey = "",
   handleRefresh,
 }: DataTableToolbarProps<TData>) {
+  console.log("🚀 ~ dateRange:", dateRange)
   const isFiltered = table.getState().columnFilters.length > 0;
   const { charts = "", target = "" } = useFullPath();
   const tabKey = `${charts}${target}`;
@@ -70,6 +71,8 @@ function DataTableToolbarComponent<TData>({
       ? !(isInThisWeekRange(storedFilters.dateRange[0], storedFilters.dateRange[1]))
       : false;
 
+
+  console.log(isDateRange, "isDateRange");
 
 
 
@@ -116,9 +119,19 @@ function DataTableToolbarComponent<TData>({
           },
         }),
       ); */
-      setTimeout(() => {
-        dispatch(clearTabFilters(tabKey));
-      });
+      if (pageSize !== 25) {
+        setTimeout(() => {
+          dispatch(
+            setTabPagination({
+              tabKey: tabKey,
+              pagination: {
+                pageIndex: 0,
+                pageSize: 25,
+              },
+            }),
+          );
+        });
+      }
     }
 
     /* */
