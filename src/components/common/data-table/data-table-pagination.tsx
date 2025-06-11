@@ -35,7 +35,6 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [availablePages] = useState<number[]>([25, 30, 40, 50]);
 
-  // This effect runs once to initialize pagination from stored data
   useEffect(() => {
     if (storedData?.pagination && !initializedRef.current) {
 
@@ -62,7 +61,6 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
   // This effect saves pagination state to Redux when it changes
   const pagination = table.getState().pagination;
   useEffect(() => {
-
     if (compositeTabKey && storedData) {
       dispatch(
         setTabPagination({

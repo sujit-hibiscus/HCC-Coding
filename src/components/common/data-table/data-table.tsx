@@ -4,20 +4,22 @@ import { TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/tab
 import { Typography } from "@/components/ui/Typography"
 import useFullPath from "@/hooks/use-fullpath"
 import { useRedux } from "@/hooks/use-redux"
-import { restrictToHorizontalAxis } from "@dnd-kit/modifiers"
+import { cn, EndDateFilter, StartDateFilter } from "@/lib/utils"
 import { setStoreColumnOrder } from "@/store/slices/DashboardSlice"
+import { setSelectedDocuments } from "@/store/slices/table-document-slice"
 import { setSelectedRows, setTabFilters, setTabPagination } from "@/store/slices/tableFiltersSlice"
 import {
   closestCenter,
   DndContext,
+  DragOverlay,
   KeyboardSensor,
+  MeasuringStrategy,
   PointerSensor,
   useSensor,
   useSensors,
-  MeasuringStrategy,
   type DragEndEvent,
-  DragOverlay,
 } from "@dnd-kit/core"
+import { restrictToHorizontalAxis } from "@dnd-kit/modifiers"
 import {
   arrayMove,
   horizontalListSortingStrategy,
@@ -43,11 +45,8 @@ import * as React from "react"
 import { useEffect, useState } from "react"
 import { DataTablePagination } from "./data-table-pagination"
 import { DataTableToolbar } from "./data-table-toolbar"
-import { SortableHeader } from "./sortable-header"
-import { cn, EndDateFilter, StartDateFilter } from "@/lib/utils"
-import { setSelectedDocuments } from "@/store/slices/table-document-slice"
-import { updateCountByKey } from "@/store/slices/user-slice"
 import { DragMonitor } from "./drag-monitor"
+import { SortableHeader } from "./sortable-header"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -135,20 +134,32 @@ export function DataTable<TData, TValue>({
   // Persist filters on change
   React.useEffect(() => {
     if (tabKey && !isHandlingFilterChange.current) {
-      dispatch(
-        setTabFilters({
-          tabKey,
-          filters: {
-            columnFilters,
-            sorting,
-            columnVisibility,
-            dateRange,
-            pagination: storedFilters?.pagination || { pageIndex: 0, pageSize: defaultPageSize },
-          },
-        }),
-      )
+      const currentFilters = {
+        columnFilters,
+        sorting,
+        columnVisibility,
+        dateRange,
+        pagination: storedFilters?.pagination || { pageIndex: 0, pageSize: defaultPageSize },
+      };
+
+      // Only dispatch if there are actual changes
+      const hasChanges =
+        JSON.stringify(currentFilters.columnFilters) !== JSON.stringify(storedFilters?.columnFilters) ||
+        JSON.stringify(currentFilters.sorting) !== JSON.stringify(storedFilters?.sorting) ||
+        JSON.stringify(currentFilters.columnVisibility) !== JSON.stringify(storedFilters?.columnVisibility) ||
+        JSON.stringify(currentFilters.dateRange) !== JSON.stringify(storedFilters?.dateRange) ||
+        JSON.stringify(currentFilters.pagination) !== JSON.stringify(storedFilters?.pagination);
+
+      if (hasChanges) {
+        dispatch(
+          setTabFilters({
+            tabKey,
+            filters: currentFilters,
+          }),
+        );
+      }
     }
-  }, [columnFilters, sorting, columnVisibility, dateRange, tabKey, dispatch, storedFilters?.pagination, defaultPageSize])
+  }, [columnFilters, sorting, columnVisibility, dateRange, tabKey, dispatch, storedFilters?.pagination, defaultPageSize]);
 
   // Add global styles for dragging
   React.useEffect(() => {
@@ -381,6 +392,30 @@ export function DataTable<TData, TValue>({
   }, [table.getRowModel(), activeTabKey]) */
 
   const [activeId, setActiveId] = useState<string | null>(null)
+
+  // This effect saves pagination state to Redux when it changes
+  const pagination = table.getState().pagination;
+  useEffect(() => {
+    if (tabKey && storedFilters && !isHandlingFilterChange.current) {
+      const currentPagination = {
+        pageIndex: pagination.pageIndex,
+        pageSize: pagination.pageSize
+      };
+
+      const storedPagination = storedFilters.pagination || { pageIndex: 0, pageSize: 25 };
+
+      // Only dispatch if there are actual changes
+      if (currentPagination.pageIndex !== storedPagination.pageIndex ||
+        currentPagination.pageSize !== storedPagination.pageSize) {
+        dispatch(
+          setTabPagination({
+            tabKey,
+            pagination: currentPagination,
+          }),
+        );
+      }
+    }
+  }, [pagination.pageIndex, pagination.pageSize, tabKey, dispatch, storedFilters]);
 
   return (
     <div className="flex h-full flex-col space-y">

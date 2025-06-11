@@ -15,6 +15,7 @@ import { motion } from "framer-motion";
 import { LoaderCircle, RefreshCw, Sparkles, X } from "lucide-react";
 import { CalendarDateRangePicker } from "./CalendarDateRangePicker";
 import { TasksTableToolbarActions } from "./tasks-table-toolbar-actions";
+import { endOfWeek, isDate, isSameDay, isWithinInterval, parseISO, startOfWeek, subDays } from "date-fns";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
@@ -53,15 +54,32 @@ function DataTableToolbarComponent<TData>({
       dispatch(fetchAuditDocuments());
     }
   };
+  const isInThisWeekRange = (start: Date, end: Date): boolean => {
+    const startDate = startOfWeek(new Date(), { weekStartsOn: 1 });
+    const endDate = endOfWeek(new Date(), { weekStartsOn: 1 });
+
+    return isSameDay(start, startDate) && isSameDay(end, endDate);
+  };
 
   const isChangePage = pageSize ? pageSize !== 25 : false || pageIndex ? pageIndex !== 0 : false;
   const isSort = storedFilters?.sorting;
-  const isDateRange = storedFilters?.dateRange[0] !== StartDateFilter && storedFilters?.dateRange[1] !== EndDateFilter;
+  const isDateRange =
+    storedFilters?.dateRange &&
+      storedFilters.dateRange[0] instanceof Date &&
+      storedFilters.dateRange[1] instanceof Date
+      ? !(isInThisWeekRange(storedFilters.dateRange[0], storedFilters.dateRange[1]))
+      : false;
+
+
+
 
   // Check if any rows are selected
   const hasSelectedRows = Object.keys(table.getState().rowSelection || {}).length > 0;
 
   const invisibleColumnCount = table.getAllColumns().filter((column) => !column.getIsVisible()).length;
+  const currentPage = table.getState().pagination.pageIndex + 1
+
+  const showResetButton = currentPage > 1 || isFiltered || isDateRange || invisibleColumnCount > 0 || isChangePage || isSort?.length > 0 || hasSelectedRows
 
   const handleResetSorting = () => {
     if (setSorting) {
@@ -84,10 +102,12 @@ function DataTableToolbarComponent<TData>({
       handleResetSorting();
     }
 
+
     if (isChangePage) {
-      table.setPageSize(25);
-      table.setPageIndex(0);
-      dispatch(
+      // table.setPageSize(25);
+      /* 
+       table.setPageIndex(0); */
+      /* dispatch(
         setTabPagination({
           tabKey: tabKey,
           pagination: {
@@ -95,17 +115,17 @@ function DataTableToolbarComponent<TData>({
             pageSize: 25,
           },
         }),
-      );
+      ); */
+      setTimeout(() => {
+        dispatch(clearTabFilters(tabKey));
+      });
     }
 
-    setTimeout(() => {
-      dispatch(clearTabFilters(tabKey));
-    });
+    /* */
   };
 
   // Show reset button if any filter is applied, any rows are selected, or any other condition is met
-  const showResetButton =
-    isFiltered || isDateRange || invisibleColumnCount > 0 || isChangePage || isSort?.length > 0 || hasSelectedRows;
+
 
   const { selectedDocumentsId: selectedDocuments } = selector((state) => state.documentTable);
 

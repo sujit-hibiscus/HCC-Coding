@@ -58,7 +58,6 @@ export default function AuditorReviewForm({
     isCompletingReview,
     onSubmit,
 }: AuditorReviewFormProps) {
-    console.log("🚀 ~ formErrors:", formErrors?.rating)
     const { dispatch, selector } = useRedux()
     // New state for checkbox filters
     const [showRxHcc, setShowRxHcc] = useState(true)
