@@ -69,17 +69,18 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
 
     const handleNavigation = (href: string, label: string) => {
         const id = href.split("/").pop() || href;
-        if (targetTabs.some(status => id.includes(status))) {
-            getChartApi(id as "pending" | "assigned" | "audit" | "completed" | "document");
-        }
 
-        if (onNavigate) {
-            onNavigate(id, label, href);
-        }
+        setTimeout(() => {
+            if (targetTabs.some(status => id.includes(status))) {
+                getChartApi(id as "pending" | "assigned" | "audit" | "completed" | "document");
+            }
 
-        if (!isMobile) {
-            router.push(href);
-        }
+            if (onNavigate) {
+                onNavigate(id, label, href);
+            }
+        });
+
+        router.push(href);
     };
 
     const { showPromiseToast } = useToast();
@@ -129,9 +130,30 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                                     <div className="flex items-center">
                                         {/* <NextImage height={40} width={60} src="/images/ADI-cropped.svg" alt="hom" /> */}
                                         <div className="pl-3">
-                                            {appName?.split("")?.map((item, index) => {
-                                                return <span key={index} className="ml-[1px] text-2xl leading-7 letter-sp text-selectedText tracking-widest font-semibold">{item}</span>;
-                                            })}
+                                            <motion.div
+                                                className="flex"
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, x: -10 }}
+                                                transition={{ duration: 0.2 }}
+                                            >
+                                                {appName?.split("")?.map((item, index) => (
+                                                    <motion.span
+                                                        key={index}
+                                                        className="ml-[1px] text-2xl leading-7 letter-sp text-selectedText tracking-widest font-semibold"
+                                                        initial={{ opacity: 0, y: -10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        transition={{
+                                                            duration: 0.2,
+                                                            delay: index * 0.03,
+                                                            type: "spring",
+                                                            stiffness: 200
+                                                        }}
+                                                    >
+                                                        {item}
+                                                    </motion.span>
+                                                ))}
+                                            </motion.div>
                                         </div>
 
                                     </div>

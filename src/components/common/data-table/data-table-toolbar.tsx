@@ -58,12 +58,10 @@ function DataTableToolbarComponent<TData>({
   const isSort = storedFilters?.sorting;
   const isDateRange = storedFilters?.dateRange[0] !== StartDateFilter && storedFilters?.dateRange[1] !== EndDateFilter;
 
-
   // Check if any rows are selected
   const hasSelectedRows = Object.keys(table.getState().rowSelection || {}).length > 0;
 
   const invisibleColumnCount = table.getAllColumns().filter((column) => !column.getIsVisible()).length;
-
 
   const handleResetSorting = () => {
     if (setSorting) {
@@ -77,9 +75,8 @@ function DataTableToolbarComponent<TData>({
 
   const handleReset = () => {
     table.resetRowSelection();
-
     table.resetColumnFilters();
-    handleDateRangeChange([StartDateFilter, EndDateFilter],);
+    handleDateRangeChange([StartDateFilter, EndDateFilter]);
     if (invisibleColumnCount > 0) {
       table.getAllColumns().forEach((column) => column.toggleVisibility(true));
     }
@@ -89,6 +86,7 @@ function DataTableToolbarComponent<TData>({
 
     if (isChangePage) {
       table.setPageSize(25);
+      table.setPageIndex(0);
       dispatch(
         setTabPagination({
           tabKey: tabKey,

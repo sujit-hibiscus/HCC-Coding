@@ -180,7 +180,10 @@ const config: Config = {
 				"custom-box": "rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px",
 				"custom-dark": "rgba(255, 255, 255, 0.25) 0px 4px 8px -2px, rgba(255, 255, 255, 0.08) 0px 0px 0px 1px",
 				primary: '0 4px 10px rgba(200, 221, 252, 0.5)'
-			}
+			},
+			animation: {
+				'spin-slow': 'spin 3s linear infinite',
+			},
 		},
 
 	},

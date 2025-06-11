@@ -171,7 +171,7 @@ export function CalendarDateRangePicker({
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 rounded-none" align="start">
                     <div className="flex overflow-hidden">
-                        <div className="w-48 ">
+                        <div className="w-48 p-1">
                             {presets.map((preset) => (
                                 <Button
                                     key={preset.label}

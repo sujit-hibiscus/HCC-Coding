@@ -7,12 +7,13 @@ import { useRedux } from "@/hooks/use-redux";
 import type { Tab } from "@/lib/types/dashboardTypes";
 import { updateTab } from "@/store/slices/DashboardSlice";
 
+import { useApiCall } from "@/components/common/ApiCall";
+import ProgressiveLoader from "@/components/common/ProgressiveLoader";
 import { ChartTab } from "@/lib/types/chartsTypes";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, Clock, FileEdit } from "lucide-react";
 import { redirect, usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useApiCall } from "@/components/common/ApiCall";
 
 const tabVariants = {
     hidden: { opacity: 0, y: 0 },
@@ -20,7 +21,7 @@ const tabVariants = {
     exit: { opacity: 0, y: 0 },
 };
 
-export default function ChartLayout({
+export default function ChartsLayout({
     children,
 }: {
     children: React.ReactNode
@@ -35,7 +36,6 @@ export default function ChartLayout({
     if (!(userType?.toLowerCase()?.includes("admin"))) {
         redirect("/unauthorized");
     }
-
 
     const chartsCounts = appointmentCounts?.data?.charts;
     const tabCountLoading = appointmentCounts?.status;
@@ -96,7 +96,25 @@ export default function ChartLayout({
         },
     ];
 
+    const [isLoading, setIsLoading] = useState(false);
+    const [currentPath, setCurrentPath] = useState(pathname);
 
+    useEffect(() => {
+        if (pathname !== currentPath) {
+            setIsLoading(true);
+            setCurrentPath(pathname);
+
+            // Use requestAnimationFrame for smoother transitions
+            requestAnimationFrame(() => {
+                // Simulate minimum loading time for better UX
+                setTimeout(() => {
+                    requestAnimationFrame(() => {
+                        setIsLoading(false);
+                    });
+                }, 300);
+            });
+        }
+    }, [pathname, currentPath]);
 
     useEffect(() => {
         setCurrentTab(pathname.split("/").pop() || "pending");
@@ -120,33 +138,43 @@ export default function ChartLayout({
     };
 
     return (
-        <div className="px-2 py-1 h-full flex space-y-1 flex-col bg-background">
-            <div className="h-10 flex items-center justify-between">
-                {userType !== "Provider" && (
-                    <div className="flex items-center gap-2">
-                        <TabsComponent
-                            countLoading={tabCountLoading === "Loading"}
-                            tabs={tabs}
-                            currentTab={currentTab}
-                            handleTabChange={handleTabChange}
-                        />
+        <div className="relative h-full ">
+            <div className={"opacity-100 h-full transition-opacity duration-300"}>
+                <div className="px-2 py-1 h-full flex space-y-1 flex-col bg-background">
+                    <div className="h-10 flex items-center justify-between">
+                        {userType !== "Provider" && (
+                            <div className="flex items-center gap-2">
+                                <TabsComponent
+                                    countLoading={tabCountLoading === "Loading"}
+                                    tabs={tabs}
+                                    currentTab={currentTab}
+                                    handleTabChange={handleTabChange}
+                                />
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
 
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={currentTab}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    variants={tabVariants}
-                    transition={{ duration: 0.2, ease: "easeInOut" }}
-                    className="h-full overflow-hidden flex flex-col pt-2 pb-1"
-                >
-                    {children}
-                </motion.div>
-            </AnimatePresence>
+
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={currentTab}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            variants={tabVariants}
+                            transition={{ duration: 0.2, ease: "easeInOut" }}
+                            className="h-full relative overflow-hidden flex flex-col pt-2 pb-1"
+                        >
+                            {isLoading && (
+                                <div className="absolute h-full w-full opacity-80 inset-0 z-40">
+                                    <ProgressiveLoader />
+                                </div>
+                            )}
+                            {children}
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
+            </div>
         </div>
     );
 }

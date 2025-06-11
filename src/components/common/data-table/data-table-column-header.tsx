@@ -76,14 +76,14 @@ export function DataTableColumnHeader<TData, TValue>({
 
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const initialLoadRef = useRef(true);
-
-  useEffect(() => {
-    if (initialLoadRef.current && storedFilterValue) {
-      column.setFilterValue(storedFilterValue);
-      initialLoadRef.current = false;
-    }
-  }, [column, storedFilterValue]);
+  /*   const initialLoadRef = useRef(true);
+  
+    useEffect(() => {
+      if (initialLoadRef.current && storedFilterValue) {
+        column.setFilterValue(storedFilterValue);
+        initialLoadRef.current = false;
+      }
+    }, [column, storedFilterValue]); */
 
   useEffect(() => {
     if (compositeTabKey && storedData) {
@@ -180,10 +180,10 @@ export function DataTableColumnHeader<TData, TValue>({
             Desc
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          {/*  <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
+          <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
             <Icons.eyeNone className="mr-2 h-3.5 w-3.5" />
             Hide
-          </DropdownMenuItem> */}
+          </DropdownMenuItem>
           {searchType && (
             <>
               <DropdownMenuSeparator />

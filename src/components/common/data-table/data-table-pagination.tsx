@@ -120,7 +120,7 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
                 className="h-8 w-[5rem]"
                 placeholder="Page"
               />
-              <Button variant="outline" className="h-8" onClick={resetToSelect}>
+              <Button variant="outline" className="h-8 !rounded-none" onClick={resetToSelect}>
                 Reset
               </Button>
             </div>

@@ -6,7 +6,6 @@ import { Card, CardContent } from "@/components/ui/card"
 import { CreatableSelect } from "@/components/ui/creatable-select"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useRedux } from "@/hooks/use-redux"
@@ -20,8 +19,9 @@ import {
     updateFormData,
 } from "@/store/slices/documentManagementSlice"
 import { AnimatePresence, motion } from "framer-motion"
-import { Check, CheckCircle, ChevronDown, ChevronUp, Info, Loader2, Search, X, Zap } from "lucide-react"
+import { Check, CheckCircle, ChevronDown, ChevronUp, Info, Loader2, Search, X } from "lucide-react"
 import { useCallback, useMemo, useState, useTransition } from "react"
+import { Checkbox } from "../ui/checkbox"
 
 interface FormData {
     codesMissed: Array<{ value: string; label: string }>
@@ -45,17 +45,6 @@ interface AuditorReviewFormProps {
     isSubmitting: boolean
     isCompletingReview: boolean
     onSubmit: () => void
-}
-
-interface CodeReviewItem {
-    id: string
-    icdCode: string
-    description: string
-    hccCode: string
-    evidence: string
-    reference: string
-    status: "accepted" | "rejected"
-    addedAt: number
 }
 
 // Sample DX codes for the searchable select
@@ -123,21 +112,6 @@ const AnimatedCounter = ({ value, label, color }: { value: number; label: string
     )
 }
 
-// Optimized Status Badge
-const StatusBadge = ({ status }: { status: string }) => {
-    const colorMap = {
-        pending: "bg-amber-500",
-        accepted: "bg-emerald-500",
-        rejected: "bg-rose-500",
-    }
-
-    return (
-        <div
-            className={`w-2 h-2 rounded-full transition-colors duration-200 ${colorMap[status as keyof typeof colorMap]}`}
-        />
-    )
-}
-
 export default function AuditorReviewForm({
     selectedDocumentId,
     selectedDocument,
@@ -148,12 +122,16 @@ export default function AuditorReviewForm({
     onSubmit,
 }: AuditorReviewFormProps) {
     const { dispatch, selector } = useRedux()
+    // New state for checkbox filters
+    const [showRxHcc, setShowRxHcc] = useState(true)
+    const [showHcc, setShowHcc] = useState(true)
     const { codeReview } = selector((state: RootState) => state.documentManagement)
     const [expandedCard, setExpandedCard] = useState<string | null>(null)
     const [filterStatus, setFilterStatus] = useState<string>("all")
     const [localSearchTerm, setLocalSearchTerm] = useState("")
     const [isPending, startTransition] = useTransition()
     const [updatingItemId, setUpdatingItemId] = useState<string | null>(null)
+    const isCodeLoading = selector((state) => state.documentManagement.medicalConditionsLoading)
 
     // Get current document's code review data
     const currentCodeReview = useMemo(() => {
@@ -167,30 +145,58 @@ export default function AuditorReviewForm({
             }
     }, [selectedDocumentId, codeReview])
 
-    // Optimized filtering with better performance
     const filteredItems = useMemo(() => {
         let items = [...currentCodeReview.items]
 
-        // Apply status filter first (most selective)
+        // Filter by status
         if (filterStatus !== "all") {
             items = items.filter((item) => item.status === filterStatus)
         }
 
-        // Apply search filter
+        // Filter by code type checkboxes
+        items = items.filter((item) => {
+            const hasRxHcc = item.hccCode && item.hccCode.trim() !== ""
+            const hasHcc = item.hccV28Code && item.hccV28Code.trim() !== ""
+
+            // If both checkboxes are unchecked, show nothing
+            if (!showRxHcc && !showHcc) {
+                return false
+            }
+
+            // If both are checked, show all items
+            if (showRxHcc && showHcc) {
+                return true
+            }
+
+            // If only Rx-HCC is checked, show items with Rx-HCC codes
+            if (showRxHcc && !showHcc) {
+                return hasRxHcc
+            }
+
+            // If only HCC is checked, show items with HCC codes
+            if (!showRxHcc && showHcc) {
+                return hasHcc
+            }
+
+            return true
+        })
+
+        // Filter by search term
         const searchTerm = localSearchTerm.toLowerCase().trim()
         if (searchTerm) {
             items = items.filter((item) => {
                 return (
-                    item.icdCode.toLowerCase().includes(searchTerm) ||
-                    item.description.toLowerCase().includes(searchTerm) ||
-                    item.hccCode.toLowerCase().includes(searchTerm) ||
-                    item.evidence.toLowerCase().includes(searchTerm)
+                    (item.icdCode || "").toLowerCase().includes(searchTerm) ||
+                    (item.description || "").toLowerCase().includes(searchTerm) ||
+                    (item.hccCode || "").toLowerCase().includes(searchTerm) ||
+                    (item.evidence || "").toLowerCase().includes(searchTerm) ||
+                    (item.diagnosis || "").toLowerCase().includes(searchTerm)
                 )
             })
         }
 
         return items
-    }, [currentCodeReview.items, filterStatus, localSearchTerm])
+    }, [currentCodeReview.items, filterStatus, localSearchTerm, showRxHcc, showHcc])
 
     // Optimized status counts
     const statusCounts = useMemo(() => {
@@ -215,36 +221,36 @@ export default function AuditorReviewForm({
     }, [])
 
     /*   const handleAddCode = useCallback(
-            (codeItem: {
-                code: string
-                description: string
-                hccCode: string
-                evidence: string
-                reference: string
-            }) => {
-                if (!selectedDocumentId) return
-    
-                // Check if code already exists
-                const exists = currentCodeReview.items.some((item) => item.icdCode === codeItem.code)
-                if (exists) return
-    
-                const newCode: CodeReviewItem = {
-                    id: `${codeItem.code}-${Date.now()}`,
-                    icdCode: codeItem.code,
-                    description: codeItem.description,
-                    hccCode: codeItem.hccCode,
-                    evidence: codeItem.evidence,
-                    reference: codeItem.reference,
-                    status: "accepted",
-                    addedAt: Date.now(),
-                }
-    
-                dispatch(addCodeReviewItem({ documentId: selectedDocumentId, item: newCode }))
-                setOpen(false)
-                setLocalSearchTerm("")
-            },
-            [selectedDocumentId, currentCodeReview.items, dispatch],
-        ) */
+              (codeItem: {
+                  code: string
+                  description: string
+                  hccCode: string
+                  evidence: string
+                  reference: string
+              }) => {
+                  if (!selectedDocumentId) return
+      
+                  // Check if code already exists
+                  const exists = currentCodeReview.items.some((item) => item.icdCode === codeItem.code)
+                  if (exists) return
+      
+                  const newCode: CodeReviewItem = {
+                      id: `${codeItem.code}-${Date.now()}`,
+                      icdCode: codeItem.code,
+                      description: codeItem.description,
+                      hccCode: codeItem.hccCode,
+                      evidence: codeItem.evidence,
+                      reference: codeItem.reference,
+                      status: "accepted",
+                      addedAt: Date.now(),
+                  }
+      
+                  dispatch(addCodeReviewItem({ documentId: selectedDocumentId, item: newCode }))
+                  setOpen(false)
+                  setLocalSearchTerm("")
+              },
+              [selectedDocumentId, currentCodeReview.items, dispatch],
+          ) */
 
     const handleStatusUpdate = useCallback(
         async (itemId: string, status: "accepted" | "rejected") => {
@@ -305,44 +311,28 @@ export default function AuditorReviewForm({
                     damping: 30,
                 }}
             >
-                {/* Optimized Header */}
-                <div className="flex items-center justify-between p-2">
-                    <div className="flex items-center gap-2">
-                        <motion.div
-                            className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg flex items-center justify-center"
-                            whileHover={{ rotate: 5, scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            transition={{ duration: 0.15 }}
-                        >
-                            <Zap className="w-4 h-4 text-white" />
-                        </motion.div>
-                        <h3 className="text-lg font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                            Audit Review
-                        </h3>
-                    </div>
-
-                    <div className="flex gap-2">
-                        <AnimatedCounter
-                            value={statusCounts.accepted}
-                            label="Accepted"
-                            color="bg-emerald-100 text-emerald-800 border border-emerald-500"
-                        />
-                        <AnimatedCounter
-                            value={statusCounts.rejected}
-                            label="Rejected"
-                            color="bg-rose-100 text-rose-800 border border-rose-500"
-                        />
-                    </div>
-                </div>
-
                 <div className="flex flex-col h-full px-2 pb-1 space-y-3 overflow-y-auto">
                     {/* Optimized Form Fields */}
                     <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-2">
-                                <Label htmlFor="codes-missed" className="text-xs font-medium">
-                                    Codes Missed
-                                </Label>
+                                <div className="flex items-center gap-1">
+                                    <Label htmlFor="codes-missed" className="text-xs font-medium">
+                                        Codes Missed
+                                    </Label>
+                                    {formErrors.codesMissed && !(formData.codesMissed?.length > 0) && (
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div className="text-red-500">
+                                                    <Info className="h-3 w-3" />
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" className="bg-red-500 text-white">
+                                                <p className="text-xs">{formErrors.codesMissed}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    )}
+                                </div>
                                 <div className="relative">
                                     <CreatableSelect
                                         id="codes-missed"
@@ -354,6 +344,7 @@ export default function AuditorReviewForm({
                                                 codesMissed: newValue as { value: string; label: string }[],
                                             })
                                         }}
+                                        isError={formErrors.codesMissed && !(formData.codesMissed?.length > 0)}
                                         className={cn(
                                             "text-xs",
                                             formErrors.codesMissed && !(formData.codesMissed?.length > 0) && "border-red-500",
@@ -371,30 +362,32 @@ export default function AuditorReviewForm({
                                                 },
                                                 boxShadow:
                                                     formErrors.codesMissed && !(formData.codesMissed?.length > 0)
-                                                        ? "0 0 0 1px #ef4444"
+                                                        ? "0 0 0 0.1px #ef4444"
                                                         : base.boxShadow,
                                             }),
                                         }}
                                     />
-                                    {formErrors.codesMissed && !(formData.codesMissed?.length > 0) && (
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-red-500">
-                                                    <Info className="h-4 w-4" />
-                                                </div>
-                                            </TooltipTrigger>
-                                            <TooltipContent side="top" className="bg-red-500 text-white">
-                                                <p className="text-xs">{formErrors.codesMissed}</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    )}
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="codes-corrected" className="text-xs font-medium">
-                                    Codes Corrected
-                                </Label>
+                                <div className="flex items-center gap-1">
+                                    <Label htmlFor="codes-corrected" className="text-xs font-medium">
+                                        Codes Corrected
+                                    </Label>
+                                    {formErrors.codesCorrected && !(formData.codesCorrected?.length > 0) && (
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div className="text-red-500">
+                                                    <Info className="h-3 w-3" />
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" className="bg-red-500 text-white">
+                                                <p className="text-xs">{formErrors.codesCorrected}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    )}
+                                </div>
                                 <div className="relative">
                                     <CreatableSelect
                                         id="codes-corrected"
@@ -406,6 +399,7 @@ export default function AuditorReviewForm({
                                                 codesCorrected: newValue as { value: string; label: string }[],
                                             })
                                         }}
+                                        isError={formErrors.codesCorrected && !(formData.codesCorrected?.length > 0)}
                                         className="text-xs"
                                         styles={{
                                             control: (base, state) => ({
@@ -422,67 +416,73 @@ export default function AuditorReviewForm({
                                                 },
                                                 boxShadow:
                                                     formErrors.codesCorrected && !(formData.codesCorrected?.length > 0)
-                                                        ? "0 0 0 1px #ef4444"
+                                                        ? "0 0 0 0.1px #ef4444"
                                                         : base.boxShadow,
                                             }),
                                         }}
                                     />
-                                    {formErrors.codesCorrected && !(formData.codesCorrected?.length > 0) && (
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-red-500">
-                                                    <Info className="h-4 w-4" />
-                                                </div>
-                                            </TooltipTrigger>
-                                            <TooltipContent side="top" className="bg-red-500 text-white">
-                                                <p className="text-xs">{formErrors.codesCorrected}</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    )}
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex w-full items-start bg-red gap-3">
-                            <div className="space-y-2 w-full">
-                                <Label htmlFor="audit-remarks" className="text-xs font-medium">
-                                    Audit Remarks
-                                </Label>
-                                <div className="relative">
-                                    <Textarea
-                                        id="audit-remarks"
-                                        placeholder="Enter audit remarks..."
-                                        value={formData.auditRemarks}
-                                        onChange={(e) => {
-                                            handleFormDataUpdate({ auditRemarks: e.target.value })
-                                        }}
-                                        rows={2}
-                                        className={cn(
-                                            "text-xs transition-all duration-200 focus:ring-2 focus:ring-blue-200 max-h-[60px]",
-                                            formErrors.auditRemarks &&
-                                            !(formData.auditRemarks?.length >= 10) &&
-                                            "border-red-500 focus:border-red-500",
+                        <div className="flex gap-2">
+                            <div className="flex w-full items-start bg-red gap-3">
+                                <div className="space-y-2 w-full">
+                                    <div className="flex items-center gap-1">
+                                        <Label htmlFor="audit-remarks" className="text-xs font-medium">
+                                            Audit Remarks
+                                        </Label>
+                                        {formErrors.auditRemarks && !(formData.auditRemarks?.length >= 10) && (
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <div className="text-red-500">
+                                                        <Info className="h-3 w-3" />
+                                                    </div>
+                                                </TooltipTrigger>
+                                                <TooltipContent side="top" className="bg-red-500 text-white">
+                                                    <p className="text-xs">{formErrors.auditRemarks}</p>
+                                                </TooltipContent>
+                                            </Tooltip>
                                         )}
-                                    />
-                                    {formErrors.auditRemarks && !(formData.auditRemarks?.length >= 10) && (
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <div className="absolute right-2 top-2 text-red-500">
-                                                    <Info className="h-4 w-4" />
-                                                </div>
-                                            </TooltipTrigger>
-                                            <TooltipContent side="top" className="bg-red-500 text-white">
-                                                <p className="text-xs">{formErrors.auditRemarks}</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    )}
+                                    </div>
+                                    <div className="relative">
+                                        <Textarea
+                                            id="audit-remarks"
+                                            placeholder="Enter audit remarks..."
+                                            value={formData.auditRemarks}
+                                            onChange={(e) => {
+                                                handleFormDataUpdate({ auditRemarks: e.target.value })
+                                            }}
+                                            rows={2}
+                                            className={cn(
+                                                "text-xs transition-all duration-200 focus:ring-2 focus:ring-blue-200 max-h-[60px]",
+                                                formErrors.auditRemarks &&
+                                                !(formData.auditRemarks?.length >= 10) &&
+                                                "border-red-500 focus:border-red-500",
+                                            )}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
                             <div className="space-y-2 pr-2 whitespace-nowrap">
-                                <Label htmlFor="rating" className="text-xs font-medium">
-                                    Quality Rating
-                                </Label>
+                                <div className="flex items-center gap-1">
+                                    <Label htmlFor="rating" className="text-xs font-medium">
+                                        Quality Rating
+                                    </Label>
+                                    {formErrors.rating && (
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <div className="text-red-500">
+                                                    <Info className="h-3 w-3" />
+                                                </div>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" className="bg-red-500 text-white">
+                                                <p className="text-xs">{formErrors.rating}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    )}
+                                </div>
                                 <div className="flex items-center gap-2">
                                     <div className="relative">
                                         <Input
@@ -501,18 +501,6 @@ export default function AuditorReviewForm({
                                                 formErrors.rating && "border-red-500 focus:border-red-500",
                                             )}
                                         />
-                                        {formErrors.rating && (
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-red-500">
-                                                        <Info className="h-4 w-4" />
-                                                    </div>
-                                                </TooltipTrigger>
-                                                <TooltipContent side="top" className="bg-red-500 text-white">
-                                                    <p className="text-xs">{formErrors.rating}</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -520,7 +508,7 @@ export default function AuditorReviewForm({
                     </div>
 
                     {/* Optimized Search and Filter */}
-                    <div className="flex gap-2">
+                    <div className="w-full">
                         {/* Add Code Dropdown */}
                         {/* <div className="flex-1">
                             <Popover open={open} onOpenChange={setOpen}>
@@ -586,32 +574,46 @@ export default function AuditorReviewForm({
                             </Popover>
                         </div> */}
 
-                        {/* Search Filter */}
-                        <div className="flex-1">
-                            <div className="relative">
-                                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400" />
+                        {/* Search and Filter Section */}
+                        <div className="flex flex-col md:flex-row md:items-center gap-3 w-full">
+                            {/* Search Input */}
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                                 <Input
-                                    placeholder="Search codes..."
+                                    placeholder="Search medical condition..."
                                     value={localSearchTerm}
                                     onChange={(e) => handleSearchChange(e.target.value)}
-                                    className="pl-7 h-8 text-xs transition-all duration-200 focus:ring-2 focus:ring-blue-200"
+                                    className="pl-10 text-sm h-8 transition-all duration-200 focus:ring-2 focus:ring-blue-200"
                                 />
                             </div>
-                        </div>
 
-                        {/* Status Filter */}
-                        <div className="w-32">
-                            <Select value={filterStatus} onValueChange={handleFilterChange}>
-                                <SelectTrigger className="h-8 text-xs transition-all duration-200 focus:ring-2 focus:ring-blue-200">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All</SelectItem>
-                                    <SelectItem value="pending">Pending</SelectItem>
-                                    <SelectItem value="accepted">Accepted</SelectItem>
-                                    <SelectItem value="rejected">Rejected</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            {/* Checkbox Filters */}
+                            <div className="flex items-center gap-4 px-1">
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="rx-hcc-filter"
+                                        checked={showRxHcc}
+                                        onCheckedChange={(checked) => setShowRxHcc(checked as boolean)}
+                                        className="h-4 w-4"
+                                    />
+                                    <Label htmlFor="rx-hcc-filter" className="text-base font-medium cursor-pointer select-none">
+                                        Rx-HCC
+                                    </Label>
+                                </div>
+
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="hcc-filter"
+                                        checked={showHcc}
+                                        onCheckedChange={(checked) => setShowHcc(checked as boolean)}
+                                        className="h-4 w-4"
+                                    />
+                                    <Label htmlFor="hcc-filter" className="text-base font-medium cursor-pointer select-none">
+                                        HCC
+                                    </Label>
+                                </div>
+
+                            </div>
                         </div>
                     </div>
 
@@ -624,21 +626,37 @@ export default function AuditorReviewForm({
 
                     {/* Optimized Code Cards */}
                     <div className="flex-1 min-h-0">
-                        <div className="h-full space-y-2 pr-1 overflow-y-auto overflow-x-hidden max-h-[470px]">
-                            <AnimatePresence mode="popLayout">
-                                {filteredItems.map((item, index) => (
-                                    <motion.div
-                                        key={item.id}
-                                        layout
-                                        initial={{ opacity: 0, y: 0 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 0 }}
-                                        transition={{
-                                            duration: 0.2,
-                                            delay: Math.min(index * 0.02, 0.1),
-                                        }}
-                                    >
-                                        <TooltipProvider>
+                        <div className="h-full space-y-2 pr-1 overflow-y-auto overflow-x-hidden max-h-[520px]">
+                            {isCodeLoading ? (
+                                <motion.div
+                                    className="flex flex-col items-center justify-center py-12 text-center"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.2 }}
+                                >
+                                    <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4">
+                                        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                                    </div>
+                                    <p className="text-sm text-gray-500 font-medium">
+                                        Loading medical conditions
+                                        <span className="animate-pulse">...</span>
+                                    </p>
+                                </motion.div>
+                            ) : (
+                                <AnimatePresence mode="popLayout">
+                                    {filteredItems.map((item, index) => (
+                                        <motion.div
+                                            key={item.id}
+                                            layout="position"
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            transition={{
+                                                duration: 0.2,
+                                                delay: Math.min(index * 0.01, 0.05),
+                                                layout: { duration: 0.3, ease: "easeInOut" },
+                                            }}
+                                        >
                                             <Card
                                                 className={cn(
                                                     "border transition-all duration-200 overflow-hidden",
@@ -648,11 +666,10 @@ export default function AuditorReviewForm({
                                                 )}
                                             >
                                                 <CardContent className="p-2 flex gap-2.5 items-center justify-between">
-                                                    <div>
+                                                    <div className="flex-1 min-w-0">
                                                         {/* Header Row */}
                                                         <div className="flex items-start justify-between gap-3 mb-3">
                                                             <div className="flex items-center gap-2 flex-wrap">
-                                                                {/* <StatusBadge status={item.status} /> */}
                                                                 {item.icdCode && (
                                                                     <Tooltip>
                                                                         <TooltipTrigger asChild>
@@ -663,7 +680,21 @@ export default function AuditorReviewForm({
                                                                                 ICD:{item.icdCode}
                                                                             </Badge>
                                                                         </TooltipTrigger>
-                                                                        <TooltipContent>ICD Code</TooltipContent>
+                                                                        {item.icd10_desc && item.icd10_desc?.length > 0 && (
+                                                                            <TooltipContent>{item.icd10_desc}</TooltipContent>
+                                                                        )}
+                                                                    </Tooltip>
+                                                                )}
+                                                                {item.hccCode && (
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
+                                                                            <Badge
+                                                                                variant="outline"
+                                                                                className="font-mono text-xs bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
+                                                                            >
+                                                                                RX-HCC:{item.hccCode}
+                                                                            </Badge>
+                                                                        </TooltipTrigger>
                                                                     </Tooltip>
                                                                 )}
                                                                 {item.hccV28Code && (
@@ -676,7 +707,6 @@ export default function AuditorReviewForm({
                                                                                 HCC:{item.hccV28Code}
                                                                             </Badge>
                                                                         </TooltipTrigger>
-                                                                        <TooltipContent>HCC Code</TooltipContent>
                                                                     </Tooltip>
                                                                 )}
                                                             </div>
@@ -690,7 +720,7 @@ export default function AuditorReviewForm({
                                                             </div>
 
                                                             {/* Evidence Section */}
-                                                            <div className="bg-gray-50 p-1.5 border">
+                                                            <div className="bg-gray-50 p-1.5 border rounded">
                                                                 <div className="flex items-start justify-between gap-2">
                                                                     <div className="flex-1 min-w-0">
                                                                         <div
@@ -728,6 +758,7 @@ export default function AuditorReviewForm({
                                                             </div>
                                                         </div>
                                                     </div>
+
                                                     {/* Action Buttons */}
                                                     <div className="flex flex-col gap-1.5 shrink-0">
                                                         <Tooltip>
@@ -762,8 +793,9 @@ export default function AuditorReviewForm({
                                                                     onClick={() => handleStatusUpdate(item.id, "rejected")}
                                                                     disabled={updatingItemId === item.id}
                                                                     className={cn(
-                                                                        "h-10 w-10 p-0 !rounded-none  transition-all",
-                                                                        item.status !== "rejected" && "hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700",
+                                                                        "h-10 w-10 p-0 !rounded-none transition-all",
+                                                                        item.status !== "rejected" &&
+                                                                        "hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700",
                                                                     )}
                                                                 >
                                                                     {updatingItemId === item.id && item.status !== "rejected" ? (
@@ -778,10 +810,29 @@ export default function AuditorReviewForm({
                                                     </div>
                                                 </CardContent>
                                             </Card>
-                                        </TooltipProvider>
-                                    </motion.div>
-                                ))}
-                            </AnimatePresence>
+                                        </motion.div>
+                                    ))}
+                                </AnimatePresence>
+                            )}
+
+                            {/*   {(!isCodeLoading) && filteredItems.length === 0 && !isPending && (
+                                <motion.div
+                                    className="flex flex-col items-center justify-center py-12 text-center"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.2 }}
+                                >
+                                    <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4">
+                                        <Search className="w-8 h-8 text-gray-400" />
+                                    </div>
+                                    <p className="text-sm text-gray-500 font-medium">No codes found</p>
+                                    <p className="text-xs text-gray-400 mt-1">
+                                        {localSearchTerm || filterStatus !== "all"
+                                            ? "Try adjusting your filters"
+                                            : "No codes available for review"}
+                                    </p>
+                                </motion.div>
+                            )} */}
 
                             {/* Empty State */}
                             {filteredItems.length === 0 && !isPending && (

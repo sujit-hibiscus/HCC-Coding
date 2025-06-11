@@ -1,14 +1,11 @@
-
-
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import "./globals.css";
-import { ThemeProvider } from "@/components/layout/ThemeProvider";
-import ReduxProvider from "@/store/ReduxProvider";
 import ScrollToTopButton from "@/components/common/scroll-top-top";
 import ToastProvider from "@/components/common/ToastProvider";
+import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import ReduxProvider from "@/store/ReduxProvider";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Suspense } from "react";
+import "./globals.css";
 import Loading from "./loading";
-
 
 export default function RootLayout({
     children,
@@ -31,7 +28,7 @@ export default function RootLayout({
                             unstable_expectedLoadTime={100}
                         >
                             <div
-                                className="page-transition min-h-screen"
+                                className="page-transition  min-h-screen"
                                 style={{
                                     contain: "layout style paint",
                                     willChange: "transform"

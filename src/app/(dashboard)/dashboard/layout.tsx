@@ -1,13 +1,15 @@
 "use client";
 
+import { useApiCall } from "@/components/common/ApiCall";
 import ChromeTabBar from "@/components/common/Chrome-tab-bar";
 import { Header } from "@/components/common/Header";
 import LogoutTransition from "@/components/common/LogoutTransition";
+import RouteProgressWrapper from "@/components/common/RouteProgressWrapper";
 import { AppSidebar } from "@/components/common/Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useRedux } from "@/hooks/use-redux";
 import { useTabs } from "@/hooks/use-tabs";
-import { type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
 export default function DashboardLayout({
   children,
@@ -17,13 +19,33 @@ export default function DashboardLayout({
   const { addTab } = useTabs();
   const { selector } = useRedux();
   const token = selector(state => state.user.token) || "";
+  const { userType } = selector(state => state.user);
+  const { getChartApi } = useApiCall();
+
+  useEffect(() => {
+    const initializeData = async () => {
+      try {
+        // Make API call to get charts data
+        if (userType?.toLowerCase().includes("analyst") || userType?.toLowerCase().includes("auditor")) {
+          await getChartApi("pending");
+        }
+      } catch (error) {
+        console.error("Error initializing data:", error);
+      }
+    };
+
+    if (token?.length > 0) {
+      initializeData();
+    }
+  }, [token, userType]);
+
   if (!(token?.length > 0)) {
     return <LogoutTransition />;
   }
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full">
+      <div className="flex h-screen w-full">
         {/* Sidebar */}
         <AppSidebar onNavigate={addTab} />
 
@@ -48,8 +70,12 @@ export default function DashboardLayout({
               "--header-height": "0.4rem",
               "--tab-bar-height": "2.5rem"
             } as React.CSSProperties}
-            className="flex-1 min-h-0 overflow-y-auto">
-            <div className="h-full">{children}
+            className="flex-1 min-h-0 overflow-y-auto relative">
+
+            <div className={"opacity-100 transition-opacity duration-300 h-full"}>
+              <RouteProgressWrapper>
+                {children}
+              </RouteProgressWrapper>
             </div>
           </main>
         </div>

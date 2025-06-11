@@ -13,6 +13,7 @@ export interface Option {
 
 export interface CreatableSelectProps extends Props {
     isMulti?: boolean
+    isError?: boolean
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -32,7 +33,7 @@ const CustomOption = (props: OptionProps<any, boolean, GroupBase<any>>) => {
     return <components.Option {...props} />;
 };
 
-export const CreatableSelect = ({ className, isMulti = false, ...props }: CreatableSelectProps) => {
+export const CreatableSelect = ({ className, isError = false, isMulti = false, ...props }: CreatableSelectProps) => {
     const [showAllOptions, setShowAllOptions] = useState(false);
     console.info("🚀 ~ CreatableSelect ~ showAllOptions:", showAllOptions)
 
@@ -63,7 +64,8 @@ export const CreatableSelect = ({ className, isMulti = false, ...props }: Creata
             classNames={{
                 control: (state) =>
                     cn(
-                        "border !border-input-border border-input bg-background !rounded-none py-1 text-sm ring-offset-background",
+                        "border border-input bg-background !rounded-none py-1 text-sm ring-offset-background",
+                        isError ? "" : "!border-input-border",
                         state.isFocused ? "ring-2 ring-ring ring-offset-2" : "",
                         state.isDisabled ? "opacity-50 cursor-not-allowed" : "",
                     ),

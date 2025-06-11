@@ -6,7 +6,7 @@ import useFullPath from "@/hooks/use-fullpath"
 import { useRedux } from "@/hooks/use-redux"
 import { restrictToHorizontalAxis } from "@dnd-kit/modifiers"
 import { setStoreColumnOrder } from "@/store/slices/DashboardSlice"
-import { setSelectedRows, setTabFilters } from "@/store/slices/tableFiltersSlice"
+import { setSelectedRows, setTabFilters, setTabPagination } from "@/store/slices/tableFiltersSlice"
 import {
   closestCenter,
   DndContext,
@@ -74,6 +74,7 @@ export function DataTable<TData, TValue>({
   const { charts = "", target = "" } = useFullPath()
   const tabKey = `${charts}${target}`
   const storedFilters = selector((state) => state.tableFilters[tabKey])
+  const isHandlingFilterChange = React.useRef(false)
 
   const initialRowSelection = React.useMemo(() => {
     if (storedFilters?.selectedRows && Array.isArray(storedFilters.selectedRows)) {
@@ -110,8 +111,30 @@ export function DataTable<TData, TValue>({
     }),
   )
 
+  // Restore filters on mount
   React.useEffect(() => {
-    if (tabKey) {
+    if (storedFilters) {
+      if (storedFilters.columnFilters) {
+        setColumnFilters(storedFilters.columnFilters)
+      }
+      if (storedFilters.sorting) {
+        setSorting(storedFilters.sorting)
+      }
+      if (storedFilters.columnVisibility) {
+        setColumnVisibility(storedFilters.columnVisibility)
+      }
+      if (storedFilters.dateRange) {
+        setDateRange(storedFilters.dateRange)
+      }
+      if (storedFilters.columnOrder) {
+        setColumnOrder(storedFilters.columnOrder)
+      }
+    }
+  }, [storedFilters])
+
+  // Persist filters on change
+  React.useEffect(() => {
+    if (tabKey && !isHandlingFilterChange.current) {
       dispatch(
         setTabFilters({
           tabKey,
@@ -120,11 +143,12 @@ export function DataTable<TData, TValue>({
             sorting,
             columnVisibility,
             dateRange,
+            pagination: storedFilters?.pagination || { pageIndex: 0, pageSize: defaultPageSize },
           },
         }),
       )
     }
-  }, [columnFilters, sorting, columnVisibility, dateRange, tabKey, dispatch])
+  }, [columnFilters, sorting, columnVisibility, dateRange, tabKey, dispatch, storedFilters?.pagination, defaultPageSize])
 
   // Add global styles for dragging
   React.useEffect(() => {
@@ -223,6 +247,7 @@ export function DataTable<TData, TValue>({
       rowSelection,
       columnFilters,
       columnOrder,
+      pagination: storedFilters?.pagination || { pageIndex: 0, pageSize: defaultPageSize },
     },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
@@ -230,6 +255,15 @@ export function DataTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onColumnOrderChange: setColumnOrder,
+    onPaginationChange: (updater) => {
+      const newPagination = typeof updater === 'function' ? updater(table.getState().pagination) : updater
+      dispatch(
+        setTabPagination({
+          tabKey,
+          pagination: newPagination,
+        }),
+      )
+    },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -237,8 +271,9 @@ export function DataTable<TData, TValue>({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     initialState: {
-      pagination: {
+      pagination: storedFilters?.pagination || {
         pageSize: defaultPageSize,
+        pageIndex: 0,
       },
     },
   })

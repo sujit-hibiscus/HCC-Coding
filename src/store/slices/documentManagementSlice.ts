@@ -25,6 +25,7 @@ export interface CodeReviewItem {
     diagnosis: string;
     description: string
     hccCode: string
+    icd10_desc: string
     hccV28Code: string
     evidence: string
     reference: string
@@ -54,6 +55,7 @@ export interface MedicalCondition {
     icd10_code: string
     code_type: string
     guideline_reference: string
+    icd10_desc: string
     code_explanation: string
     criteria_met: string
     confidence: number
@@ -80,7 +82,7 @@ interface DocumentManagementState {
     error: string | null
 
     selectedDocumentId: string | null
-    pdfUrl: string | null
+    pdfFileBase64: string | null
     pdfLoading: boolean
     fetchedPdfPaths: string[]
 
@@ -219,7 +221,7 @@ export const startReviewWithApiData = createAsyncThunk(
             const response = await fetchData(`get_medical_conditions/?chart_id=${conditionData?.id}`)
             const medicalConditionsResponse = (response.data as MedicalConditionsResponse)
             const convertedFormat = medicalConditionsResponse.data?.map(i => {
-                const { icd10_code = "", diagnosis = "", RxHCC = "", code_explanation = "", IsAcceptedbyAnalyst = true, IsAcceptedbyQA = true, criteria_met = "", guideline_reference = "", id = "", V28HCC = "", created_at = "" } = i
+                const { icd10_code = "", diagnosis = "", RxHCC = "", code_explanation = "", IsAcceptedbyAnalyst = true, IsAcceptedbyQA = true, criteria_met = "", icd10_desc = "", guideline_reference = "", id = "", V28HCC = "", created_at = "" } = i
                 return {
                     id: `${id}`,
                     icdCode: icd10_code,
@@ -229,6 +231,7 @@ export const startReviewWithApiData = createAsyncThunk(
                     hccV28Code: V28HCC ? V28HCC : "",
                     evidence: criteria_met,
                     reference: guideline_reference,
+                    icd10_desc: icd10_desc,
                     status: (conditionData?.type === "Analyst" ? IsAcceptedbyAnalyst : IsAcceptedbyQA) ? "accepted" : "rejected",
                     addedAt: new Date(created_at).getTime(),
                 }
@@ -334,25 +337,41 @@ export const completeReviewAuditorWithAPI = createAsyncThunk<
     }
 })
 
-export const fetchPdfFile = createAsyncThunk<string, string>(
-    "pdf/fetchPdfFile",
-    async (pdfFilePath, { rejectWithValue, getState }) => {
+// Helper function to convert Blob to Base64
+const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            if (typeof reader.result === 'string') {
+                resolve(reader.result);
+            } else {
+                reject(new Error("Failed to convert blob to base64"));
+            }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+};
+
+export const fetchPdfFile = createAsyncThunk(
+    "documentManagement/fetchPdfFile",
+    async (pdfFilePath: string, { rejectWithValue, getState }) => {
         try {
             const state = getState() as { documentManagement: DocumentManagementState }
             const { fetchedPdfPaths } = state.documentManagement
 
-            if (fetchedPdfPaths.includes(pdfFilePath) && state.documentManagement.pdfUrl) {
-                return state.documentManagement.pdfUrl
+            if (fetchedPdfPaths.includes(pdfFilePath) && state.documentManagement.pdfFileBase64) {
+                return state.documentManagement.pdfFileBase64 // Return persisted Base64 if already fetched
             }
 
             const response = await postData<Blob>("view_pdf/", { file_path: pdfFilePath }, { responseType: "blob" })
-            const blobUrl = `${URL.createObjectURL(response.data)}__${pdfFilePath}`
-            return blobUrl
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                return rejectWithValue(error.message)
-            }
-            return rejectWithValue("Something went wrong")
+            const blob = response.data;
+            const base64 = await blobToBase64(blob); // Convert blob to base64
+            return base64; // Store base64 string
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Failed to fetch PDF"
+            toast.error(errorMessage)
+            return rejectWithValue(errorMessage)
         }
     },
 )
@@ -398,7 +417,7 @@ const initialState: DocumentManagementState = {
     loading: false,
     error: null,
     selectedDocumentId: null,
-    pdfUrl: null,
+    pdfFileBase64: null,
     pdfLoading: false,
     fetchedPdfPaths: [],
     isRunning: false,
@@ -673,7 +692,7 @@ const documentManagementSlice = createSlice({
             })
             .addCase(fetchPdfFile.fulfilled, (state, action) => {
                 state.pdfLoading = false
-                state.pdfUrl = action.payload
+                state.pdfFileBase64 = action.payload
 
                 const pdfPath = action.meta.arg
                 if (!state.fetchedPdfPaths.includes(pdfPath)) {

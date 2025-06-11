@@ -19,8 +19,8 @@ import {
 import { AnimatePresence, motion } from "framer-motion"
 import { Loader2, Play } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import { PreventSaveProvider } from "../layout/prevent-save-provider"
-import PdfUI from "../ui/pdfUI"
+import { PreventSaveProvider } from "@/components/layout/prevent-save-provider"
+import PdfUI from "@/components/ui/pdfUI"
 import AuditorReviewForm from "./auditor-review-form"
 import ImprovedCodeReviewForm from "./code-cart-form"
 
@@ -38,7 +38,7 @@ export default function PdfViewer({
     documents,
     selectedDocumentId,
     isRunning,
-    pdfUrl = "",
+    pdfFileBase64 = "",
     pdfLoading,
     formData: allFormData,
     codeReview: allCodeReview,
@@ -86,6 +86,8 @@ export default function PdfViewer({
   const [isStartingReview, setIsStartingReview] = useState(false)
   const [isCompletingReview, setIsCompletingReview] = useState(false)
   const [apiLoading, setApiLoading] = useState(false)
+
+  const [displayPdfUrl, setDisplayPdfUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (selectedDocument) {
@@ -164,6 +166,28 @@ export default function PdfViewer({
       }
     }
   }, [showSidebar, isRunning, selectedDocument, dispatch])
+
+  useEffect(() => {
+    if (pdfFileBase64) {
+      // Convert Base64 to Blob
+      const byteCharacters = atob(pdfFileBase64.split(',')[1]);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+
+      // Create object URL and set it for display
+      const url = URL.createObjectURL(blob);
+      setDisplayPdfUrl(url);
+
+      // Clean up the object URL when component unmounts or pdfFileBase64 changes
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setDisplayPdfUrl(null);
+    }
+  }, [pdfFileBase64]);
 
   if (!selectedDocument) {
     return (
@@ -379,10 +403,10 @@ export default function PdfViewer({
         {/* PDF Viewer Section */}
         <motion.div
           className={`${userType === "Auditor" && showSidebar ? "w-full md:w-full" : "w-full"
-            } h-full bg-white relative transition-all duration-300 shadow-sm`}
+            } h-[calc(100vh-2.9rem)] bg-white relative transition-all duration-300 shadow-sm`}
           layout
         >
-          <div className={`h-full overflow-auto max-h-[95.2vh]`}>
+          <div className="h-full overflow-y-auto">
             {pdfLoading && selectedDocument.status === "In Review" ? (
               <motion.div
                 className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-blue-50 to-purple-50"
@@ -407,8 +431,8 @@ export default function PdfViewer({
               </motion.div>
             ) : (
               <PreventSaveProvider>
-                {(pdfUrl as string)?.length > 0 ? (
-                  <PdfUI url={pdfUrl as string} />
+                {(displayPdfUrl as string)?.length > 0 ? (
+                  <PdfUI url={displayPdfUrl as string} />
                 ) : (
                   <div className="h-full w-full flex justify-center items-center bg-gradient-to-br from-gray-50 to-gray-100">
                     <motion.div

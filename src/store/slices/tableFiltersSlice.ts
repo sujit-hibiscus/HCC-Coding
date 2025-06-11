@@ -14,6 +14,7 @@ export interface TableFilterState {
         customPageSize: string
     }
     selectedRows?: string[]
+    columnOrder?: string[]
 }
 
 interface TableFiltersState {
@@ -28,6 +29,7 @@ const initialState: TableFiltersState = {
         dateRange: [StartDateFilter, EndDateFilter],
         pagination: { pageIndex: 0, pageSize: 25 },
         selectedRows: [],
+        columnOrder: [],
     },
     assigned: {
         columnFilters: [],
@@ -36,6 +38,7 @@ const initialState: TableFiltersState = {
         dateRange: [StartDateFilter, EndDateFilter],
         pagination: { pageIndex: 0, pageSize: 25 },
         selectedRows: [],
+        columnOrder: [],
     },
     audit: {
         columnFilters: [],
@@ -44,6 +47,7 @@ const initialState: TableFiltersState = {
         dateRange: [StartDateFilter, EndDateFilter],
         pagination: { pageIndex: 0, pageSize: 25 },
         selectedRows: [],
+        columnOrder: [],
     },
     completed: {
         columnFilters: [],
@@ -52,6 +56,7 @@ const initialState: TableFiltersState = {
         dateRange: [StartDateFilter, EndDateFilter],
         pagination: { pageIndex: 0, pageSize: 25 },
         selectedRows: [],
+        columnOrder: [],
     },
 };
 
@@ -74,7 +79,9 @@ const tableFiltersSlice = createSlice({
                     sorting: [],
                     columnVisibility: {},
                     dateRange: [StartDateFilter, EndDateFilter],
+                    pagination: { pageIndex: 0, pageSize: 25 },
                     selectedRows: [],
+                    columnOrder: [],
                 };
             }
             state[tabKey] = { ...state[tabKey], ...filters };
@@ -87,9 +94,18 @@ const tableFiltersSlice = createSlice({
             }>,
         ) => {
             const { tabKey, pagination } = action.payload;
-            if (state[tabKey]) {
-                state[tabKey].pagination = pagination;
+            if (!state[tabKey]) {
+                state[tabKey] = {
+                    columnFilters: [],
+                    sorting: [],
+                    columnVisibility: {},
+                    dateRange: [StartDateFilter, EndDateFilter],
+                    pagination: { pageIndex: 0, pageSize: 25 },
+                    selectedRows: [],
+                    columnOrder: [],
+                };
             }
+            state[tabKey].pagination = pagination;
         },
         setTabPageCount: (
             state,
@@ -133,6 +149,7 @@ const tableFiltersSlice = createSlice({
                     columnVisibility: {},
                     dateRange: [null, null],
                     selectedRows: [],
+                    columnOrder: [],
                 };
             }
             state[tabKey].selectedRows = selectedRows;
@@ -147,6 +164,7 @@ const tableFiltersSlice = createSlice({
                     dateRange: [StartDateFilter, EndDateFilter],
                     pagination: { pageIndex: 0, pageSize: 25 },
                     selectedRows: [],
+                    columnOrder: [],
                 };
             }
         },

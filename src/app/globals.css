@@ -294,11 +294,13 @@ td.p-4.align-middle .truncate {
 }
 
 .rpv-core__text-layer {
+  -webkit-user-select: none !important;
   user-select: none !important;
   pointer-events: none !important;
 }
 
 .rpv-core__text-layer span {
+  -webkit-user-select: none !important;
   user-select: none !important;
   pointer-events: none !important;
 }
@@ -306,4 +308,56 @@ td.p-4.align-middle .truncate {
 /* For the iframe mode */
 iframe {
   pointer-events: none;
+}
+
+/* PDF Viewer Responsive Styles */
+.rpv-core__viewer {
+  height: 100% !important;
+  overflow-y: auto !important;
+}
+
+.rpv-core__inner-page {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+.rpv-core__page-layer {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+.rpv-core__page {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+/* Ensure the PDF viewer container scales properly */
+.rpv-core__viewer-container {
+  height: 100% !important;
+  overflow-y: auto !important;
+}
+
+/* Ensure the toolbar stays at the top */
+.rpv-core__toolbar {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+  background: var(--background) !important;
+}
+
+/* Custom scrollbar for PDF viewer */
+.rpv-core__viewer::-webkit-scrollbar,
+.rpv-core__viewer-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.rpv-core__viewer::-webkit-scrollbar-track,
+.rpv-core__viewer-container::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+.rpv-core__viewer::-webkit-scrollbar-thumb,
+.rpv-core__viewer-container::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
 }
