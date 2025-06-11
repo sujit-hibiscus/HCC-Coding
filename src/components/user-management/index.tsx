@@ -30,6 +30,7 @@ import type { RootState } from "@/store";
 import { cancelEditing, resetForm, startEditing, updateField, updateTargetField } from "@/store/slices/user-form-slice";
 import { deleteUser, registerUser, updateUser } from "@/store/slices/user-slice";
 import { notFound } from "next/navigation";
+import { fetchAnalystUsers, fetchAuditorUsers } from "@/store/slices/DashboardSlice";
 
 type ProfileType = "Analyst" | "Auditor" | "Admin" | "Super Admin"
 
@@ -158,6 +159,13 @@ export default function AddUserPage() {
                 if (updateUser.fulfilled.match(resultAction)) {
                     success({ message: "User updated successfully" });
                     dispatch(resetForm());
+                    if (formData.profile_type === "Auditor") {
+                        dispatch(fetchAuditorUsers());
+                        dispatch(fetchAnalystUsers());
+                    } else if (formData.profile_type === "Analyst") {
+                        dispatch(fetchAuditorUsers());
+                        dispatch(fetchAnalystUsers());
+                    }
                 }
             } else {
                 const registerData = {
@@ -176,6 +184,11 @@ export default function AddUserPage() {
                 if (registerUser.fulfilled.match(resultAction)) {
                     success({ message: "User registered successfully" });
                     dispatch(resetForm());
+                    if (formData.profile_type === "Auditor") {
+                        dispatch(fetchAuditorUsers());
+                    } else if (formData.profile_type === "Analyst") {
+                        dispatch(fetchAnalystUsers());
+                    }
                 }
             }
         } catch (err) {
