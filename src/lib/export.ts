@@ -16,10 +16,13 @@ export function exportFilteredTableToCSV<TData>(
     const exportColumns = columns.filter((column) => !excludeColumns.includes(column.id));
     const csvContent = [
         exportColumns
-            .map((column) => `"${column.id}"`)
+            .map((column) => {
+                const title = column.id
+                return title && title[0].toUpperCase() + title.slice(1);
+            })
             .join(","),
-        ...rows.map((row) =>
-            exportColumns
+        ...rows.map((row) => {
+            return exportColumns
                 .map((column) => {
                     const cellValue =
                         column.id === "Name"
@@ -29,9 +32,11 @@ export function exportFilteredTableToCSV<TData>(
                                 : row.getValue(column.id);
                     return `"${cellValue}"`;
                 })
-                .join(","),
+                .join(",")
+        }
         ),
     ].join("\n");
+
     /* const csvContent = [
         exportColumns
             .map((column) => `"${column.id}"`)

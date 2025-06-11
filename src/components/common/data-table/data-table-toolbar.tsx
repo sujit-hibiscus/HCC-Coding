@@ -36,7 +36,6 @@ function DataTableToolbarComponent<TData>({
   dateKey = "",
   handleRefresh,
 }: DataTableToolbarProps<TData>) {
-  console.log("🚀 ~ dateRange:", dateRange)
   const isFiltered = table.getState().columnFilters.length > 0;
   const { charts = "", target = "" } = useFullPath();
   const tabKey = `${charts}${target}`;
@@ -70,9 +69,6 @@ function DataTableToolbarComponent<TData>({
       storedFilters.dateRange[1] instanceof Date
       ? !(isInThisWeekRange(storedFilters.dateRange[0], storedFilters.dateRange[1]))
       : false;
-
-
-  console.log(isDateRange, "isDateRange");
 
 
 

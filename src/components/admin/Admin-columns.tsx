@@ -55,7 +55,7 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
     },
     {
         accessorKey: "id",
-        header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="SL #" />,
+        header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="ID" />,
         cell: ({ row }) => <div className="font-medium text-center">{row.getValue("id")}</div>,
         enableSorting: true,
         enableHiding: false,
@@ -129,7 +129,7 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
     },
     {
         accessorKey: "id",
-        header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="SL #" />,
+        header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="ID" />,
         cell: ({ row }) => <div className="font-medium text-center">{row.getValue("id")}</div>,
         enableSorting: true,
         enableHiding: false,
@@ -224,7 +224,7 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
     },
     {
         accessorKey: "id",
-        header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="SL #" />,
+        header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="ID" />,
         cell: ({ row }) => <div className="font-medium text-center">{row.getValue("id")}</div>,
         enableSorting: true,
         enableHiding: false,
@@ -305,7 +305,7 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
 export const completedDocumentColumns = (): (ColumnDef<CompletedDocument> & { isDragable?: boolean })[] => [
     {
         accessorKey: "id",
-        header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="SL #" />,
+        header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="ID" />,
         cell: ({ row }) => <div className="font-medium text-center">{row.getValue("id")}</div>,
         enableSorting: true,
         enableHiding: false,

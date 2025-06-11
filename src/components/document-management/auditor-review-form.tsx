@@ -60,8 +60,8 @@ export default function AuditorReviewForm({
 }: AuditorReviewFormProps) {
     const { dispatch, selector } = useRedux()
     // New state for checkbox filters
-    const [showRxHcc, setShowRxHcc] = useState(true)
-    const [showHcc, setShowHcc] = useState(true)
+    const [showRxHcc, setShowRxHcc] = useState(false)
+    const [showHcc, setShowHcc] = useState(false)
     const { codeReview } = selector((state: RootState) => state.documentManagement)
     const [expandedCard, setExpandedCard] = useState<string | null>(null)
     const [filterStatus, setFilterStatus] = useState<string>("all")
@@ -95,13 +95,8 @@ export default function AuditorReviewForm({
             const hasRxHcc = item.hccCode && item.hccCode.trim() !== ""
             const hasHcc = item.hccV28Code && item.hccV28Code.trim() !== ""
 
-            // If both checkboxes are unchecked, show nothing
-            if (!showRxHcc && !showHcc) {
-                return false
-            }
-
-            // If both are checked, show all items
-            if (showRxHcc && showHcc) {
+            // If both checkboxes are checked or both are unchecked, show all items
+            if ((showRxHcc && showHcc) || (!showRxHcc && !showHcc)) {
                 return true
             }
 
@@ -381,7 +376,7 @@ export default function AuditorReviewForm({
                                                 </div>
                                             </TooltipTrigger>
                                             <TooltipContent side="top" className="bg-red-500 text-white">
-                                                <p className="text-xs">{formErrors.rating}</p>
+                                                <p className="text-xs">{formErrors.rating == "Rating must be a number" ? "Rating must be at least 1" : formErrors.rating}</p>
                                             </TooltipContent>
                                         </Tooltip>
                                     )}
@@ -390,17 +385,18 @@ export default function AuditorReviewForm({
                                     <div className="relative">
                                         <Input
                                             id="rating"
-                                            type="number"
-                                            min={0}
-                                            max={100}
+                                            type="string"
+                                            // min={0}
+                                            // max={100}
+                                            placeholder="0"
                                             step={1}
-                                            value={formData.rating || 0}
+                                            value={`${formData.rating || ""}`}
                                             onChange={(e) => {
                                                 const value = Number.parseFloat(e.target.value)
                                                 handleFormDataUpdate({ rating: value })
                                             }}
                                             className={cn(
-                                                "h-8 text-xs transition-all duration-200 focus:ring-2 focus:ring-blue-200",
+                                                "h-8 text-xs transition-all placeholder:text-black duration-200 focus:ring-2 focus:ring-blue-200",
                                                 (formErrors.rating && !(formData.rating > 0)) && "border-red-500 focus:border-red-500",
                                             )}
                                         />

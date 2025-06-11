@@ -69,8 +69,8 @@ export default function ImprovedCodeReviewForm({
     const [updatingItemId, setUpdatingItemId] = useState<string | null>(null)
 
     // New state for checkbox filters
-    const [showRxHcc, setShowRxHcc] = useState(true)
-    const [showHcc, setShowHcc] = useState(true)
+    const [showRxHcc, setShowRxHcc] = useState(false)
+    const [showHcc, setShowHcc] = useState(false)
 
     const filteredItems = useMemo(() => {
         let items = [...currentCodeReview.items]
@@ -85,13 +85,8 @@ export default function ImprovedCodeReviewForm({
             const hasRxHcc = item.hccCode && item.hccCode.trim() !== ""
             const hasHcc = item.hccV28Code && item.hccV28Code.trim() !== ""
 
-            // If both checkboxes are unchecked, show nothing
-            if (!showRxHcc && !showHcc) {
-                return false
-            }
-
-            // If both are checked, show all items
-            if (showRxHcc && showHcc) {
+            // If both checkboxes are checked or both are unchecked, show all items
+            if ((showRxHcc && showHcc) || (!showRxHcc && !showHcc)) {
                 return true
             }
 
