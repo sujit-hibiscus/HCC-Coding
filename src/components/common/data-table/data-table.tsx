@@ -295,8 +295,11 @@ export function DataTable<TData, TValue>({
 
       const selectedRowsDataId = selectedRowIds.map((id) => {
         const rowId = id ? (table.getRow(id)?.original as { id: string })?.id : null
-        return rowId
+        const original = table.getRow(id)?.original as any
+        const assigned = original?.assignedTo || original?.auditor || ""
+        return { id: rowId, assigned }
       })
+
 
       dispatch(
         setSelectedRows({
@@ -313,7 +316,10 @@ export function DataTable<TData, TValue>({
             setSelectedDocuments({
               tabKey: tabType,
               documentIds: selectedRowIds,
-              selectedRowsDataId: selectedRowsDataId as string[],
+              selectedRowsDataId: selectedRowsDataId as {
+                id: string,
+                assigned: string
+              }[],
             }),
           )
         } catch (error) {

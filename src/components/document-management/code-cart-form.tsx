@@ -85,9 +85,14 @@ export default function ImprovedCodeReviewForm({
             const hasRxHcc = item.hccCode && item.hccCode.trim() !== ""
             const hasHcc = item.hccV28Code && item.hccV28Code.trim() !== ""
 
-            // If both checkboxes are checked or both are unchecked, show all items
-            if ((showRxHcc && showHcc) || (!showRxHcc && !showHcc)) {
+            // If both checkboxes are unchecked, show all items
+            if (!showRxHcc && !showHcc) {
                 return true
+            }
+
+            // If both checkboxes are checked, show items that have either RX-HCC or HCC
+            if (showRxHcc && showHcc) {
+                return hasRxHcc || hasHcc
             }
 
             // If only Rx-HCC is checked, show items with Rx-HCC codes

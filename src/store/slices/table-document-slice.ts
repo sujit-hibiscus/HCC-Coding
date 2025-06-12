@@ -98,6 +98,12 @@ interface DocumentState {
         assigned: string[]
         audit: string[]
         completed: string[]
+    },
+    selectedDocumentsNames: {
+        pending: string[]
+        assigned: string[]
+        audit: string[]
+        completed: string[]
     }
     isAssigning: boolean
 }
@@ -163,6 +169,12 @@ const initialState: DocumentState = {
         completed: [],
     },
     selectedDocumentsId: {
+        pending: [],
+        assigned: [],
+        audit: [],
+        completed: [],
+    },
+    selectedDocumentsNames: {
         pending: [],
         assigned: [],
         audit: [],
@@ -547,12 +559,16 @@ const documentSlice = createSlice({
             action: PayloadAction<{
                 tabKey: "pending" | "assigned" | "audit" | "completed"
                 documentIds: string[]
-                selectedRowsDataId: string[]
+                selectedRowsDataId: {
+                    id: string,
+                    assigned: string
+                }[]
             }>,
         ) => {
             const { tabKey, documentIds, selectedRowsDataId } = action.payload;
             state.selectedDocuments[tabKey] = documentIds;
-            state.selectedDocumentsId[tabKey] = selectedRowsDataId;
+            state.selectedDocumentsId[tabKey] = selectedRowsDataId?.map(i => i.id);
+            state.selectedDocumentsNames[tabKey] = selectedRowsDataId?.map(i => i.assigned);
         },
         clearSelectedDocuments: (state, action: PayloadAction<"pending" | "assigned" | "audit" | "completed">) => {
             state.selectedDocuments[action.payload] = [];

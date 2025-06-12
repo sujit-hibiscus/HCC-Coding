@@ -395,7 +395,6 @@ export const autoAssign = createAsyncThunk(
                     : await postData("assign_charts_auditor/", bodyData)
 
             const responseData = response.data as { status: string; message: string }
-
             if (responseData.status === "Success") {
                 toast.success(responseData.message)
                 return responseData

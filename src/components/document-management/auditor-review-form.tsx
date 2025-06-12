@@ -95,9 +95,14 @@ export default function AuditorReviewForm({
             const hasRxHcc = item.hccCode && item.hccCode.trim() !== ""
             const hasHcc = item.hccV28Code && item.hccV28Code.trim() !== ""
 
-            // If both checkboxes are checked or both are unchecked, show all items
-            if ((showRxHcc && showHcc) || (!showRxHcc && !showHcc)) {
+            // If both checkboxes are unchecked, show all items
+            if (!showRxHcc && !showHcc) {
                 return true
+            }
+
+            // If both checkboxes are checked, show items that have either RX-HCC or HCC
+            if (showRxHcc && showHcc) {
+                return hasRxHcc || hasHcc
             }
 
             // If only Rx-HCC is checked, show items with Rx-HCC codes
@@ -757,7 +762,7 @@ export default function AuditorReviewForm({
 
                     {/* Optimized Notes */}
                     <div className="space-y-2">
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 gap-3">
                             <div className="space-y-1">
                                 <Label className="text-xs font-medium text-gray-700">Analyst Notes</Label>
                                 <Textarea
@@ -769,7 +774,7 @@ export default function AuditorReviewForm({
                                     className="text-xs resize-none !opacity-80 transition-all duration-200 focus:ring-2 focus:ring-blue-200"
                                 />
                             </div>
-                            <div className="space-y-1">
+                            {/* <div className="space-y-1">
                                 <Label className="text-xs font-medium text-gray-700">Auditor Notes</Label>
                                 <Textarea
                                     placeholder="Auditor notes..."
@@ -778,7 +783,7 @@ export default function AuditorReviewForm({
                                     rows={2}
                                     className="text-xs resize-none transition-all duration-200 focus:ring-2 focus:ring-blue-200"
                                 />
-                            </div>
+                            </div> */}
                         </div>
                     </div>
 

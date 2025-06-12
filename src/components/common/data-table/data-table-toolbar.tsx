@@ -136,8 +136,7 @@ function DataTableToolbarComponent<TData>({
   // Show reset button if any filter is applied, any rows are selected, or any other condition is met
 
 
-  const { selectedDocumentsId: selectedDocuments } = selector((state) => state.documentTable);
-
+  const { selectedDocumentsId: selectedDocuments, selectedDocumentsNames } = selector((state) => state.documentTable);
   const getSelectedDocuments = () => {
     if (!selectedDocuments) return [];
 
@@ -152,9 +151,25 @@ function DataTableToolbarComponent<TData>({
         return [];
     }
   };
+  const getSelectedDocumentNames = () => {
+    if (!selectedDocuments) return [];
+
+    switch (target) {
+      case "pending":
+        return selectedDocumentsNames.pending || [];
+      case "assigned":
+        return selectedDocumentsNames.assigned || [];
+      case "audit":
+        return selectedDocumentsNames.audit || [];
+      default:
+        return [];
+    }
+  };
 
   const selectedDocumentIds = getSelectedDocuments();
+  const selectedDocumentNames = getSelectedDocumentNames()?.filter(Boolean);
   const handleAutoAssign = async () => {
+    handleReset();
     setIsSubmitting(true);
     const resultAction = await dispatch(autoAssign({ target: target as "pending" | "assigned" | "audit" | "completed", selectedDocumentIds: selectedDocumentIds as string[] }));
     if (autoAssign.fulfilled.match(resultAction)) {
@@ -201,9 +216,9 @@ function DataTableToolbarComponent<TData>({
         <TasksTableToolbarActions table={table} />
       </div>
 
-      {target !== "completed" && <Button
+      {(target !== "completed" && target !== "assigned") && <Button
         onClick={handleAutoAssign}
-        disabled={isSubmitting || (!(selectedDocumentIds?.length > 0))}
+        disabled={isSubmitting || (!(selectedDocumentIds?.length > 0 && !(selectedDocumentNames?.length > 0)))}
         className="h-8 px-2 lg:px-3"
       >
         {isSubmitting ? (
