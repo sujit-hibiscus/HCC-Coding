@@ -20,13 +20,13 @@ export default function AuditDocumentsTable() {
     const [showUnassignedOnly, setShowUnassignedOnly] = useState(false);
 
     const sortedDocuments = [...auditDocuments.data]
-        .filter((doc) => !showUnassignedOnly || !doc.analyst)
         .sort((a, b) => {
             const dateA = parse(a.received, "MM-dd-yyyy", new Date());
             const dateB = parse(b.received, "MM-dd-yyyy", new Date());
             return dateB.getTime() - dateA.getTime(); // Descending
-        });
+        })
 
+    console.log("🚀 ~ AuditDocumentsTable ~ sortedDocuments:", sortedDocuments)
     /*   useEffect(() => {
           dispatch(fetchAuditDocuments());
       }, [dispatch]); */
@@ -71,7 +71,7 @@ export default function AuditDocumentsTable() {
                 tableLoader
             ) : (
                 <div className="flex h-full flex-col gap-1">
-                    {!showUnassignedOnly && <div className="flex justify-end pr-2">
+                    {<div className="flex justify-end pr-2">
                         <AssignmentControls currentTab={ChartTab.Audit} userType={userType as string} />
                     </div>}
                     {sortedDocuments.length === 0 && showUnassignedOnly ? (
@@ -81,7 +81,7 @@ export default function AuditDocumentsTable() {
                     ) : (
                         <DataTable
                             columns={auditDocumentColumns()}
-                            data={sortedDocuments}
+                            data={showUnassignedOnly ? sortedDocuments?.filter(i => i.auditor?.trim()?.length === 0) : sortedDocuments}
                             dateKey="received"
                             onAction={() => { }}
                             defaultPageSize={25}

@@ -167,7 +167,8 @@ function DataTableToolbarComponent<TData>({
   };
 
   const selectedDocumentIds = getSelectedDocuments();
-  const selectedDocumentNames = getSelectedDocumentNames()?.filter(Boolean);
+  const selectedDocumentNames = getSelectedDocumentNames()?.filter(i => i.trim()?.length > 0);
+  console.log("🚀 ~ selectedDocumentNames:", selectedDocumentNames)
   const handleAutoAssign = async () => {
     handleReset();
     setIsSubmitting(true);

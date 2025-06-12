@@ -42,31 +42,32 @@ export default function ChartsLayout({
     const { getChartApi } = useApiCall();
 
     const { pendingDocuments, assignedDocuments, auditDocuments, completedDocuments } = selector((state) => state.documentTable);
+    console.log("🚀 ~ pendingDocuments:", pendingDocuments)
 
     const tabs = [
         {
             value: ChartTab.Pending,
             label: "Pending",
             icon: Clock,
-            count: chartsCounts?.Pending,
+            count: pendingDocuments?.data?.length > 0 ? pendingDocuments?.data?.length : chartsCounts?.Pending,
         },
         {
             value: ChartTab.Assigned,
             label: "Assigned",
             icon: FileEdit,
-            count: chartsCounts?.Assigned,
+            count: assignedDocuments?.data?.length > 0 ? assignedDocuments?.data?.length : chartsCounts?.Assigned,
         },
         {
             value: ChartTab.Audit,
             label: "Audit",
             icon: CheckCircle2,
-            count: chartsCounts?.Audit,
+            count: auditDocuments?.data?.length > 0 ? auditDocuments?.data?.length : chartsCounts?.Audit,
         },
         {
             value: ChartTab.Completed,
             label: "Completed",
             icon: CheckCircle2,
-            count: chartsCounts?.Completed,
+            count: completedDocuments?.data?.length > 0 ? completedDocuments?.data?.length : chartsCounts?.Completed,
         },
     ];
     const tabsData = [
@@ -74,25 +75,25 @@ export default function ChartsLayout({
             value: ChartTab.Pending,
             label: "Pending",
             icon: Clock,
-            count: pendingDocuments?.data?.length,
+            count: pendingDocuments?.data?.length > 0 ? pendingDocuments?.data?.length : chartsCounts?.Pending,
         },
         {
             value: ChartTab.Assigned,
             label: "Assigned",
             icon: FileEdit,
-            count: assignedDocuments?.data?.length,
+            count: assignedDocuments?.data?.length > 0 ? assignedDocuments?.data?.length : chartsCounts?.Assigned,
         },
         {
             value: ChartTab.Audit,
             label: "Audit",
             icon: CheckCircle2,
-            count: auditDocuments?.data?.length,
+            count: auditDocuments?.data?.length > 0 ? auditDocuments?.data?.length : chartsCounts?.Audit,
         },
         {
             value: ChartTab.Completed,
             label: "Completed",
             icon: CheckCircle2,
-            count: completedDocuments?.data?.length,
+            count: completedDocuments?.data?.length > 0 ? completedDocuments?.data?.length : chartsCounts?.Completed,
         },
     ];
 
@@ -128,9 +129,8 @@ export default function ChartsLayout({
 
         setTimeout(() => {
             const targetTab = tabsData?.find((item) => item.value === value);
-            if (!(targetTab?.count ?? 0 > 0)) {
-                getChartApi(value as "pending" | "assigned" | "audit" | "completed");
-            }
+            getChartApi(value as "pending" | "assigned" | "audit" | "completed");
+
         });
 
         dispatch(updateTab(targetTab));
