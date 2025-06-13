@@ -371,9 +371,9 @@ export default function AuditorReviewForm({
                             <div className="space-y-2 min-w-[100px] pr-2 whitespace-nowrap">
                                 <div className="flex items-center gap-1">
                                     <Label htmlFor="rating" className="text-xs font-medium">
-                                        Quality Rating
+                                        Quality Rating (0-100)
                                     </Label>
-                                    {(formErrors.rating && !(formData.rating > 0)) && (
+                                    {(formErrors.rating && !(formData.rating > 0 && formData.rating <= 100)) && (
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <div className="text-red-500">
@@ -381,7 +381,10 @@ export default function AuditorReviewForm({
                                                 </div>
                                             </TooltipTrigger>
                                             <TooltipContent side="top" className="bg-red-500 text-white">
-                                                <p className="text-xs">{formErrors.rating == "Rating must be a number" ? "Rating must be at least 1" : formErrors.rating}</p>
+                                                <p className="text-xs">
+                                                    {!(formData.rating > 0) ? "Rating must be at least 1" : "Rating must not exceed 100"}
+                                                    {/*  {formErrors.rating == "Rating must be a number" ? "Rating must be at least 1" : formErrors.rating} */}
+                                                </p>
                                             </TooltipContent>
                                         </Tooltip>
                                     )}
@@ -402,7 +405,7 @@ export default function AuditorReviewForm({
                                             }}
                                             className={cn(
                                                 "h-8 text-xs transition-all placeholder:text-black duration-200 focus:ring-2 focus:ring-blue-200",
-                                                (formErrors.rating && !(formData.rating > 0)) && "border-red-500 focus:border-red-500",
+                                                (formErrors.rating && !(formData.rating > 0 && formData.rating <= 100)) && "border-red-500 focus:border-red-500",
                                             )}
                                         />
                                     </div>

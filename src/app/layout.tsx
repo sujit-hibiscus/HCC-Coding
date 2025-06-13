@@ -1,9 +1,11 @@
+"use client";
+
 import ScrollToTopButton from "@/components/common/scroll-top-top";
 import ToastProvider from "@/components/common/ToastProvider";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import ReduxProvider from "@/store/ReduxProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import "./globals.css";
 import Loading from "./loading";
 
@@ -12,10 +14,31 @@ export default function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) {
+        return (
+            <html lang="en" suppressHydrationWarning>
+                <head>
+                    <title>HCC Coding Platform</title>
+                </head>
+                <body className="custom-scroll" suppressHydrationWarning>
+                    <Loading />
+                </body>
+            </html>
+        );
+    }
+
     return (
-        <html lang="en">
-            <title>HCC Coding Platform</title>
-            <body className="custom-scroll">
+        <html lang="en" suppressHydrationWarning>
+            <head>
+                <title>HCC Coding Platform</title>
+            </head>
+            <body className="custom-scroll" suppressHydrationWarning>
                 <ReduxProvider>
                     <ThemeProvider
                         attribute="class"
@@ -28,7 +51,7 @@ export default function RootLayout({
                             unstable_expectedLoadTime={100}
                         >
                             <div
-                                className="page-transition  min-h-screen"
+                                className="page-transition min-h-screen"
                                 style={{
                                     contain: "layout style paint",
                                     willChange: "transform"

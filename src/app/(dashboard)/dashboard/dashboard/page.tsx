@@ -9,20 +9,13 @@ import DocumentSkeleton from "../loading";
 export default function Dashboard3Page() {
     const { selector } = useRedux();
     const userType = selector((state) => state.user.userType);
-
-    const [isClient, setIsClient] = useState(false);
-    // Ensure refs are only used on client-side
-    useEffect(() => {
-        // This empty effect ensures refs are only accessed on client
-    }, []);
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        setIsClient(true);
+        setMounted(true);
     }, []);
 
-
-
-    if (!isClient) {
+    if (!mounted) {
         return <DocumentSkeleton />;
     }
 

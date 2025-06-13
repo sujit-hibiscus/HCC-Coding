@@ -71,7 +71,7 @@ export default function AuditDocumentsTable() {
                 tableLoader
             ) : (
                 <div className="flex h-full flex-col gap-1">
-                    {<div className="flex justify-end pr-2">
+                    {(showUnassignedOnly ? sortedDocuments?.filter(i => i.auditor?.trim()?.length === 0) : sortedDocuments)?.length > 0 && <div className="flex justify-end pr-2">
                         <AssignmentControls currentTab={ChartTab.Audit} userType={userType as string} />
                     </div>}
                     {sortedDocuments.length === 0 && showUnassignedOnly ? (

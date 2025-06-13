@@ -1,85 +1,63 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { logoutAction } from "@/app/action/auth-actions";
+import devtoolsDetect from "devtools-detect";
 
 export function usePreventSave(): void {
     const router = useRouter();
 
-    const [isDevToolOpen, setIsDevToolOpen] = useState(false);
-
     useEffect(() => {
-        const detectDevTools = () => {
-            const threshold = 100;
-
-            const start = performance.now();
-            const duration = performance.now() - start;
-
-            if (duration > threshold) {
-                setIsDevToolOpen(true);
-            } else {
-                setIsDevToolOpen(false);
+        const handleDevToolsChange = async (isOpen: boolean) => {
+            if (isOpen) {
+                try {
+                    await logoutAction();
+                    router.push("/unauthorized");
+                } catch (error) {
+                    console.error("Logout failed:", error);
+                }
             }
         };
 
-        const interval = setInterval(detectDevTools, 2000);
-        return () => clearInterval(interval);
-    }, []);
+        // Initial check
+        if (devtoolsDetect.isOpen) {
+            handleDevToolsChange(true);
+        }
 
-    const logOutAndRedirect = async () => {
-        logoutAction().then(() => {
-            router.push("/unauthorized");
+        // Listen for devtools changes
+        window.addEventListener("devtoolschange", (e: any) => {
+            handleDevToolsChange(e.detail.isOpen);
         });
-    }
-    if (isDevToolOpen) {
-        logOutAndRedirect()
-    }
 
-
-    useEffect(() => {
+        // Prevent context menu
         const handleContextMenu = (e: MouseEvent): void => {
             e.preventDefault();
+            e.stopPropagation();
         };
 
-
+        // Prevent keyboard shortcuts
         const handleKeyDown = (e: KeyboardEvent): void => {
             const key = e.key.toLowerCase();
-
             const isBlocked =
-                (e.ctrlKey && !e.shiftKey && ["s", "u", "p"].includes(key)) ||
-                (e.ctrlKey && e.shiftKey && ["i", "j", "c"].includes(key)) ||
-                key === "f12";
+                (e.ctrlKey && e.shiftKey && ["i", "j", "c"].includes(key)) || // Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
+                key === "f12" || // F12
+                (e.altKey && key === "f12"); // Alt+F12
 
             if (isBlocked) {
                 e.preventDefault();
                 e.stopPropagation();
+                // handleDevToolsChange(true);
             }
         };
 
-        const detectDevTools = (): boolean => {
-            const widthThreshold = 160;
-            const heightThreshold = 100;
-
-            const { outerWidth, innerWidth, outerHeight, innerHeight } = window;
-
-            return (
-                outerWidth - innerWidth > widthThreshold ||
-                outerHeight - innerHeight > heightThreshold
-            );
-        };
-        const interval = setInterval(() => {
-            if (detectDevTools()) {
-                logOutAndRedirect();
-            }
-        }, 1000);
-
-        document.addEventListener("contextmenu", handleContextMenu);
-        document.addEventListener("keydown", handleKeyDown);
+        // Add event listeners
+        document.addEventListener("contextmenu", handleContextMenu, true);
+        document.addEventListener("keydown", handleKeyDown, true);
 
         return () => {
-            clearInterval(interval);
-            document.removeEventListener("contextmenu", handleContextMenu);
-            document.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener("devtoolschange", handleDevToolsChange as any);
+            document.removeEventListener("contextmenu", handleContextMenu, true);
+            document.removeEventListener("keydown", handleKeyDown, true);
         };
     }, [router]);
 }

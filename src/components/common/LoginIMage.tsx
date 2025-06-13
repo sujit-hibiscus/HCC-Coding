@@ -5,14 +5,16 @@ import { useEffect, useState } from "react";
 import { Typography } from "../ui/Typography";
 
 const LoginIMage = () => {
-    const [isClient, setIsClient] = useState(false);
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        setIsClient(true);
+        setMounted(true);
     }, []);
-    if (!(isClient)) {
+
+    if (!mounted) {
         return <DocumentSkeleton />;
     }
+
     return (
         <div className='w-full flex flex-col gap-1'>
             <motion.div
@@ -25,7 +27,6 @@ const LoginIMage = () => {
                     HCC Coding Portal
                 </Typography>
             </motion.div>
-
         </div>
     );
 };

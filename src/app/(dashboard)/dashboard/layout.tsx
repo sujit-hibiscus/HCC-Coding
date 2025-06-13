@@ -9,7 +9,7 @@ import { AppSidebar } from "@/components/common/Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useRedux } from "@/hooks/use-redux";
 import { useTabs } from "@/hooks/use-tabs";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 export default function DashboardLayout({
   children,
@@ -21,6 +21,11 @@ export default function DashboardLayout({
   const token = selector(state => state.user.token) || "";
   const { userType } = selector(state => state.user);
   const { getChartApi } = useApiCall();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const initializeData = async () => {
@@ -34,10 +39,14 @@ export default function DashboardLayout({
       }
     };
 
-    if (token?.length > 0) {
+    if (token?.length > 0 && mounted) {
       initializeData();
     }
-  }, [token, userType]);
+  }, [token, userType, mounted]);
+
+  if (!mounted) {
+    return null;
+  }
 
   if (!(token?.length > 0)) {
     return <LogoutTransition />;
