@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 
 interface DashboardState {
     token: string;
+    isPageLoading: Boolean
     tabs: Tab[]
     activeTab: string;
     search: string;
@@ -15,6 +16,7 @@ interface DashboardState {
 
 const initialState: DashboardState = {
     token: "",
+    isPageLoading: false,
     tabs: [],
     // tabs: [{ id: "dashboard", title: "Dashboard", href: "/dashboard", active: true }],
     activeTab: "",
@@ -93,6 +95,9 @@ const dashboardSlice = createSlice({
         setToken: (state, action: PayloadAction<string>) => {
             state.token = action.payload;
         },
+        setPageLoading: (state, action: PayloadAction<Boolean>) => {
+            state.isPageLoading = action.payload;
+        },
         setGlobalSearch: (state, action: PayloadAction<string>) => {
             state.search = action.payload;
         },
@@ -120,6 +125,16 @@ const dashboardSlice = createSlice({
             if (activeTab) {
                 activeTab.subTab = action.payload;
             }
+        },
+        resetTab: (state) => {
+            state.tabs = [
+                {
+                    id: "dashboard",
+                    title: "Dashboard",
+                    href: "/dashboard",
+                    active: true,
+                },
+            ];
         },
         addTab: (state, action: PayloadAction<Tab>) => {
             state.tabs.forEach((tab) => (tab.active = false));
@@ -192,6 +207,8 @@ export const {
     updateTabSearch,
     setActiveTab,
     reorderTab,
+    resetTab,
+    setPageLoading,
     setStoreColumnOrder
 } = dashboardSlice.actions;
 export default dashboardSlice.reducer;

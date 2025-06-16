@@ -25,7 +25,7 @@ const defaultEndDate = new Date(today);
 
 const initialState: DashboardFilters3State = {
     dateRange: [defaultStartDate, defaultEndDate],
-    dashboardData: generateDashboardData(defaultStartDate, defaultEndDate),
+    dashboardData: null,
     isLoading: false,
     isDirty: false,
     activeChartSeries: {
@@ -70,7 +70,7 @@ const dashboardFilters3Slice = createSlice({
         },
         resetDashboard: (state) => {
             state.dateRange = [defaultStartDate, defaultEndDate];
-            state.dashboardData = generateDashboardData(defaultStartDate, defaultEndDate);
+            state.dashboardData = null;
             state.isLoading = false;
             state.isDirty = false;
             state.activeChartSeries = {

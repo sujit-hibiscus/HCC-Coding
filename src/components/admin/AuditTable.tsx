@@ -26,7 +26,6 @@ export default function AuditDocumentsTable() {
             return dateB.getTime() - dateA.getTime(); // Descending
         })
 
-    console.log("🚀 ~ AuditDocumentsTable ~ sortedDocuments:", sortedDocuments)
     /*   useEffect(() => {
           dispatch(fetchAuditDocuments());
       }, [dispatch]); */

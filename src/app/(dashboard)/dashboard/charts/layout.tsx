@@ -42,7 +42,6 @@ export default function ChartsLayout({
     const { getChartApi } = useApiCall();
 
     const { pendingDocuments, assignedDocuments, auditDocuments, completedDocuments } = selector((state) => state.documentTable);
-    console.log("🚀 ~ pendingDocuments:", pendingDocuments)
 
     const tabs = [
         {
@@ -137,6 +136,9 @@ export default function ChartsLayout({
         router.push(targetHref);
     };
 
+    const storedLoader = selector(state => state.dashboard.isPageLoading)
+
+
     return (
         <div className="relative h-full ">
             <div className={"opacity-100 h-full transition-opacity duration-300"}>
@@ -165,7 +167,7 @@ export default function ChartsLayout({
                             transition={{ duration: 0.2, ease: "easeInOut" }}
                             className="h-full relative overflow-hidden flex flex-col pt-2 pb-1"
                         >
-                            {isLoading && (
+                            {(isLoading || storedLoader) && (
                                 <div className="absolute h-full w-full opacity-80 inset-0 z-40">
                                     <ProgressiveLoader />
                                 </div>

@@ -37,23 +37,26 @@ const rootReducer = (state: any, action: any) => {
     return appReducer(state, action);
 };
 
-// Use sessionStorage instead of localStorage to isolate state per tab
-const persistConfig = {
-    key: "root",
-    storage: sessionStorage, // Changed from storage to sessionStorage
-    whitelist: [
-        "dashboard",
-        "tableFilters",
-        "user",
-        "documentManagement",
-        "pdfFilters",
-        "userForm",
-        "documentTable",
-        "dashboardFilters2",
-    ],
-};
+let persistedReducer = rootReducer; // Default to non-persisted reducer
 
-const persistedReducer = persistReducer(persistConfig, rootReducer);
+if (typeof window !== "undefined") {
+    // Use sessionStorage instead of localStorage to isolate state per tab
+    const persistConfig = {
+        key: "root",
+        storage: sessionStorage, // Changed from storage to sessionStorage
+        whitelist: [
+            "dashboard",
+            "tableFilters",
+            "user",
+            "documentManagement",
+            "pdfFilters",
+            "userForm",
+            "documentTable",
+            "dashboardFilters2",
+        ],
+    };
+    persistedReducer = persistReducer(persistConfig, rootReducer);
+}
 
 const store = configureStore({
     reducer: persistedReducer,
@@ -64,7 +67,8 @@ const store = configureStore({
     devTools: process.env.NEXT_PUBLIC_LOCAL === "true",
 });
 
-export const persistor = persistStore(store);
+// Export persistor only if window is defined
+export const persistor = typeof window !== "undefined" ? persistStore(store) : ({} as ReturnType<typeof persistStore>);
 export default store;
 
 export type RootState = ReturnType<typeof store.getState>
@@ -77,16 +81,10 @@ export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 export const resetStore = () => ({ type: RESET_STORE });
 
 export const resetReduxStore = () => {
-    persistor.purge();
-    store.dispatch(resetStore());
+    if (typeof window !== "undefined") {
+        persistor.purge();
+        store.dispatch(resetStore());
+    }
 };
 
-// Add a listener for tab visibility changes to handle tab switching
-if (typeof window !== "undefined") {
-    window.addEventListener("storage", (event) => {
-        // If user data changes in another tab, reset the store in this tab
-        if (event.key?.includes("persist:root")) {
-            store.dispatch(resetStore());
-        }
-    });
-}
+// Removed the window.addEventListener block as it's client-side specific and can cause hydration issues

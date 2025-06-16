@@ -3,13 +3,12 @@
 import { useApiCall } from "@/components/common/ApiCall";
 import ChromeTabBar from "@/components/common/Chrome-tab-bar";
 import { Header } from "@/components/common/Header";
-import LogoutTransition from "@/components/common/LogoutTransition";
 import RouteProgressWrapper from "@/components/common/RouteProgressWrapper";
 import { AppSidebar } from "@/components/common/Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useRedux } from "@/hooks/use-redux";
 import { useTabs } from "@/hooks/use-tabs";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
 export default function DashboardLayout({
   children,
@@ -21,11 +20,6 @@ export default function DashboardLayout({
   const token = selector(state => state.user.token) || "";
   const { userType } = selector(state => state.user);
   const { getChartApi } = useApiCall();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     const initializeData = async () => {
@@ -39,18 +33,10 @@ export default function DashboardLayout({
       }
     };
 
-    if (token?.length > 0 && mounted) {
+    if (token?.length > 0) {
       initializeData();
     }
-  }, [token, userType, mounted]);
-
-  if (!mounted) {
-    return null;
-  }
-
-  if (!(token?.length > 0)) {
-    return <LogoutTransition />;
-  }
+  }, [token, userType]);
 
   return (
     <SidebarProvider>
@@ -66,9 +52,6 @@ export default function DashboardLayout({
           <div className="sticky z-50 top-[4rem] md:top-0">
             <div className="flex h-full justify-between">
               <ChromeTabBar />
-              {/*  <div className="w-full h-full dark:bg-accent pr-5 max-w-[20rem]">
-                <GlobalSearchBar />
-              </div> */}
             </div>
           </div>
 

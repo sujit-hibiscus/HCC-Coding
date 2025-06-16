@@ -23,6 +23,13 @@ export function AdminDashboard() {
   // const userType = selector((state) => state.user.userType);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
+  // New useEffect to trigger initial data load when the component mounts on the client
+  useEffect(() => {
+    if (!dashboardData && !isLoading) { // Only load if data is not present and not already loading
+      dispatch(loadDashboardData());
+    }
+  }, [dispatch, dashboardData, isLoading]);
+
   useEffect(() => {
     if (isLoading && dateRange[0] && dateRange[1]) {
       if (!isNaN(dateRange[0].getTime()) && !isNaN(dateRange[1].getTime())) {

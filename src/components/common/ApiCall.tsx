@@ -15,7 +15,6 @@ export function useApiCall() {
     const { dispatch, selector } = useRedux();
     const { fullPath = "" } = useFullPath();
     const { pendingDocuments, assignedDocuments, completedDocuments, auditDocuments } = selector((state) => state.documentTable);
-    console.log("🚀 ~ useApiCall ~ assignedDocuments:", assignedDocuments?.data?.length)
     const { documents } = selector((state) => state.documentManagement);
 
     const { showPromiseToast, success } = useToast();

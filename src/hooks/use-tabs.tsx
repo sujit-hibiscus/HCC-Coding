@@ -1,4 +1,4 @@
-import { addTab, setActiveTab, updateTab } from "@/store/slices/DashboardSlice";
+import { addTab, setActiveTab, setPageLoading, updateTab } from "@/store/slices/DashboardSlice";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { useRedux } from "./use-redux";
@@ -10,11 +10,13 @@ export const useTabs = () => {
     const activeTab = selector((state) => state.dashboard.activeTab);
 
     const handleAddTab = useCallback((id: string, title: string, href: string) => {
+        dispatch(setPageLoading(true))
         dispatch(addTab({ id, title, href, active: true }));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dispatch, router]);
 
     const handleCloseTab = useCallback((tabId: string) => {
+        dispatch(setPageLoading(true))
         if (tabs.length > 1) {
             const closedTabIndex = tabs.findIndex(tab => tab.id === tabId);
             const updatedTabs = tabs.filter(tab => tab.id !== tabId);
@@ -49,6 +51,7 @@ export const useTabs = () => {
 
 
     const handleTabChange = useCallback((tabId: string) => {
+        dispatch(setPageLoading(true))
         dispatch(setActiveTab(tabId));
         const tab = tabs.find(t => t.id === tabId);
         if (tab?.href) {
@@ -57,6 +60,7 @@ export const useTabs = () => {
     }, [dispatch, router, tabs]);
 
     const handleAddChartId = useCallback(({ chartId, chartType, link = "/dashboard/details/" }: { chartId: string, chartType: string, link?: string }) => {
+        dispatch(setPageLoading(true))
         const reviewType = chartType
             .split("-")
             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -85,6 +89,7 @@ export const useTabs = () => {
     }, [handleAddTab]);
 
     const handleOpenProfile = useCallback(({ provider, tabType, id = "", link = "/dashboard/" }: { provider: string, id: string, tabType: string, link?: string }) => {
+        dispatch(setPageLoading(true))
         const providerName = provider?.replace(/ /g, "-");
         const href = `${link}${tabType}?provider=${id}`;
         const tabTitle = `${tabType}: ${provider}`;

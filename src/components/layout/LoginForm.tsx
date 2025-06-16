@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { useRedux } from "@/hooks/use-redux";
 import useToast from "@/hooks/use-toast";
-import { addTab, fetchAnalystUsers, fetchAuditorUsers } from "@/store/slices/DashboardSlice";
+import { addTab, fetchAnalystUsers, fetchAuditorUsers, resetTab } from "@/store/slices/DashboardSlice";
 import { fetchChartCounts, setError, setLoading, setUser } from "@/store/slices/user-slice";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -56,18 +56,7 @@ export default function LoginForm() {
                         })
                     );
 
-                    const initialTab = response.userType?.toLowerCase()?.includes("admin") ? {
-                        "id": "dashboard",
-                        "title": "Dashboard",
-                        "href": "/dashboard",
-                        "active": true
-                    } : {
-                        "id": "dashboard",
-                        "title": "Dashboard",
-                        "href": "/dashboard",
-                        "active": true
-                    };
-                    dispatch(addTab(initialTab));
+                    dispatch(resetTab());
                     setTimeout(() => {
                         router.push(response.userType?.toLowerCase()?.includes("admin") ? "/dashboard" : "/dashboard");
                         resolve();
@@ -81,7 +70,6 @@ export default function LoginForm() {
                 dispatch(setError("An error occurred during login"));
                 // reject(new Error("An error occurred during login. Please try again later."));
             } finally {
-                setIsSubmitting(false);
                 dispatch(setLoading(false));
             }
         });

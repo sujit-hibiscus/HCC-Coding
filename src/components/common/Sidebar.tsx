@@ -31,6 +31,7 @@ import { useTheme } from "next-themes";
 import { useState } from "react";
 import { useApiCall } from "./ApiCall";
 import { ChangePassword } from "./user/change-password";
+import { setPageLoading } from "@/store/slices/DashboardSlice";
 
 interface MenuItem {
     icon: React.ElementType
@@ -50,7 +51,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
     const router = useRouter();
     const { state, open, toggleSidebar } = useSidebar();
     const { setTheme, resolvedTheme } = useTheme();
-    const { resetReduxStore, selector } = useRedux();
+    const { resetReduxStore, selector, dispatch } = useRedux();
     const { userType } = selector(state => state.user);
     const [isOpen, setIsOpen] = useState(false);
     const { getChartApi, getUserApiCall } = useApiCall();
@@ -69,6 +70,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
 
     const handleNavigation = (href: string, label: string) => {
         const id = href.split("/").pop() || href;
+        dispatch(setPageLoading(true))
 
         setTimeout(() => {
             if (targetTabs.some(status => id.includes(status))) {
