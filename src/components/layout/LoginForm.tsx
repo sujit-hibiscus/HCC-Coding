@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { useRedux } from "@/hooks/use-redux";
 import useToast from "@/hooks/use-toast";
-import { addTab, fetchAnalystUsers, fetchAuditorUsers, resetTab } from "@/store/slices/DashboardSlice";
+import { fetchAnalystUsers, fetchAuditorUsers, resetTab } from "@/store/slices/DashboardSlice";
 import { fetchChartCounts, setError, setLoading, setUser } from "@/store/slices/user-slice";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -43,6 +43,7 @@ export default function LoginForm() {
 
                 if (response?.message && response?.message !== "Login successful") {
                     error({ message: response.message });
+                    setIsSubmitting(false);
                 }
 
                 if (response.success) {
@@ -67,6 +68,7 @@ export default function LoginForm() {
                 }
             } catch (e) {
                 console.error("Login error:", e);
+
                 dispatch(setError("An error occurred during login"));
                 // reject(new Error("An error occurred during login. Please try again later."));
             } finally {

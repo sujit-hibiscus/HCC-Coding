@@ -51,7 +51,7 @@ export const useTabs = () => {
 
 
     const handleTabChange = useCallback((tabId: string) => {
-        dispatch(setPageLoading(true))
+        dispatch(setPageLoading(activeTab !== tabId))
         dispatch(setActiveTab(tabId));
         const tab = tabs.find(t => t.id === tabId);
         if (tab?.href) {

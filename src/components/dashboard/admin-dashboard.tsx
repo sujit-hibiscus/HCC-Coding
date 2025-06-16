@@ -20,12 +20,10 @@ import { TimeSpentChart } from "./time-spent-chart";
 export function AdminDashboard() {
   const { selector, dispatch } = useRedux();
   const { dateRange, dashboardData, isDirty, isLoading, filtersApplied } = selector((state) => state.dashboardFilters3);
-  // const userType = selector((state) => state.user.userType);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
-  // New useEffect to trigger initial data load when the component mounts on the client
   useEffect(() => {
-    if (!dashboardData && !isLoading) { // Only load if data is not present and not already loading
+    if (!dashboardData && !isLoading) {
       dispatch(loadDashboardData());
     }
   }, [dispatch, dashboardData, isLoading]);
@@ -121,8 +119,8 @@ export function AdminDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4">
         <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.1 }}
         >
           <PeriodComparisonPanel
@@ -133,8 +131,8 @@ export function AdminDashboard() {
           />
         </motion.div>
         <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.2 }}
         >
           <PeriodComparisonPanel
@@ -145,8 +143,8 @@ export function AdminDashboard() {
           />
         </motion.div>
         <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.3 }}
         >
           <PeriodComparisonPanel
@@ -159,16 +157,16 @@ export function AdminDashboard() {
       </div>
 
       <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.4 }}
       >
         <ChartsAuditsChart data={dashboardData.dailyData} />
       </motion.div>
 
       <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.45 }}
       >
         <TimeSpentChart data={dashboardData.dailyData} />
@@ -176,8 +174,8 @@ export function AdminDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-1 2xl:grid-cols-3 gap-1">
         <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.5 }}
           className="lg:col-span-2"
         >
@@ -196,8 +194,8 @@ export function AdminDashboard() {
           </div>
         </motion.div>
         <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.6 }}
         >
           <QualityMetricsTable analysts={dashboardData.analysts} headerClassName="bg-indigo-600 text-white" />

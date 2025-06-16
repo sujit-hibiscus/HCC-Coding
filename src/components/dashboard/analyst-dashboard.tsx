@@ -20,6 +20,13 @@ export function AnalystDashboard() {
   const dashboardRef = useRef<HTMLDivElement>(null);
   const userType = selector((state) => state.user.userType);
 
+  // Re-adding the useEffect to trigger initial data load when the component mounts on the client
+  useEffect(() => {
+    if (!dashboardData && !isLoading) { // Only load if data is not present and not already loading
+      dispatch(loadDashboardData());
+    }
+  }, [dispatch, dashboardData, isLoading]);
+
   useEffect(() => {
     // Only load data when isLoading is true (triggered by Load button)
     if (isLoading && dateRange[0] && dateRange[1]) {
