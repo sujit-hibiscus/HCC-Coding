@@ -9,13 +9,13 @@ import { useRedux } from "@/hooks/use-redux";
 import { EndDateFilter, StartDateFilter } from "@/lib/utils";
 import { autoAssign } from "@/store/slices/documentManagementSlice";
 import { fetchAssignedDocuments, fetchAuditDocuments, fetchPendingDocuments } from "@/store/slices/table-document-slice";
-import { clearTabFilters, setTabPagination } from "@/store/slices/tableFiltersSlice";
+import { setTabPagination } from "@/store/slices/tableFiltersSlice";
 import type { SortingState, Table } from "@tanstack/react-table";
+import { endOfWeek, isSameDay, startOfWeek } from "date-fns";
 import { motion } from "framer-motion";
 import { LoaderCircle, RefreshCw, Sparkles, X } from "lucide-react";
 import { CalendarDateRangePicker } from "./CalendarDateRangePicker";
 import { TasksTableToolbarActions } from "./tasks-table-toolbar-actions";
-import { endOfWeek, isDate, isSameDay, isWithinInterval, parseISO, startOfWeek, subDays } from "date-fns";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
@@ -36,6 +36,7 @@ function DataTableToolbarComponent<TData>({
   dateKey = "",
   handleRefresh,
 }: DataTableToolbarProps<TData>) {
+  console.log("🚀 ~ dateRange:", dateRange)
   const isFiltered = table.getState().columnFilters.length > 0;
   const { charts = "", target = "" } = useFullPath();
   const tabKey = `${charts}${target}`;

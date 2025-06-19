@@ -35,28 +35,9 @@ const CustomOption = (props: OptionProps<any, boolean, GroupBase<any>>) => {
 
 export const CreatableSelect = ({ className, isError = false, isMulti = false, ...props }: CreatableSelectProps) => {
     const [showAllOptions, setShowAllOptions] = useState(false);
+    const [inputValue, setInputValue] = useState("");
     console.info("🚀 ~ CreatableSelect ~ showAllOptions:", showAllOptions)
-
-    /*  const filterOptions = useCallback((options: any[]) => {
-         if (!options || showAllOptions) return options;
- 
-         if (options.length <= MAX_VISIBLE_OPTIONS) return options;
- 
-         const moreOptionsItem = {
-             label: `+${options.length - MAX_VISIBLE_OPTIONS} more`,
-             value: "__more_options__",
-             __isMoreOptions: true,
-             totalCount: options.length,
-             onClick: (e: React.MouseEvent) => {
-                 e.preventDefault();
-                 e.stopPropagation();
-                 setShowAllOptions(true);
-             }
-         };
- 
-         return [...options.slice(0, MAX_VISIBLE_OPTIONS), moreOptionsItem];
-     }, [showAllOptions]); */
-
+    const DropdownIndicator = () => null;
     return (
         <CreatableReactSelect
             isMulti={isMulti}
@@ -80,13 +61,19 @@ export const CreatableSelect = ({ className, isError = false, isMulti = false, .
                 multiValue: () => "bg-accent rounded-md px-1 py-0.5 mr-1",
                 multiValueLabel: () => "text-sm",
                 multiValueRemove: () => "ml-1 text-muted-foreground hover:text-foreground",
-                menu: () => "bg-background border border-input rounded-md mt-1 overflow-hidden",
+                menu: () => inputValue ? "bg-background border border-input rounded-md mt-1 overflow-hidden" : "hidden",
                 menuList: () => "p-1 max-h-[200px] overflow-y-auto scrollbar-thin",
                 noOptionsMessage: () => "text-muted-foreground p-2 text-sm",
+                dropdownIndicator: () => props.options && props.options.length > 0 ? "block" : "hidden",
             }}
             components={{
                 Option: CustomOption,
+                DropdownIndicator,
                 ...props.components
+            }}
+            onInputChange={(newValue, meta) => {
+                setInputValue(newValue);
+                props.onInputChange?.(newValue, meta);
             }}
             filterOption={(option, inputValue) => {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any

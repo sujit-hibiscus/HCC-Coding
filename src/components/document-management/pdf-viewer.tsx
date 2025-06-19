@@ -361,6 +361,7 @@ export default function PdfViewer({
     } catch (error) {
       console.error("Error completing review:", error)
     } finally {
+      setIsSubmitting(false)
       setIsCompletingReview(false)
       setApiLoading(false)
     }
@@ -381,7 +382,7 @@ export default function PdfViewer({
     }
 
     setShowSidebar(false)
-    setIsSubmitting(false)
+
 
     if (onReviewComplete) {
       onReviewComplete()

@@ -24,7 +24,7 @@ export default function RootLayout({
         return (
             <html lang="en" suppressHydrationWarning>
                 <head>
-                    <title>HCC Coding Platform</title>
+                    <title>HCC Coding</title>
                 </head>
                 <body className="custom-scroll" suppressHydrationWarning>
                     <Loading />
@@ -36,35 +36,28 @@ export default function RootLayout({
     return (
         <html lang="en" suppressHydrationWarning>
             <head>
-                <title>HCC Coding Platform</title>
+                <title>HCC Coding</title>
             </head>
             <body className="custom-scroll" suppressHydrationWarning>
                 <ReduxProvider>
-                    <ThemeProvider
-                        attribute="class"
-                        defaultTheme="light"
-                        enableSystem
-                        disableTransitionOnChange
+                    <Suspense
+                        fallback={<Loading />}
+                        unstable_expectedLoadTime={100}
                     >
-                        <Suspense
-                            fallback={<Loading />}
-                            unstable_expectedLoadTime={100}
+                        <div
+                            className="page-transition min-h-screen"
+                            style={{
+                                contain: "layout style paint",
+                                willChange: "transform"
+                            }}
                         >
-                            <div
-                                className="page-transition min-h-screen"
-                                style={{
-                                    contain: "layout style paint",
-                                    willChange: "transform"
-                                }}
-                            >
-                                {children}
-                            </div>
-                        </Suspense>
-                        <ScrollToTopButton />
-                        <SpeedInsights />
-                    </ThemeProvider>
+                            {children}
+                        </div>
+                    </Suspense>
+                    <ScrollToTopButton />
+                    <SpeedInsights />
+                    <ToastProvider />
                 </ReduxProvider>
-                <ToastProvider />
             </body>
         </html>
     );

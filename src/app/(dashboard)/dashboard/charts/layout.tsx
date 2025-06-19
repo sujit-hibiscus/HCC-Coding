@@ -14,11 +14,26 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, Clock, FileEdit } from "lucide-react";
 import { redirect, usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { isWithinInterval, parse } from "date-fns";
+import { EndDateFilter, StartDateFilter } from "@/lib/utils";
 
 const tabVariants = {
     hidden: { opacity: 0, y: 0 },
     visible: { opacity: 1, y: 0 },
     exit: { opacity: 0, y: 0 },
+};
+
+const filterDocumentsByDateRange = (docs: any[], range: [string, string]) => {
+    return docs.filter(d => {
+        if (d.received) {
+            const parsedDate = parse(d.received, 'MM-dd-yyyy', new Date());
+            return isWithinInterval(parsedDate, {
+                start: new Date(range[0]),
+                end: new Date(range[1]),
+            });
+        }
+        return false;
+    });
 };
 
 export default function ChartsLayout({
@@ -42,57 +57,64 @@ export default function ChartsLayout({
     const { getChartApi } = useApiCall();
 
     const { pendingDocuments, assignedDocuments, auditDocuments, completedDocuments } = selector((state) => state.documentTable);
+    const storedData = selector((state) => state.tableFilters);
+    console.log("🚀 ~ storedData:", storedData)
+
+    const filteredPendinCount = filterDocumentsByDateRange(
+        pendingDocuments?.data,
+        (storedData["dashboard/charts/pending"]?.dateRange ?? []).map(date =>
+            date instanceof Date ? date.toISOString().slice(0, 10) : ""
+        ) as [string, string]
+    )
+    const filteredAssignedCount = filterDocumentsByDateRange(
+        assignedDocuments?.data,
+        (storedData["dashboard/charts/assigned"]?.dateRange ?? []).map(date =>
+            date instanceof Date ? date.toISOString().slice(0, 10) : ""
+        ) as [string, string]
+    )
+    const filteredAuditCount = filterDocumentsByDateRange(
+        auditDocuments?.data,
+        (storedData["dashboard/charts/audit"]?.dateRange ?? []).map(date =>
+            date instanceof Date ? date.toISOString().slice(0, 10) : ""
+        ) as [string, string]
+    )
+    const filteredCompletedCount = filterDocumentsByDateRange(
+        completedDocuments?.data,
+        (storedData["dashboard/charts/completed"]?.dateRange ?? []).map(date =>
+            date instanceof Date ? date.toISOString().slice(0, 10) : ""
+        ) as [string, string]
+    )
+
+
+
+    const bodyData = [EndDateFilter, StartDateFilter]
+    console.log("🚀 ~ bodyData:", bodyData)
+
 
     const tabs = [
         {
             value: ChartTab.Pending,
             label: "Pending",
             icon: Clock,
-            count: pendingDocuments?.data?.length > 0 ? pendingDocuments?.data?.length : chartsCounts?.Pending,
+            count: pendingDocuments?.data?.length > 0 ? filteredPendinCount?.length : chartsCounts?.Pending,
         },
         {
             value: ChartTab.Assigned,
             label: "Assigned",
             icon: FileEdit,
-            count: assignedDocuments?.data?.length > 0 ? assignedDocuments?.data?.length : chartsCounts?.Assigned,
+            count: assignedDocuments?.data?.length > 0 ? filteredAssignedCount?.length : chartsCounts?.Assigned,
         },
         {
             value: ChartTab.Audit,
             label: "Audit",
             icon: CheckCircle2,
-            count: auditDocuments?.data?.length > 0 ? auditDocuments?.data?.length : chartsCounts?.Audit,
+            count: auditDocuments?.data?.length > 0 ? filteredAuditCount?.length : chartsCounts?.Audit,
         },
         {
             value: ChartTab.Completed,
             label: "Completed",
             icon: CheckCircle2,
-            count: completedDocuments?.data?.length > 0 ? completedDocuments?.data?.length : chartsCounts?.Completed,
-        },
-    ];
-    const tabsData = [
-        {
-            value: ChartTab.Pending,
-            label: "Pending",
-            icon: Clock,
-            count: pendingDocuments?.data?.length > 0 ? pendingDocuments?.data?.length : chartsCounts?.Pending,
-        },
-        {
-            value: ChartTab.Assigned,
-            label: "Assigned",
-            icon: FileEdit,
-            count: assignedDocuments?.data?.length > 0 ? assignedDocuments?.data?.length : chartsCounts?.Assigned,
-        },
-        {
-            value: ChartTab.Audit,
-            label: "Audit",
-            icon: CheckCircle2,
-            count: auditDocuments?.data?.length > 0 ? auditDocuments?.data?.length : chartsCounts?.Audit,
-        },
-        {
-            value: ChartTab.Completed,
-            label: "Completed",
-            icon: CheckCircle2,
-            count: completedDocuments?.data?.length > 0 ? completedDocuments?.data?.length : chartsCounts?.Completed,
+            count: completedDocuments?.data?.length > 0 ? filteredCompletedCount?.length : chartsCounts?.Completed,
         },
     ];
 
@@ -127,7 +149,6 @@ export default function ChartsLayout({
         const targetTab = (storedTabs as Tab[])?.map((item) => (item?.active ? { ...item, href: targetHref } : item));
 
         setTimeout(() => {
-            const targetTab = tabsData?.find((item) => item.value === value);
             getChartApi(value as "pending" | "assigned" | "audit" | "completed");
 
         });

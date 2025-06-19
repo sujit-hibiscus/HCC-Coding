@@ -101,11 +101,11 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
             }
         });
 
-        showPromiseToast({
-            promise: logoutPromise,
-            loading: "Logging out...",
-            error: "Failed to log out. Please try again.",
-        });
+        /*  showPromiseToast({
+             promise: logoutPromise,
+             loading: "Logging out...",
+             error: "Failed to log out. Please try again.",
+         }); */
     };
 
     const comparePaths = (path1: string, path2: string) => {

@@ -12,11 +12,10 @@ export const useTabs = () => {
     const handleAddTab = useCallback((id: string, title: string, href: string) => {
         dispatch(setPageLoading(true))
         dispatch(addTab({ id, title, href, active: true }));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [dispatch, router]);
+    }, [dispatch]);
 
     const handleCloseTab = useCallback((tabId: string) => {
-        dispatch(setPageLoading(true))
+        dispatch(setPageLoading(activeTab === tabId));
         if (tabs.length > 1) {
             const closedTabIndex = tabs.findIndex(tab => tab.id === tabId);
             const updatedTabs = tabs.filter(tab => tab.id !== tabId);

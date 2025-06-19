@@ -23,6 +23,8 @@ export default function LoginForm() {
     const router = useRouter();
     const { error } = useToast();
     const { dispatch } = useRedux();
+    console.log("Working new changes!..");
+
 
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -35,6 +37,8 @@ export default function LoginForm() {
                 formData.append("password", password);
 
                 const response = await loginAction(formData);
+                console.log("API Data => response", response);
+                console.log("API => response", response);
                 if (response?.userType?.toLowerCase()?.includes("admin")) {
                     dispatch(fetchChartCounts());
                     dispatch(fetchAnalystUsers());
@@ -44,6 +48,7 @@ export default function LoginForm() {
                 if (response?.message && response?.message !== "Login successful") {
                     error({ message: response.message });
                     setIsSubmitting(false);
+                    return;
                 }
 
                 if (response.success) {
@@ -63,14 +68,17 @@ export default function LoginForm() {
                         resolve();
                     }, 500);
                 } else {
-                    dispatch(setError(response.error || "Login failed"));
-                    // reject(new Error(response.error || "Invalid email or password. Please try again."));
+                    const errorMessage = response.error || "Login failed";
+                    error({ message: errorMessage });
+                    dispatch(setError(errorMessage));
+                    setIsSubmitting(false);
                 }
             } catch (e) {
                 console.error("Login error:", e);
-
-                dispatch(setError("An error occurred during login"));
-                // reject(new Error("An error occurred during login. Please try again later."));
+                const errorMessage = e instanceof Error ? e.message : "An error occurred during login";
+                error({ message: errorMessage });
+                dispatch(setError(errorMessage));
+                setIsSubmitting(false);
             } finally {
                 dispatch(setLoading(false));
             }

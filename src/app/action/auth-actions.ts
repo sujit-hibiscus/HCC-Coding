@@ -59,6 +59,7 @@ export async function loginAction(formData: FormData): Promise<LoginResponse> {
             body: JSON.stringify(bodyData),
             cache: "no-store",
         });
+        console.log("🚀 ~ loginAction ~ response:", response)
 
         const data = await response.json();
         if (data.status === "Success") {

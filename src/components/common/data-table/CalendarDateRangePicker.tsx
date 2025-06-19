@@ -18,6 +18,7 @@ interface CalendarDateRangePickerProps {
     className?: string
     onReset?: () => void
     onExport?: () => void
+    onDateRangeChange?: (range: [Date, Date]) => void
 }
 
 export function CalendarDateRangePicker({
@@ -30,6 +31,14 @@ export function CalendarDateRangePicker({
     const [isOpen, setIsOpen] = useState(false);
     const [calendarDate, setCalendarDate] = useState(new Date());
     const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
+    const [tempDateRange, setTempDateRange] = useState<[Date | null, Date | null]>([null, null]);
+    useEffect(() => {
+        if (dateRange?.filter(Boolean)?.length === 0) {
+            setTempDateRange([null, null]);
+        } else {
+            setTempDateRange(dateRange)
+        }
+    }, [dateRange]);
 
     // State for comboboxes
     const [monthOpen, setMonthOpen] = useState(false);
@@ -275,17 +284,19 @@ export function CalendarDateRangePicker({
                             <ReactDatePicker
                                 selectsRange
                                 inline
-                                startDate={dateRange[0]}
-                                endDate={dateRange[1]}
+                                startDate={tempDateRange[0]}
+                                endDate={tempDateRange[1]}
                                 onChange={(update) => {
-
                                     const updatedRange = update.map((date) =>
                                         date ? new Date(date.setHours(0, 0, 0, 0)) : null
-                                    );
+                                    ) as [Date | null, Date | null];
 
-                                    setDateRange(updatedRange as [Date | null, Date | null]);
+                                    // Update temporary range for visual feedback
+                                    setTempDateRange(updatedRange);
 
+                                    // Only update main dateRange when both dates are selected
                                     if (updatedRange[0] && updatedRange[1]) {
+                                        setDateRange(updatedRange);
                                         setIsOpen(false);
                                     }
                                 }}

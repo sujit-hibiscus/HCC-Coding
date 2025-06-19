@@ -19,7 +19,7 @@ export const SubmissionFormSchema = z.object({
         )
         .min(1, "At least one corrected code is required"),
 
-    auditRemarks: z.string().min(10, "Audit remarks must be at least 10 characters long"),
+    auditRemarks: z.string().min(150, "Audit remark must be at least 150 characters long"),
     rating: z
         .number({
             required_error: "Rating is required",

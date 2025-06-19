@@ -1,4 +1,3 @@
-
 import { DashboardPageMetaData } from "@/lib/MetaData";
 import { Metadata } from "next";
 import Dashboard2Page from "./dashboard/page";

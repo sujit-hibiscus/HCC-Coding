@@ -19,7 +19,7 @@ import {
     updateFormData,
 } from "@/store/slices/documentManagementSlice"
 import { AnimatePresence, motion } from "framer-motion"
-import { Check, CheckCircle, ChevronDown, ChevronUp, Info, Loader2, Search, X } from "lucide-react"
+import { Asterisk, Check, CheckCircle, ChevronDown, ChevronUp, Info, Loader2, Search, X } from "lucide-react"
 import { useCallback, useMemo, useState, useTransition } from "react"
 import { Checkbox } from "../ui/checkbox"
 
@@ -204,7 +204,7 @@ export default function AuditorReviewForm({
     return (
         <TooltipProvider>
             <motion.div
-                className="w-full flex flex-col md:w-[40rem] h-full border-t md:border-t-0 md:border-l overflow-hidden bg-gradient-to-br from-slate-50 to-white"
+                className="w-full flex flex-col md:w-[90rem] h-full border-t md:border-t-0 md:border-l overflow-hidden bg-gradient-to-br from-slate-50 to-white"
                 initial={{ x: "100%", opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: "100%", opacity: 0 }}
@@ -223,7 +223,7 @@ export default function AuditorReviewForm({
                                     <Label htmlFor="codes-missed" className="text-xs font-medium">
                                         Codes Missed
                                     </Label>
-                                    {formErrors.codesMissed && !(formData.codesMissed?.length > 0) && (
+                                    {(formErrors.codesMissed && !(formData.codesMissed?.length > 0)) ? (
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <div className="text-red-500">
@@ -234,7 +234,9 @@ export default function AuditorReviewForm({
                                                 <p className="text-xs">{formErrors.codesMissed}</p>
                                             </TooltipContent>
                                         </Tooltip>
-                                    )}
+                                    ) : <div className="text-red-500">
+                                        <Asterisk className="h-3 w-3" />
+                                    </div>}
                                 </div>
                                 <div className="relative">
                                     <CreatableSelect
@@ -278,7 +280,7 @@ export default function AuditorReviewForm({
                                     <Label htmlFor="codes-corrected" className="text-xs font-medium">
                                         Codes Corrected
                                     </Label>
-                                    {formErrors.codesCorrected && !(formData.codesCorrected?.length > 0) && (
+                                    {formErrors.codesCorrected && !(formData.codesCorrected?.length > 0) ? (
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <div className="text-red-500">
@@ -289,7 +291,9 @@ export default function AuditorReviewForm({
                                                 <p className="text-xs">{formErrors.codesCorrected}</p>
                                             </TooltipContent>
                                         </Tooltip>
-                                    )}
+                                    ) : <div className="text-red-500">
+                                        <Asterisk className="h-3 w-3" />
+                                    </div>}
                                 </div>
                                 <div className="relative">
                                     <CreatableSelect
@@ -335,7 +339,7 @@ export default function AuditorReviewForm({
                                         <Label htmlFor="audit-remarks" className="text-xs font-medium">
                                             Audit Remarks
                                         </Label>
-                                        {formErrors.auditRemarks && !(formData.auditRemarks?.length >= 10) && (
+                                        {formErrors.auditRemarks && !(formData.auditRemarks?.length >= 150) ? (
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
                                                     <div className="text-red-500">
@@ -346,7 +350,9 @@ export default function AuditorReviewForm({
                                                     <p className="text-xs">{formErrors.auditRemarks}</p>
                                                 </TooltipContent>
                                             </Tooltip>
-                                        )}
+                                        ) : <div className="text-red-500">
+                                            <Asterisk className="h-3 w-3" />
+                                        </div>}
                                     </div>
                                     <div className="relative">
                                         <Textarea
@@ -360,7 +366,7 @@ export default function AuditorReviewForm({
                                             className={cn(
                                                 "text-xs transition-all duration-200 focus:ring-2 focus:ring-blue-200 max-h-[60px]",
                                                 formErrors.auditRemarks &&
-                                                !(formData.auditRemarks?.length >= 10) &&
+                                                !(formData.auditRemarks?.length >= 150) &&
                                                 "border-red-500 focus:border-red-500",
                                             )}
                                         />
@@ -373,7 +379,7 @@ export default function AuditorReviewForm({
                                     <Label htmlFor="rating" className="text-xs font-medium">
                                         Quality Rating (0-100)
                                     </Label>
-                                    {(formErrors.rating && !(formData.rating > 0 && formData.rating <= 100)) && (
+                                    {(formErrors.rating && !(formData.rating > 0 && formData.rating <= 100)) ? (
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <div className="text-red-500">
@@ -387,7 +393,9 @@ export default function AuditorReviewForm({
                                                 </p>
                                             </TooltipContent>
                                         </Tooltip>
-                                    )}
+                                    ) : <div className="text-red-500">
+                                        <Asterisk className="h-3 w-3" />
+                                    </div>}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <div className="relative">
@@ -642,7 +650,7 @@ export default function AuditorReviewForm({
                                                                         </div>
                                                                     </div>
 
-                                                                    {item.evidence.length > 100 && (
+                                                                    {item.evidence.length > 230 && (
                                                                         <Button
                                                                             variant="ghost"
                                                                             size="sm"

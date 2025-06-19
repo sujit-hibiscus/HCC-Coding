@@ -6,6 +6,7 @@ import documentTableSlice from "@/store/slices/table-document-slice";
 import tableFiltersReducer from "@/store/slices/tableFiltersSlice";
 import userForm from "@/store/slices/user-form-slice";
 import userSlice from "@/store/slices/user-slice";
+import dateRangeReducer from "@/store/slices/dateRangeSlice";
 
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { type TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
@@ -25,6 +26,7 @@ const appReducer = combineReducers({
     userForm: userForm,
     documentTable: documentTableSlice,
     dashboardFilters3: dashboardFilters,
+    dateRange: dateRangeReducer,
 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
