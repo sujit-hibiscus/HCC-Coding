@@ -11,6 +11,7 @@ import useToast from "@/hooks/use-toast";
 import { postData } from "@/lib/api/api-client";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface ForgotPasswordProps {
     triggerComponent?: React.ReactNode,
@@ -81,67 +82,59 @@ export function ForgotPassword({ triggerComponent }: ForgotPasswordProps) {
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            {/* <DialogTrigger asChild>
-                {triggerComponent || (
-                    <Button
-                        // disabled={!(email?.length > 0)}
-                        variant="link" className="px-0 font-normal text-selectedText"
-                        onClick={() => setIsOpen(true)}>
-                        Forgot Password?
-                    </Button>
-                )}
-            </DialogTrigger> */}
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle>Forgot Password</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 ">
-                    <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            placeholder="Enter your email address"
-                            value={email}
-                            // readOnly
-                            className="lowercase"
-                            onChange={(e) => {
-                                setEmail(e.target.value.toLowerCase());
-                            }}
-                        // disabled={isLoading}
-                        />
-                    </div>
+            <VisuallyHidden>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Forgot Password</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 ">
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                placeholder="Enter your email address"
+                                value={email}
+                                // readOnly
+                                className="lowercase"
+                                onChange={(e) => {
+                                    setEmail(e.target.value.toLowerCase());
+                                }}
+                            // disabled={isLoading}
+                            />
+                        </div>
 
-                    {message && (
-                        <Alert
-                            className={
-                                message.type === "success"
-                                    ? "bg-green-50 border-green-200 text-green-800"
-                                    : "bg-red-50 border-red-200 text-red-800"
-                            }
-                        >
-                            <AlertDescription>{message.text}</AlertDescription>
-                        </Alert>
-                    )}
-                </div>
-                <DialogFooter>
-                    <div className="w-full flex justify-between">
-                        <Button variant="outline" onClick={handleClose} disabled={isLoading}>
-                            Cancel
-                        </Button>
-                        <Button onClick={handleForgotPassword} disabled={isLoading}>
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Sending...
-                                </>
-                            ) : (
-                                "Submit"
-                            )}
-                        </Button>
+                        {message && (
+                            <Alert
+                                className={
+                                    message.type === "success"
+                                        ? "bg-green-50 border-green-200 text-green-800"
+                                        : "bg-red-50 border-red-200 text-red-800"
+                                }
+                            >
+                                <AlertDescription>{message.text}</AlertDescription>
+                            </Alert>
+                        )}
                     </div>
-                </DialogFooter>
-            </DialogContent>
+                    <DialogFooter>
+                        <div className="w-full flex justify-between">
+                            <Button variant="outline" onClick={handleClose} disabled={isLoading}>
+                                Cancel
+                            </Button>
+                            <Button onClick={handleForgotPassword} disabled={isLoading}>
+                                {isLoading ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Sending...
+                                    </>
+                                ) : (
+                                    "Submit"
+                                )}
+                            </Button>
+                        </div>
+                    </DialogFooter>
+                </DialogContent>
+            </VisuallyHidden>
         </Dialog>
     );
 }

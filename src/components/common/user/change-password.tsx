@@ -12,6 +12,7 @@ import { useRedux } from "@/hooks/use-redux";
 import useToast from "@/hooks/use-toast";
 import { postData } from "@/lib/api/api-client";
 import { Loader2 } from "lucide-react";
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface ChangePasswordProps {
     setIsOpen: React.Dispatch<React.SetStateAction<boolean>>
@@ -124,71 +125,73 @@ export function ChangePassword({ setIsOpen, isOpen }: ChangePasswordProps) {
     };
 
     return (
-        <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-                <DialogTitle>Change Password</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                    <Label htmlFor="current-password">Current Password</Label>
-                    <PasswordInput
-                        id="current-password"
-                        placeholder="Enter your old password"
-                        value={oldPassword}
-                        onChange={(e) => setOldPassword(e.target.value)}
-                        disabled={isLoading}
-                    />
+        <VisuallyHidden>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Change Password</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="current-password">Current Password</Label>
+                        <PasswordInput
+                            id="current-password"
+                            placeholder="Enter your old password"
+                            value={oldPassword}
+                            onChange={(e) => setOldPassword(e.target.value)}
+                            disabled={isLoading}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="new-password">New Password</Label>
+                        <PasswordInput
+                            id="new-password"
+                            placeholder="Enter your new password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            disabled={isLoading}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="confirm-password">Confirm New Password</Label>
+                        <PasswordInput
+                            id="confirm-password"
+                            placeholder="Enter your confirm password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            disabled={isLoading}
+                        />
+                    </div>
+                    {message && (
+                        <Alert
+                            className={
+                                message.type === "success"
+                                    ? "bg-green-50 border-green-200 text-green-800"
+                                    : "bg-red-50 border-red-200 text-red-800"
+                            }
+                        >
+                            <AlertDescription>{message.text}</AlertDescription>
+                        </Alert>
+                    )}
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor="new-password">New Password</Label>
-                    <PasswordInput
-                        id="new-password"
-                        placeholder="Enter your new password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        disabled={isLoading}
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirm New Password</Label>
-                    <PasswordInput
-                        id="confirm-password"
-                        placeholder="Enter your confirm password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        disabled={isLoading}
-                    />
-                </div>
-                {message && (
-                    <Alert
-                        className={
-                            message.type === "success"
-                                ? "bg-green-50 border-green-200 text-green-800"
-                                : "bg-red-50 border-red-200 text-red-800"
-                        }
-                    >
-                        <AlertDescription>{message.text}</AlertDescription>
-                    </Alert>
-                )}
-            </div>
-            <DialogFooter>
-                <div className="w-full flex justify-between">
-                    <Button variant="outline" onClick={handleClose} disabled={isLoading}>
-                        Cancel
-                    </Button>
-                    <Button onClick={handleChangePassword} disabled={isLoading}>
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Changing...
-                            </>
-                        ) : (
-                            "Submit"
-                        )}
-                    </Button>
-                </div>
-            </DialogFooter>
-        </DialogContent>
+                <DialogFooter>
+                    <div className="w-full flex justify-between">
+                        <Button variant="outline" onClick={handleClose} disabled={isLoading}>
+                            Cancel
+                        </Button>
+                        <Button onClick={handleChangePassword} disabled={isLoading}>
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Changing...
+                                </>
+                            ) : (
+                                "Submit"
+                            )}
+                        </Button>
+                    </div>
+                </DialogFooter>
+            </DialogContent>
+        </VisuallyHidden>
     );
 }
 

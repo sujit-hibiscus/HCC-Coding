@@ -1,9 +1,11 @@
 "use client"
 
+import TabsComponent from "@/components/common/CommonTab"
+import { PreventSaveProvider } from "@/components/layout/prevent-save-provider"
 import { Button } from "@/components/ui/button"
+import PdfUI from "@/components/ui/pdfUI"
 import { useRedux } from "@/hooks/use-redux"
 import { SubmissionFormSchema } from "@/lib/schemas"
-import type { RootState } from "@/store"
 import {
   completeReviewAuditorWithAPI,
   completeReviewWithAPI,
@@ -11,18 +13,23 @@ import {
   resetCodeReview,
   resetFormData,
   resumeReview,
+  setActiveDocTab,
   startReviewAuditorWithApi,
   startReviewWithApi,
   updateElapsedTime,
   updateFormData,
+  fetchTextFile,
 } from "@/store/slices/documentManagementSlice"
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { AnimatePresence, motion } from "framer-motion"
-import { Loader2, Play } from "lucide-react"
+import { Loader2, Menu, Play } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import { PreventSaveProvider } from "@/components/layout/prevent-save-provider"
-import PdfUI from "@/components/ui/pdfUI"
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "../ui/sheet"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 import AuditorReviewForm from "./auditor-review-form"
 import ImprovedCodeReviewForm from "./code-cart-form"
+import PromptDisplay from "./prompt-display"
+import DocumentList from "./document-list"
 
 export default function PdfViewer({
   onReviewComplete,
@@ -33,6 +40,8 @@ export default function PdfViewer({
   isFullScreenMode?: boolean
   toggleFullScreen?: () => void
 }) {
+  // Sheet open state
+  const [open, setOpen] = useState(false);
   const { dispatch, selector } = useRedux()
   const {
     documents,
@@ -42,7 +51,10 @@ export default function PdfViewer({
     pdfLoading,
     formData: allFormData,
     codeReview: allCodeReview,
-  } = selector((state: RootState) => state.documentManagement)
+    activeDocTab: currentTab = "document",
+    textFileContent,
+    textLoading,
+  } = selector((state) => state.documentManagement)
   const { userType } = selector((state) => state.user)
 
   const selectedDocument = documents
@@ -56,6 +68,9 @@ export default function PdfViewer({
   const timerRef = useRef<NodeJS.Timeout | null>(null)
 
   const [showSidebar, setShowSidebar] = useState(false)
+  const [isPromptVisible, setIsPromptVisible] = useState(true)
+  const [promptContent, setPromptContent] = useState("")
+
 
   // Get form data for the selected document from Redux store
   const currentFormData = selectedDocumentId ? allFormData[selectedDocumentId] : null
@@ -75,6 +90,9 @@ export default function PdfViewer({
       searchTerm: "",
     }
 
+  console.log(currentCodeReview?.items, "currentCodeReview");
+
+
   const [formErrors, setFormErrors] = useState<{
     codesMissed?: string[]
     codesCorrected?: string[]
@@ -89,10 +107,19 @@ export default function PdfViewer({
 
   const [displayPdfUrl, setDisplayPdfUrl] = useState<string | null>(null);
 
+  const tabs = [
+    { value: "document", label: "Document" },
+    { value: "prompt", label: "Prompt" },
+  ]
+
+
+  const handleTabChange = (tabId: string) => {
+    dispatch(setActiveDocTab(tabId as "document" | "prompt"))
+  }
+
   useEffect(() => {
     if (selectedDocument) {
       setShowControls(selectedDocument.status === "In Review")
-
       if (selectedDocument.startTime && selectedDocument.status === "In Review") {
         const elapsed = Math.floor((Date.now() - selectedDocument.startTime) / 1000) + (selectedDocument.timeSpent || 0)
         setCurrentTime(elapsed)
@@ -111,10 +138,15 @@ export default function PdfViewer({
         updateFormData({
           documentId: selectedDocumentId,
           data: {
-            codesMissed: [],
-            codesCorrected: [],
-            auditRemarks: "",
-            rating: 0,
+            codesMissed: [
+              { label: "N18.6", value: "N18.6" }
+            ],
+            codesCorrected: [
+              { label: "N18.6", value: "N18.6" },
+              { label: "Z99.2", value: "Z99.2" }
+            ],
+            auditRemarks: "Added N18.6 and Z99.2 as per documentation. Patient undergoing hemodialysis 3 times weekly for ESRD. Documentation confirms CKD stage 5 with dialysis dependency",
+            rating: 90
           },
         }),
       )
@@ -169,7 +201,6 @@ export default function PdfViewer({
 
   useEffect(() => {
     if (pdfFileBase64) {
-      // Convert Base64 to Blob
       const byteCharacters = atob(pdfFileBase64.split(',')[1]);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
@@ -178,11 +209,9 @@ export default function PdfViewer({
       const byteArray = new Uint8Array(byteNumbers);
       const blob = new Blob([byteArray], { type: 'application/pdf' });
 
-      // Create object URL and set it for display
       const url = URL.createObjectURL(blob);
       setDisplayPdfUrl(url);
 
-      // Clean up the object URL when component unmounts or pdfFileBase64 changes
       return () => URL.revokeObjectURL(url);
     } else {
       setDisplayPdfUrl(null);
@@ -192,6 +221,24 @@ export default function PdfViewer({
   if (!selectedDocument) {
     return (
       <div className="h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="fixed top-2 left-2 z-50 md:top-[47px] md:left-14">
+          <Sheet open={open} onOpenChange={setOpen}>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <SheetTrigger asChild>
+                    <Button variant="blue" size="icon" className="shadow-lg !rounded-none w-8 h-8 md:w-[35px] md:h-[35px] flex items-center justify-center">
+                      <Menu className="w-8 h-8" />
+                    </Button>
+                  </SheetTrigger>
+                </TooltipTrigger>
+                {/*   <TooltipContent side="right" align="center">
+                  Open Document List
+                </TooltipContent> */}
+              </Tooltip>
+            </TooltipProvider>
+          </Sheet>
+        </div>
         <motion.div
           className="text-center space-y-4"
           initial={{ opacity: 0, y: 20 }}
@@ -397,18 +444,165 @@ export default function PdfViewer({
     rating: 0,
   }
 
+  console.log(formData, "formData");
+
+
+
+
+
   return (
     <div className="h-full flex flex-col bg-gray-50">
+      <div className="fixed top-2 left-2 z-50 md:top-[47px] md:left-14">
+        <Sheet open={open} onOpenChange={setOpen}>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SheetTrigger asChild>
+                  <Button variant="blue" size="icon" className="shadow-lg !rounded-none w-8 h-8 md:w-[35px] md:h-[35px] flex items-center justify-center">
+                    <Menu className="w-8 h-8" />
+                  </Button>
+                </SheetTrigger>
+              </TooltipTrigger>
+              {/*  <TooltipContent side="right" align="center">
+                Open Document List
+              </TooltipContent> */}
+            </Tooltip>
+          </TooltipProvider>
+        </Sheet>
+      </div>
       {/* Enhanced Fullscreen Toggle */}
       <div className="flex-1 relative flex flex-col md:flex-row">
         {/* PDF Viewer Section */}
         <motion.div
-          className={`${userType === "Auditor" && showSidebar ? "w-full md:w-full" : "w-full"
-            } h-[calc(100vh-2.9rem)] bg-white relative transition-all duration-300 shadow-sm`}
+          className={`${userType === "Auditor" && showSidebar ? "w-full md:w-full" : "w-full"} h-[calc(100vh-2.9rem)] bg-white relative transition-all duration-300 shadow-sm`}
           layout
         >
-          <div className="h-full overflow-y-auto">
-            {pdfLoading && selectedDocument.status === "In Review" ? (
+          <div className="flex h-full flex-col">
+            {isPromptVisible ? (
+              <>
+                {!showControls && selectedDocument.status !== "completed" && (
+                  <div className="flex items-center py-2">
+                    <Button
+                      size="sm"
+                      className="rounded-full h-12 w-16"
+                      onClick={() => {
+                        if (userType === "Auditor") {
+                          setShowSidebar(true)
+                          if (selectedDocument.status === "on_hold") {
+                            handleResume()
+                          } else {
+                            handleStart()
+                          }
+                        } else {
+                          if (selectedDocument.status === "on_hold") {
+                            handleResume()
+                          } else {
+                            handleStart()
+                          }
+                        }
+                      }}
+                      disabled={isStartingReview}
+                    >
+                      Start Review
+                    </Button>
+                  </div>
+                )}
+                <div className="border-b pl-12 pb-1 ">
+                  {/* Floating Action Button to open sidebar */}
+                  {/* Sheet sidebar for document list */}
+                  {open && (
+                    <Sheet open={open} onOpenChange={setOpen}>
+                      <SheetContent side="left" className="p-0 max-w-xs w-[22rem]">
+                        <VisuallyHidden>
+                          <SheetTitle>Document List</SheetTitle>
+                        </VisuallyHidden>
+                        <div className="h-full flex flex-col">
+                          <DocumentList onClose={() => { setOpen(false) }} />
+                        </div>
+                      </SheetContent>
+                    </Sheet>
+                  )}
+                  <TabsComponent
+                    countLoading={false}
+                    tabs={tabs}
+                    currentTab={currentTab}
+                    handleTabChange={handleTabChange}
+                  />
+                </div>
+                <div className="flex-1 overflow-y-auto">
+                  {currentTab === "document" &&
+                    (pdfLoading && selectedDocument.status === "In Review" ? (
+                      <motion.div
+                        className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-blue-50 to-purple-50"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                        >
+                          <Loader2 className="h-12 w-12 text-blue-600" />
+                        </motion.div>
+                        <motion.span
+                          className="ml-2 text-lg font-medium text-gray-700 mt-4"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2 }}
+                        >
+                          Loading PDF...
+                        </motion.span>
+                      </motion.div>
+                    ) : (
+                      <PreventSaveProvider>
+                        {(displayPdfUrl as string)?.length > 0 ? (
+                          <PdfUI url={displayPdfUrl as string} />
+                        ) : (
+                          <div className="h-full w-full flex justify-center items-center bg-gradient-to-br from-gray-50 to-gray-100">
+                            <motion.div
+                              className="text-center space-y-4"
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ duration: 0.5 }}
+                            >
+                              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-red-100 to-orange-100 rounded-full flex items-center justify-center">
+                                <svg
+                                  className="w-8 h-8 text-gray-400"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={1.5}
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"
+                                  />
+                                </svg>
+                              </div>
+                              <p className="text-gray-500 font-medium">No Document Available</p>
+                            </motion.div>
+                          </div>
+                        )}
+                      </PreventSaveProvider>
+                    ))}
+                  {/* {currentTab === "prompt" && (
+                    <div className="p-4 bg-gray-100 h-full rounded-md">
+                      <PromptDisplay content={promptContent} />
+                    </div>
+                  )} */}
+                  {currentTab === "prompt" && selectedDocument?.text_file_path && (
+                    <div className="p-4 bg-gray-100 h-full rounded-md">
+                      {textLoading ? (
+                        <div>Loading text document...</div>
+                      ) : (
+                        <PromptDisplay content={textFileContent || "No text content available."} />
+                      )}
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : pdfLoading && selectedDocument.status === "In Review" ? (
               <motion.div
                 className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-blue-50 to-purple-50"
                 initial={{ opacity: 0 }}
@@ -431,32 +625,39 @@ export default function PdfViewer({
                 </motion.span>
               </motion.div>
             ) : (
-              <PreventSaveProvider>
-                {(displayPdfUrl as string)?.length > 0 ? (
-                  <PdfUI url={displayPdfUrl as string} />
-                ) : (
-                  <div className="h-full w-full flex justify-center items-center bg-gradient-to-br from-gray-50 to-gray-100">
-                    <motion.div
-                      className="text-center space-y-4"
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      <div className="w-16 h-16 mx-auto bg-gradient-to-br from-red-100 to-orange-100 rounded-full flex items-center justify-center">
-                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={1.5}
-                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"
-                          />
-                        </svg>
-                      </div>
-                      <p className="text-gray-500 font-medium">No Document Available</p>
-                    </motion.div>
-                  </div>
-                )}
-              </PreventSaveProvider>
+              <div className="flex-1 overflow-y-auto">
+                <PreventSaveProvider>
+                  {(displayPdfUrl as string)?.length > 0 ? (
+                    <PdfUI url={displayPdfUrl as string} />
+                  ) : (
+                    <div className="h-full w-full flex justify-center items-center bg-gradient-to-br from-gray-50 to-gray-100">
+                      <motion.div
+                        className="text-center space-y-4"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.5 }}
+                      >
+                        <div className="w-16 h-16 mx-auto bg-gradient-to-br from-red-100 to-orange-100 rounded-full flex items-center justify-center">
+                          <svg
+                            className="w-8 h-8 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"
+                            />
+                          </svg>
+                        </div>
+                        <p className="text-gray-500 font-medium">No Document Available</p>
+                      </motion.div>
+                    </div>
+                  )}
+                </PreventSaveProvider>
+              </div>
             )}
           </div>
 
@@ -465,7 +666,7 @@ export default function PdfViewer({
             {!showControls && selectedDocument.status !== "completed" && (
               <motion.div
                 key="reviewOverlay"
-                className="absolute inset-0 backdrop-blur-md bg-gradient-to-br from-black/20 to-black/40 flex flex-col items-center justify-center"
+                className="absolute z-10 inset-0 backdrop-blur-md bg-gradient-to-br from-black/20 to-black/40 flex flex-col items-center justify-center"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}

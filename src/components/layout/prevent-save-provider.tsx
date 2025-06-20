@@ -8,6 +8,6 @@ interface PreventSaveProviderProps {
 }
 
 export function PreventSaveProvider({ children }: PreventSaveProviderProps) {
-    usePreventSave();
+    process.env.NEXT_PUBLIC_LOCAL !== "true" && usePreventSave();
     return <>{children}</>;
 }

@@ -26,6 +26,7 @@ interface CodeReviewItem {
     hccV28Code: string
     icd10_desc: string
     reference: string
+    query?: string | null
     status: "accepted" | "rejected"
     addedAt: number
 }
@@ -124,6 +125,7 @@ export default function ImprovedCodeReviewForm({
 
         return items
     }, [currentCodeReview.items, filterStatus, localSearchTerm, showRxHcc, showHcc])
+    console.log("🚀 ~ filteredItems ~ filteredItems:", filteredItems)
 
     const handleSearchChange = useCallback((value: string) => {
         setLocalSearchTerm(value)
@@ -289,18 +291,7 @@ export default function ImprovedCodeReviewForm({
                                                                         )}
                                                                     </Tooltip>
                                                                 )}
-                                                                {item.hccCode && (
-                                                                    <Tooltip>
-                                                                        <TooltipTrigger asChild>
-                                                                            <Badge
-                                                                                variant="outline"
-                                                                                className="font-mono text-xs bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
-                                                                            >
-                                                                                RX-HCC:{item.hccCode}
-                                                                            </Badge>
-                                                                        </TooltipTrigger>
-                                                                    </Tooltip>
-                                                                )}
+
                                                                 {item.hccV28Code && (
                                                                     <Tooltip>
                                                                         <TooltipTrigger asChild>
@@ -313,6 +304,18 @@ export default function ImprovedCodeReviewForm({
                                                                         </TooltipTrigger>
                                                                     </Tooltip>
                                                                 )}
+                                                                {item.hccCode && (
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
+                                                                            <Badge
+                                                                                variant="outline"
+                                                                                className="font-mono text-xs bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
+                                                                            >
+                                                                                RX-HCC:{item.hccCode}
+                                                                            </Badge>
+                                                                        </TooltipTrigger>
+                                                                    </Tooltip>
+                                                                )}
                                                             </div>
                                                         </div>
 
@@ -320,7 +323,7 @@ export default function ImprovedCodeReviewForm({
                                                         <div className="space-y-2">
                                                             <div>
                                                                 <h3 className="font-semibold text-gray-900 text-sm leading-tight">{item.diagnosis}</h3>
-                                                                <p className="text-sm text-gray-600 mt-0.5">{item.description}</p>
+                                                                <p className="text-sm text-gray-600 text-justify pr-2 mt-0.5">{item.description}</p>
                                                             </div>
 
                                                             {/* Evidence Section */}
@@ -358,8 +361,11 @@ export default function ImprovedCodeReviewForm({
 
                                                             {/* Reference */}
                                                             <div className="flex items-center justify-between text-xs text-gray-500">
-                                                                <span className="font-medium">Ref: {item.reference}</span>
+                                                                <span className="font-medium">Query: {(item.query || "NA")}</span>
                                                             </div>
+                                                            {/* <div className="flex items-center justify-between text-xs text-gray-500">
+                                                                <span className="font-medium">Ref: {item.reference}</span>
+                                                            </div> */}
                                                         </div>
                                                     </div>
 

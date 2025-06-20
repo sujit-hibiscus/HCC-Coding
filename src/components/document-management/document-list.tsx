@@ -6,16 +6,21 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useRedux } from "@/hooks/use-redux";
-import { fetchDocuments, fetchPdfFile, selectDocument } from "@/store/slices/documentManagementSlice";
+import { fetchDocuments, fetchPdfFile, selectDocument, fetchTextFile, setActiveDocTab } from "@/store/slices/documentManagementSlice";
 import { motion } from "framer-motion";
 import { Calendar, Loader2, RefreshCw, Search } from "lucide-react";
 import { useState, useEffect } from "react";
 
-export default function DocumentList() {
+type DocumentListProps = {
+  onClose: () => void;
+};
+
+export default function DocumentList({ onClose }: DocumentListProps) {
   const { dispatch, selector } = useRedux();
   const { documents, selectedDocumentId, fetchedPdfPaths, documentLoading } = selector(
     (state) => state.documentManagement,
   );
+  console.log("🚀 ~ DocumentList ~ documents:", documents)
   const [searchTerm, setSearchTerm] = useState("");
 
   const totalDocuments = documents.length;
@@ -61,31 +66,17 @@ export default function DocumentList() {
     }
   };
 
-  useEffect(() => {
-    if (!selectedDocumentId && documents.length > 0) {
-      const inReviewDoc = documents.find((doc) => doc.status === "In Review");
-
-      if (inReviewDoc) {
-        getSelectedDocumentUrl(inReviewDoc.url, inReviewDoc.id);
-        dispatch(selectDocument(inReviewDoc.id));
-      } else {
-        const firstDoc = documents[0];
-        getSelectedDocumentUrl(firstDoc.url, firstDoc.id);
-        dispatch(selectDocument(firstDoc.id));
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [documents, selectedDocumentId, dispatch]);
-
   return (
     <div className="h-full flex flex-col py-1.5 px-1.5 max-h-[calc(100vh-2.9rem)]">
-      <div className="flex justify-between items-center mb-3">
+      <div className="flex justify-between items-center mb-3 h-10">
         <div className="text-sm font-medium">
           <span>{totalDocuments}</span> total documents
         </div>
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleRefresh} title="Refresh documents">
-          <RefreshCw className="h-4 w-4" />
-        </Button>
+        <div className="absolute right-9">
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleRefresh} title="Refresh documents">
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
       <div className="relative mb-2 flex-shrink-0">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -120,7 +111,8 @@ export default function DocumentList() {
         ) : (
           [...filteredDocuments]
             ?.filter((item) => item?.status !== "completed")
-            .map((doc) => {
+            .map((doc: any) => {
+
               return (
                 <motion.div
                   key={doc.id}
@@ -129,8 +121,16 @@ export default function DocumentList() {
                   whileHover={{ scale: 1 }}
                   transition={{ duration: 0.2 }}
                   onClick={() => {
+                    if (doc?.status === "In Review") {
+                      onClose()
+                    }
+                    dispatch(setActiveDocTab("document"))
                     if (selectedDocumentId !== doc.id) {
-                      getSelectedDocumentUrl(doc.url, doc.id);
+                      if (doc.text_file_path) {
+                        dispatch(fetchTextFile(doc.text_file_path));
+                      } else {
+                        getSelectedDocumentUrl(doc.url, doc.id);
+                      }
                       dispatch(selectDocument(doc.id));
                     }
                   }}
