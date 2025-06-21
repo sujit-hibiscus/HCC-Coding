@@ -15,6 +15,7 @@ import { fetchChartCounts, setError, setLoading, setUser } from "@/store/slices/
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ForgotPassword } from "../common/user/forgot-password";
+import { fetchDocuments } from "@/store/slices/documentManagementSlice";
 
 export default function LoginForm() {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -43,6 +44,10 @@ export default function LoginForm() {
                     dispatch(fetchChartCounts());
                     dispatch(fetchAnalystUsers());
                     dispatch(fetchAuditorUsers());
+                } else {
+                    setTimeout(() => {
+                        dispatch(fetchDocuments());
+                    }, 1500);
                 }
 
                 if (response?.message && response?.message !== "Login successful") {

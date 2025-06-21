@@ -1,0 +1,132 @@
+# Comprehensive ICD-10-CM Coding Analysis
+
+## PASS 1: Condition Identification and Classification
+
+### Primary Conditions (from Assessment/Plan)
+1. Hypertensive heart and chronic kidney disease with heart failure and stage 5 chronic kidney disease
+2. Heart Failure with preserved ejection fraction (HFpEF)
+3. Type 2 Diabetes Mellitus with multiple complications:
+   - Diabetic nephropathy
+   - Diabetic retinopathy, non-proliferative
+   - Diabetic peripheral neuropathy
+   - Diabetic peripheral angiopathy with foot ulcer
+4. Chronic Kidney Disease, Stage 5 (eGFR 9 mL/min)
+5. Anemia of Chronic Kidney Disease
+6. Hyperlipidemia
+
+### Additional Conditions (from HPI/PMH/Labs)
+7. Obesity (BMI 32.2)
+8. Osteoarthritis
+9. Hyperkalemia (K: 5.3 mEq/L)
+10. Small healing foot ulcer on right plantar surface
+
+## PASS 2: Relationship Analysis and Documentation Evaluation
+
+### Condition Relationships
+- Hypertension documented as affecting both heart and kidneys, with heart failure
+- Diabetes documented as causing nephropathy, retinopathy, neuropathy, and angiopathy with foot ulcer
+- Anemia explicitly linked to chronic kidney disease
+- Metabolic acidosis indicated by low CO2 (19 mEq/L), likely due to kidney disease
+
+### Supporting Documentation
+- Hypertension: BP readings 172/94 mmHg and 168/92 mmHg
+- Heart Failure: S3 gallop, 2+ pitting edema, JVD elevated, bibasilar crackles, BNP 725 pg/mL, pulmonary edema on CXR
+- CKD Stage 5: eGFR 9 mL/min, BUN 82 mg/dL, Creatinine 4.8 mg/dL, renal ultrasound showing atrophy
+- Diabetes: HbA1c 8.9%, glucose 182 mg/dL, insulin therapy
+- Diabetic complications:
+  - Nephropathy: Proteinuria (3+), UACR 1,850 mg/g
+  - Retinopathy: Funduscopic findings, ophthalmology report
+  - Neuropathy: Decreased sensation in stocking distribution
+  - Angiopathy: Trophic changes, decreased hair on lower extremities
+- Anemia: Hgb 10.2 g/dL, Hct 32%
+- Obesity: BMI 32.2 kg/m²
+
+## PASS 3: Code Candidate Identification
+
+1. **Condition**: Hypertensive heart and chronic kidney disease with heart failure and stage 5 chronic kidney disease
+   **ICD-10-CM Code Candidate**: I13.2 (Hypertensive heart and chronic kidney disease with heart failure and with stage 5 chronic kidney disease)
+   **Location in Document**: Assessment #1, PMH #1, #3, #4
+   **Supporting Clinical Indicators**: BP readings 172/94 mmHg, heart failure symptoms (edema, JVD, S3 gallop), eGFR 9 mL/min
+   **Potential Coding Notes**: This is a combination code that includes hypertension, heart disease, heart failure, and CKD
+
+2. **Condition**: Type 2 Diabetes Mellitus with diabetic nephropathy
+   **ICD-10-CM Code Candidate**: E11.21 (Type 2 diabetes mellitus with diabetic nephropathy)
+   **Location in Document**: Assessment #3, PMH #2
+   **Supporting Clinical Indicators**: HbA1c 8.9%, proteinuria, UACR 1,850 mg/g
+   **Potential Coding Notes**: This is one of multiple diabetes codes needed
+
+3. **Condition**: Type 2 Diabetes Mellitus with diabetic retinopathy, non-proliferative
+   **ICD-10-CM Code Candidate**: E11.329 (Type 2 diabetes mellitus with mild nonproliferative diabetic retinopathy without macular edema, unspecified eye)
+   **Location in Document**: Assessment #3, PMH #2
+   **Supporting Clinical Indicators**: Funduscopic exam with dot and blot hemorrhages, ophthalmology report
+   **Potential Coding Notes**: Consider more specific code if laterality of retinopathy is available
+
+4. **Condition**: Type 2 Diabetes Mellitus with diabetic peripheral neuropathy
+   **ICD-10-CM Code Candidate**: E11.42 (Type 2 diabetes mellitus with diabetic polyneuropathy)
+   **Location in Document**: Assessment #3, PMH #2
+   **Supporting Clinical Indicators**: Decreased sensation in stocking distribution, decreased DTRs
+   **Potential Coding Notes**: None
+
+5. **Condition**: Type 2 Diabetes Mellitus with diabetic peripheral angiopathy with foot ulcer
+   **ICD-10-CM Code Candidate**: E11.621 (Type 2 diabetes mellitus with foot ulcer)
+   **Location in Document**: Assessment #3, Physical exam (Skin)
+   **Supporting Clinical Indicators**: Small healing ulcer on right plantar surface (1cm x 1cm), trophic changes
+   **Potential Coding Notes**: Need additional code for ulcer site
+
+6. **Condition**: Diabetic foot ulcer, right foot, plantar surface
+   **ICD-10-CM Code Candidate**: L97.424 (Non-pressure chronic ulcer of right heel and midfoot with necrosis of muscle, healing)
+   **Location in Document**: Assessment #3, Physical exam (Skin)
+   **Supporting Clinical Indicators**: Small healing ulcer on right plantar surface (1cm x 1cm)
+   **Potential Coding Notes**: Code additionally to E11.621
+
+7. **Condition**: Anemia of Chronic Kidney Disease
+   **ICD-10-CM Code Candidate**: D63.1 (Anemia in chronic kidney disease)
+   **Location in Document**: Assessment #5, Lab Results
+   **Supporting Clinical Indicators**: Hgb 10.2 g/dL, Hct 32%
+   **Potential Coding Notes**: Code first CKD (I13.2 in this case)
+
+8. **Condition**: Hyperlipidemia
+   **ICD-10-CM Code Candidate**: E78.5 (Hyperlipidemia, unspecified)
+   **Location in Document**: Assessment #6, PMH #5
+   **Supporting Clinical Indicators**: Total Cholesterol: 204 mg/dL, Triglycerides: 192 mg/dL, LDL: 128 mg/dL
+   **Potential Coding Notes**: Consider more specific code if documentation supports mixed hyperlipidemia
+
+9. **Condition**: Obesity
+   **ICD-10-CM Code Candidate**: E66.9 (Obesity, unspecified)
+   **Location in Document**: Vital Signs
+   **Supporting Clinical Indicators**: BMI 32.2 kg/m²
+   **Potential Coding Notes**: Can add Z68.32 (Body mass index [BMI] 32.0-32.9, adult)
+
+10. **Condition**: Osteoarthritis
+    **ICD-10-CM Code Candidate**: M19.90 (Unspecified osteoarthritis, unspecified site)
+    **Location in Document**: PMH #6
+    **Supporting Clinical Indicators**: Listed in past medical history only, no active management
+    **Potential Coding Notes**: More specific code would be needed if joint location was documented
+
+11. **Condition**: Hyperkalemia
+    **ICD-10-CM Code Candidate**: E87.5 (Hyperkalemia)
+    **Location in Document**: Lab Results
+    **Supporting Clinical Indicators**: K: 5.3 mEq/L
+    **Potential Coding Notes**: None
+
+12. **Condition**: Metabolic acidosis
+    **ICD-10-CM Code Candidate**: E87.2 (Acidosis)
+    **Location in Document**: Lab Results
+    **Supporting Clinical Indicators**: CO2: 19 mEq/L (below reference range of 22-29)
+    **Potential Coding Notes**: Likely due to CKD
+
+## Final Code Set Summary
+
+1. I13.2 - Hypertensive heart and chronic kidney disease with heart failure and with stage 5 chronic kidney disease
+2. E11.21 - Type 2 diabetes mellitus with diabetic nephropathy
+3. E11.329 - Type 2 diabetes mellitus with mild nonproliferative diabetic retinopathy without macular edema, unspecified eye
+4. E11.42 - Type 2 diabetes mellitus with diabetic polyneuropathy
+5. E11.621 - Type 2 diabetes mellitus with foot ulcer
+6. L97.424 - Non-pressure chronic ulcer of right heel and midfoot with necrosis of muscle, healing
+7. D63.1 - Anemia in chronic kidney disease
+8. E78.5 - Hyperlipidemia, unspecified
+9. E66.9 - Obesity, unspecified
+10. Z68.32 - Body mass index [BMI] 32.0-32.9, adult
+11. M19.90 - Unspecified osteoarthritis, unspecified site
+12. E87.5 - Hyperkalemia
+13. E87.2 - Acidosis

@@ -10,7 +10,9 @@ export const useTabs = () => {
     const activeTab = selector((state) => state.dashboard.activeTab);
 
     const handleAddTab = useCallback((id: string, title: string, href: string) => {
-        dispatch(setPageLoading(true))
+        console.log(id, activeTab, "THI");
+
+        dispatch(setPageLoading(id !== activeTab))
         dispatch(addTab({ id, title, href, active: true }));
     }, [dispatch]);
 

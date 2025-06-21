@@ -8,7 +8,7 @@ import { AppSidebar } from "@/components/common/Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useRedux } from "@/hooks/use-redux";
 import { useTabs } from "@/hooks/use-tabs";
-import { useEffect, type ReactNode } from "react";
+import { type ReactNode } from "react";
 
 export default function DashboardLayout({
   children,
@@ -21,22 +21,22 @@ export default function DashboardLayout({
   const { userType } = selector(state => state.user);
   const { getChartApi } = useApiCall();
 
-  useEffect(() => {
-    const initializeData = async () => {
-      try {
-        // Make API call to get charts data
-        if (userType?.toLowerCase().includes("analyst") || userType?.toLowerCase().includes("auditor")) {
-          await getChartApi("pending");
-        }
-      } catch (error) {
-        console.error("Error initializing data:", error);
-      }
-    };
-
-    if (token?.length > 0) {
-      initializeData();
-    }
-  }, [token, userType]);
+  /*  useEffect(() => {
+     const initializeData = async () => {
+       try {
+         // Make API call to get charts data
+         if (userType?.toLowerCase().includes("analyst") || userType?.toLowerCase().includes("auditor")) {
+           await getChartApi("pending");
+         }
+       } catch (error) {
+         console.error("Error initializing data:", error);
+       }
+     };
+ 
+     if (token?.length > 0) {
+       initializeData();
+     }
+   }, [token, userType]); */
 
   return (
     <SidebarProvider>

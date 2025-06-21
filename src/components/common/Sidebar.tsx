@@ -27,11 +27,10 @@ import { useRedux } from "@/hooks/use-redux";
 import useToast from "@/hooks/use-toast";
 import { targetTabs } from "@/lib/types/chartsTypes";
 import { cn } from "@/lib/utils";
-import { useTheme } from "next-themes";
+import { setPageLoading } from "@/store/slices/DashboardSlice";
 import { useState } from "react";
 import { useApiCall } from "./ApiCall";
 import { ChangePassword } from "./user/change-password";
-import { setPageLoading } from "@/store/slices/DashboardSlice";
 
 interface MenuItem {
     icon: React.ElementType
@@ -46,11 +45,9 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ onNavigate }: AppSidebarProps) {
-    const isMobile = useIsMobile();
     const pathname = usePathname();
     const router = useRouter();
     const { state, open, toggleSidebar } = useSidebar();
-    const { setTheme, resolvedTheme } = useTheme();
     const { resetReduxStore, selector, dispatch } = useRedux();
     const { userType } = selector(state => state.user);
     const [isOpen, setIsOpen] = useState(false);
@@ -70,11 +67,16 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
 
     const handleNavigation = (href: string, label: string) => {
         const id = href.split("/").pop() || href;
-        dispatch(setPageLoading(true))
+        if (id !== 'document') {
+            dispatch(setPageLoading(true))
+        }
+
 
         setTimeout(() => {
             if (targetTabs.some(status => id.includes(status))) {
-                getChartApi(id as "pending" | "assigned" | "audit" | "completed" | "document");
+                if (id !== 'document') {
+                    getChartApi(id as "pending" | "assigned" | "audit" | "completed" | "document");
+                }
             }
 
             if (onNavigate) {
@@ -194,7 +196,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                                                 )}
                                             >
                                                 <motion.button
-                                                    onClick={() => handleNavigation(item.href, item.label)}
+                                                    onClick={() => isActive ? undefined : handleNavigation(item.href, item.label)}
                                                     whileHover={{ x: 0 }}
                                                     whileTap={{ scale: 0.95 }}
                                                     className={isActive ? "!bg-selectedText hover:text-tabBg text-tabBg" : ""}
@@ -225,9 +227,11 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                                         <SidebarMenuButton
                                             asChild
                                             className="rounded-sm text-selectedText transition-colors hover:bg-selectedText hover:text-tabBg"
-                                            onClick={addUserClick}
+                                            onClick={pathname !== "/dashboard/add-user" ? addUserClick : undefined}
                                         >
-                                            <motion.button whileHover={{ x: 0 }} whileTap={{ scale: 0.95 }}>
+                                            <motion.button
+                                                className={pathname === "/dashboard/add-user" ? "!bg-selectedText disabled:!bg-selectedText hover:text-tabBg !text-tabBg" : "!hover:bg-selectedText"}
+                                                whileHover={{ x: 0 }} whileTap={{ scale: 0.95 }}>
                                                 <UserPlus className="h-[1rem] w-[1rem]" />
                                                 <span>Add User</span>
                                             </motion.button>
@@ -241,67 +245,6 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                         </SidebarMenuItem>
                     )}
 
-                    {/* {!isMobile && (
-                        <DropdownMenu>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <DropdownMenuTrigger asChild className="">
-                                            <SidebarMenuButton className="rounded-sm  text-selectedText transition-colors hover:bg-selectedText hover:text-tabBg">
-                                                {resolvedTheme === "dark" ? (
-                                                    <motion.div whileHover={{ rotate: 15 }} transition={{ type: "spring", stiffness: 300 }}>
-                                                        <Moon className="h-[1rem] w-[1rem]" />
-                                                    </motion.div>
-                                                ) : (
-                                                    <motion.div whileHover={{ rotate: 15 }} transition={{ type: "spring", stiffness: 300 }}>
-                                                        <Sun className="h-[1rem] w-[1rem]" />
-                                                    </motion.div>
-                                                )}
-                                                <span>Change Theme</span>
-                                            </SidebarMenuButton>
-                                        </DropdownMenuTrigger>
-
-                                    </TooltipTrigger>
-                                    <TooltipContent side="right" align="center" hidden={state !== "collapsed"}>
-                                        Change Theme
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-
-                            <DropdownMenuContent
-                                align="end"
-                                className="w-[--radix-dropdown-menu-trigger-width] space-y-1 bg-selectedText text-tabBg"
-                            >
-                                <motion.div >
-                                    <DropdownMenuItem
-                                        onClick={() => setTheme("light")}
-                                        className={resolvedTheme === "light" ? "!bg-tabBg !text-selectedText" : "hover:!bg-tabBg hover:!text-selectedText"}
-                                    >
-                                        <Sun className="mr-2 size-4 text-inherit" />
-                                        <span className="text-inherit">Light</span>
-                                    </DropdownMenuItem>
-                                </motion.div>
-                                <motion.div >
-                                    <DropdownMenuItem
-                                        onClick={() => setTheme("dark")}
-                                        className={resolvedTheme === "dark" ? "!bg-tabBg !text-selectedText" : "hover:!bg-tabBg hover:!text-selectedText"}
-                                    >
-                                        <Moon className="mr-2 size-4 text-inherit" />
-                                        <span className="text-inherit">Dark</span>
-                                    </DropdownMenuItem>
-                                </motion.div>
-                                <motion.div >
-                                    <DropdownMenuItem
-                                        onClick={() => setTheme("system")}
-                                        className="hover:!bg-tabBg hover:!text-selectedText"
-                                    >
-                                        <Laptop className="mr-2 size-4 text-inherit" />
-                                        <span className="text-inherit">System</span>
-                                    </DropdownMenuItem>
-                                </motion.div>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    )} */}
                     <DropdownMenu modal={false}>
                         <TooltipProvider>
                             <Tooltip>
@@ -322,26 +265,6 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                         </TooltipProvider>
 
                         <DropdownMenuContent align="end" className="w-[--radix-dropdown-menu-trigger-width] bg-selectedText text-tabBg">
-                            {/*   <motion.div>
-                                <DropdownMenuItem className="hover:!bg-tabBg hover:!text-selectedText">
-                                    <User className="mr-2 size-4" />
-                                    <span>Profile</span>
-                                </DropdownMenuItem>
-                            </motion.div> */}
-
-                            {/* <motion.div>
-                                <DropdownMenuItem
-                                    className="hover:!bg-tabBg hover:!text-selectedText"
-                                    onSelect={(e) => {
-                                        e.preventDefault();
-                                        setIsOpen((prev) => !prev);
-                                    }}
-                                >
-                                    <Key className="mr-2 size-4" />
-                                    <span>Change Password</span>
-                                </DropdownMenuItem>
-                            </motion.div> */}
-
                             <motion.div>
                                 <DropdownMenuItem
                                     onClick={() => handleLogout()}

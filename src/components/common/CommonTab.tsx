@@ -41,7 +41,7 @@ const TabsComponent: React.FC<TabsComponentProps> = ({
             <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full flex items-center">
                 <TabsList
                     className={cn(
-                        "inline-flex items-center justify-center rounded-none gap-5 md:gap-0 !p-0 shadow-md md:px-1.5  bg-selectedText text-tabBg",
+                        "inline-flex items-center justify-center rounded-none md:gap-0 !p-0 shadow-md md:px-1.5  bg-selectedText text-tabBg",
                         isFull && "w-full",
                     )}
                 >

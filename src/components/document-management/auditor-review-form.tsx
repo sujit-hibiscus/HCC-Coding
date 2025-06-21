@@ -206,7 +206,7 @@ export default function AuditorReviewForm({
     return (
         <TooltipProvider>
             <motion.div
-                className="w-full flex flex-col md:w-[90rem] h-full border-t md:border-t-0 md:border-l overflow-hidden bg-gradient-to-br from-slate-50 to-white"
+                className="w-full flex flex-col min-w-[30rem] md:w-[50vw] h-full border-t md:border-t-0 md:border-l overflow-hidden bg-gradient-to-br from-slate-50 to-white"
                 initial={{ x: "100%", opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: "100%", opacity: 0 }}
@@ -602,18 +602,7 @@ export default function AuditorReviewForm({
                                                                         )}
                                                                     </Tooltip>
                                                                 )}
-                                                                {item.hccCode && (
-                                                                    <Tooltip>
-                                                                        <TooltipTrigger asChild>
-                                                                            <Badge
-                                                                                variant="outline"
-                                                                                className="font-mono text-xs bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
-                                                                            >
-                                                                                RX-HCC:{item.hccCode}
-                                                                            </Badge>
-                                                                        </TooltipTrigger>
-                                                                    </Tooltip>
-                                                                )}
+
                                                                 {item.hccV28Code && (
                                                                     <Tooltip>
                                                                         <TooltipTrigger asChild>
@@ -626,6 +615,18 @@ export default function AuditorReviewForm({
                                                                         </TooltipTrigger>
                                                                     </Tooltip>
                                                                 )}
+                                                                {item.hccCode && (
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
+                                                                            <Badge
+                                                                                variant="outline"
+                                                                                className="font-mono text-xs bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
+                                                                            >
+                                                                                RX-HCC:{item.hccCode}
+                                                                            </Badge>
+                                                                        </TooltipTrigger>
+                                                                    </Tooltip>
+                                                                )}
                                                             </div>
                                                         </div>
 
@@ -633,7 +634,7 @@ export default function AuditorReviewForm({
                                                         <div className="space-y-2">
                                                             <div>
                                                                 <h3 className="font-semibold text-gray-900 text-sm leading-tight">{item.diagnosis}</h3>
-                                                                <p className="text-sm text-gray-600 mt-0.5">{item.description}</p>
+                                                                <p className="text-sm text-gray-600 text-justify pr-2 mt-0.5">{item.description}</p>
                                                             </div>
 
                                                             {/* Evidence Section */}
@@ -671,8 +672,11 @@ export default function AuditorReviewForm({
 
                                                             {/* Reference */}
                                                             <div className="flex items-center justify-between text-xs text-gray-500">
-                                                                <span className="font-medium">Ref: {item.reference}</span>
+                                                                <span className="font-medium">Query: {(item.query || "NA")}</span>
                                                             </div>
+                                                            {/* <div className="flex items-center justify-between text-xs text-gray-500">
+                                                                <span className="font-medium">Ref: {item.reference}</span>
+                                                            </div> */}
                                                         </div>
                                                     </div>
 

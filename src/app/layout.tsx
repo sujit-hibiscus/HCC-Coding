@@ -2,7 +2,6 @@
 
 import ScrollToTopButton from "@/components/common/scroll-top-top";
 import ToastProvider from "@/components/common/ToastProvider";
-import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import ReduxProvider from "@/store/ReduxProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Suspense, useEffect, useState } from "react";
@@ -23,9 +22,6 @@ export default function RootLayout({
     if (!mounted) {
         return (
             <html lang="en" suppressHydrationWarning>
-                <head>
-                    <title>HCC Coding</title>
-                </head>
                 <body className="custom-scroll" suppressHydrationWarning>
                     <Loading />
                 </body>

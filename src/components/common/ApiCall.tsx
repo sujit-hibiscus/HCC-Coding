@@ -21,20 +21,22 @@ export function useApiCall() {
 
     const getUserApiCall = async (target: string) => {
         if (fullPath !== target) {
-            showPromiseToast({
-                promise: dispatch(getAllUsers()).then(result => {
-                    if (result.payload) {
-                        const message = typeof result.payload === "object" && "message" in result.payload
-                            ? result.payload.message
-                            : "";
-                        success({ message: message as string });
-                    }
-                }),
-                loading: "Fetching users...",
-                error: "Failed to fetch users. Please try again.",
-                duration: 4000
-            });
+            /*  showPromiseToast({
+                 promise: ,
+                 loading: "Fetching users...",
+                 error: "Failed to fetch users. Please try again.",
+                 duration: 4000
+             }); */
+            dispatch(getAllUsers()).then(result => {
+                if (result.payload) {
+                    const message = typeof result.payload === "object" && "message" in result.payload
+                        ? result.payload.message
+                        : "";
+                    success({ message: message as string });
+                }
+            })
         }
+
 
     };
 

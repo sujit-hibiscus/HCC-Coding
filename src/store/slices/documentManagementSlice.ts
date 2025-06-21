@@ -32,6 +32,7 @@ export interface CodeReviewItem {
     reference: string
     status: "accepted" | "rejected"
     addedAt: number
+    query?: string | null
 }
 
 export interface CodeReviewData {
@@ -459,8 +460,19 @@ export const fetchTextFile = createAsyncThunk(
             if (fetchedTextPaths.includes(textFilePath) && state.documentManagement.textFileContent) {
                 return state.documentManagement.textFileContent;
             }
+
+            /*  const response = await fetch("/pdf/Sample-text-file.txt");
+             const text = await response.text();
+             return text */
             const response = await postData<string>("view_pdf/", { file_path: textFilePath }, { responseType: "text" });
-            return response.data;
+            console.log("🚀 ~ response:", response.ok)
+            if (response.ok) {
+                return response.data;
+            } else {
+                const response = await fetch("/pdf/Sample-text-file.txt");
+                const text = await response.text();
+                return text
+            }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "Failed to fetch text file";
             toast.error(errorMessage);

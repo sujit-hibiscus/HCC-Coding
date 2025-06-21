@@ -109,7 +109,7 @@ export default function PdfViewer({
 
   const tabs = [
     { value: "document", label: "Document" },
-    { value: "prompt", label: "Prompt" },
+    { value: "prompt", label: "Summary" },
   ]
 
 
@@ -220,24 +220,38 @@ export default function PdfViewer({
 
   if (!selectedDocument) {
     return (
-      <div className="h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="fixed top-2 left-2 z-50 md:top-[47px] md:left-14">
-          <Sheet open={open} onOpenChange={setOpen}>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <SheetTrigger asChild>
-                    <Button variant="blue" size="icon" className="shadow-lg !rounded-none w-8 h-8 md:w-[35px] md:h-[35px] flex items-center justify-center">
-                      <Menu className="w-8 h-8" />
-                    </Button>
-                  </SheetTrigger>
-                </TooltipTrigger>
-                {/*   <TooltipContent side="right" align="center">
+      <div className="h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 relative">
+        <div className="absolute top-0 left-2">
+          <div className=" top-2 left-0 z-50 md:top-[47px] md:left-[3.2rem]">
+            <Sheet open={open} onOpenChange={setOpen}>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SheetTrigger asChild>
+                      <Button variant="blue" size="icon" className="shadow-lg !rounded-none w-8 h-8 md:w-[35px] md:h-[35px] flex items-center justify-center">
+                        <Menu className="w-8 h-8" />
+                      </Button>
+                    </SheetTrigger>
+                  </TooltipTrigger>
+                  {/*   <TooltipContent side="right" align="center">
                   Open Document List
                 </TooltipContent> */}
-              </Tooltip>
-            </TooltipProvider>
-          </Sheet>
+                </Tooltip>
+              </TooltipProvider>
+            </Sheet>
+          </div>
+          {open && (
+            <Sheet open={open} onOpenChange={setOpen}>
+              <SheetContent side="left" className="p-0 max-w-xs w-[22rem]">
+                <VisuallyHidden>
+                  <SheetTitle>Document List</SheetTitle>
+                </VisuallyHidden>
+                <div className="h-full flex flex-col">
+                  <DocumentList onClose={() => { setOpen(false) }} />
+                </div>
+              </SheetContent>
+            </Sheet>
+          )}
         </div>
         <motion.div
           className="text-center space-y-4"
@@ -452,27 +466,8 @@ export default function PdfViewer({
 
   return (
     <div className="h-full flex flex-col bg-gray-50">
-      <div className="fixed top-2 left-2 z-50 md:top-[47px] md:left-14">
-        <Sheet open={open} onOpenChange={setOpen}>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <SheetTrigger asChild>
-                  <Button variant="blue" size="icon" className="shadow-lg !rounded-none w-8 h-8 md:w-[35px] md:h-[35px] flex items-center justify-center">
-                    <Menu className="w-8 h-8" />
-                  </Button>
-                </SheetTrigger>
-              </TooltipTrigger>
-              {/*  <TooltipContent side="right" align="center">
-                Open Document List
-              </TooltipContent> */}
-            </Tooltip>
-          </TooltipProvider>
-        </Sheet>
-      </div>
       {/* Enhanced Fullscreen Toggle */}
       <div className="flex-1 relative flex flex-col md:flex-row">
-        {/* PDF Viewer Section */}
         <motion.div
           className={`${userType === "Auditor" && showSidebar ? "w-full md:w-full" : "w-full"} h-[calc(100vh-2.9rem)] bg-white relative transition-all duration-300 shadow-sm`}
           layout
@@ -507,27 +502,30 @@ export default function PdfViewer({
                     </Button>
                   </div>
                 )}
-                <div className="border-b pl-12 pb-1 ">
-                  {/* Floating Action Button to open sidebar */}
-                  {/* Sheet sidebar for document list */}
-                  {open && (
-                    <Sheet open={open} onOpenChange={setOpen}>
-                      <SheetContent side="left" className="p-0 max-w-xs w-[22rem]">
-                        <VisuallyHidden>
-                          <SheetTitle>Document List</SheetTitle>
-                        </VisuallyHidden>
-                        <div className="h-full flex flex-col">
-                          <DocumentList onClose={() => { setOpen(false) }} />
-                        </div>
-                      </SheetContent>
-                    </Sheet>
-                  )}
-                  <TabsComponent
-                    countLoading={false}
-                    tabs={tabs}
-                    currentTab={currentTab}
-                    handleTabChange={handleTabChange}
-                  />
+                <div className="border-b pb-1 ">
+                  <div className="flex gap-1.5 h-full">
+                    <div className="pl-1.5 h-full">
+                      <Sheet open={open} onOpenChange={setOpen}>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <SheetTrigger asChild>
+                                <Button variant="blue" size="icon" className="shadow-lg !rounded-none h-full md:w-[35px] md:h-[35px] flex items-center justify-center">
+                                  <Menu className="w-8 h-8" />
+                                </Button>
+                              </SheetTrigger>
+                            </TooltipTrigger>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </Sheet>
+                    </div>
+                    <TabsComponent
+                      countLoading={false}
+                      tabs={tabs}
+                      currentTab={currentTab}
+                      handleTabChange={handleTabChange}
+                    />
+                  </div>
                 </div>
                 <div className="flex-1 overflow-y-auto">
                   {currentTab === "document" &&
@@ -769,6 +767,18 @@ export default function PdfViewer({
             ))}
         </AnimatePresence>
       </div>
+      {open && (
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetContent side="left" className="p-0 max-w-xs w-[22rem]">
+            <VisuallyHidden>
+              <SheetTitle>Document List</SheetTitle>
+            </VisuallyHidden>
+            <div className="h-full flex flex-col">
+              <DocumentList onClose={() => { setOpen(false) }} />
+            </div>
+          </SheetContent>
+        </Sheet>
+      )}
     </div>
   )
 }
