@@ -30,7 +30,7 @@ const PasswordInput = React.forwardRef<HTMLInputElement, React.ComponentProps<"i
                         setShowPassword((prev) => !prev);
                     }, 2000);
                 }}
-                disabled={disabled}
+                disabled={disabled || (showPassword)}
             >
                 {showPassword && !disabled ? (
                     <EyeIcon className="h-4 w-4" aria-hidden="true" />

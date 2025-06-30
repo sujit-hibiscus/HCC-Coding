@@ -98,6 +98,8 @@ export function DataTable<TData, TValue>({
 
   const { fullPath: urlKey = "default" } = useFullPath()
   const columnOrder = selector((state) => state.dashboard.columnOrders[urlKey || "default"])
+  const { configuration } = selector(state => state.dashboard)
+  const targetConfiguration = configuration?.find(i => i.key === "file-size-limit")
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -485,7 +487,13 @@ export function DataTable<TData, TValue>({
                       // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       const fileSizeRaw = (row?.original as any)?.fileSize ?? 0
                       const fileSizeNumber = Number.parseFloat(fileSizeRaw)
-                      const isLargeFile = fileSizeNumber > 500
+                      let limitInKB = +(targetConfiguration?.value || 0);
+                      const comments = (targetConfiguration?.comments || '').toLowerCase().replace(/\s/g, '');
+                      if (comments.includes('mb')) {
+                        limitInKB = limitInKB * 1024;
+                      }
+                      const isLargeFile = fileSizeNumber > limitInKB;
+
                       return (
                         <TableRow
                           key={row.id + index}
@@ -500,14 +508,17 @@ export function DataTable<TData, TValue>({
                             }`,
                           )}
                         >
-                          {row.getVisibleCells().map((cell) => (
-                            <TableCell key={cell.id}>
-                              {flexRender(cell.column.columnDef.cell, {
-                                ...cell.getContext(),
-                                onAction: (action: string) => onAction(action, row.original),
-                              })}
-                            </TableCell>
-                          ))}
+                          {row.getVisibleCells().map((cell) => {
+
+                            return (
+                              <TableCell className={`${(cell?.id?.includes("fileSize") && isLargeFile) ? "text-red-500 font-semibold" : ""}`} key={cell.id}>
+                                {flexRender(cell.column.columnDef.cell, {
+                                  ...cell.getContext(),
+                                  onAction: (action: string) => onAction(action, row.original),
+                                })}
+                              </TableCell>
+                            )
+                          })}
                         </TableRow>
                       )
                     })

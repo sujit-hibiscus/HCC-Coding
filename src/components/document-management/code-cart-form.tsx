@@ -1,24 +1,29 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { ConditionCommonCard } from "@/components/ui/condition-common-card"
+import { Option as ICDOption } from "@/components/ui/creatable-select"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Checkbox } from "@/components/ui/checkbox"
 import { useRedux } from "@/hooks/use-redux"
 import { cn } from "@/lib/utils"
 import { updateAnalystNotes, updateCodeReviewItemStatus } from "@/store/slices/documentManagementSlice"
 import { AnimatePresence, motion } from "framer-motion"
-import { Check, CheckCircle, ChevronDown, ChevronUp, FileText, Loader2, Search, X } from "lucide-react"
+import { Check, CheckCircle, FileText, Loader2, Search, X } from "lucide-react"
 import { useCallback, useMemo, useState, useTransition } from "react"
+import toast from "react-hot-toast"
+import { IcdSuggestionIconSimple } from "../common/icd-suggestion-icon"
+import { UpdateIcdCodeModal } from "./UpdateIcdModal"
+
 
 // Interfaces
 interface CodeReviewItem {
     id: string
     icdCode: string
+    V24HCC: string
     diagnosis: string
     description: string
     hccCode: string
@@ -52,6 +57,18 @@ interface CodeReviewFormProps {
     onComplete: () => void
 }
 
+const ICD_OPTIONS: ICDOption[] = [
+    { label: "ICD:Z93.2", value: "Z93.2" },
+    { label: "ICD:J44.9", value: "J44.9" },
+    { label: "ICD:E11.9", value: "E11.9" },
+]
+
+const ICD_DATA: Record<string, { hccCode: string; rxHccCode: string; description: string }> = {
+    "Z93.2": { hccCode: "463", rxHccCode: "280", description: "Presence of ileostomy" },
+    "J44.9": { hccCode: "111", rxHccCode: "202", description: "Chronic obstructive pulmonary disease" },
+    "E11.9": { hccCode: "19", rxHccCode: "0", description: "Type 2 diabetes mellitus without complications" },
+}
+
 export default function ImprovedCodeReviewForm({
     selectedDocumentId,
     currentCodeReview,
@@ -70,8 +87,34 @@ export default function ImprovedCodeReviewForm({
     const [updatingItemId, setUpdatingItemId] = useState<string | null>(null)
 
     // New state for checkbox filters
-    const [showRxHcc, setShowRxHcc] = useState(false)
     const [showHcc, setShowHcc] = useState(false)
+    const [showRxHcc, setShowRxHcc] = useState(false)
+
+    const [updateIcdModal, setUpdateIcdModal] = useState<{ open: boolean; item: CodeReviewItem | null }>({ open: false, item: null })
+
+    const [selectedIcd, setSelectedIcd] = useState<string | null>(null)
+    const [icdTouched, setIcdTouched] = useState(false)
+
+    const [icdLoadingId, setIcdLoadingId] = useState<string | null>(null)
+
+    const resetUpdateIcdModal = () => {
+        setUpdateIcdModal({ open: false, item: null })
+        setSelectedIcd(null)
+        setIcdTouched(false)
+    }
+
+    /*  const handleUpdateIcd = async () => {
+         setIcdTouched(true)
+         if (!selectedIcd) return
+         const bodyData = {
+             oldIcd: updateIcdModal.item?.icdCode,
+             newIcd: selectedIcd,
+             ...ICD_DATA[selectedIcd],
+         }
+         await new Promise((resolve) => setTimeout(resolve, 1000))
+         toast.success("ICD updated successfully!")
+         resetUpdateIcdModal()
+     } */
 
     const filteredItems = useMemo(() => {
         let items = [...currentCodeReview.items]
@@ -125,7 +168,6 @@ export default function ImprovedCodeReviewForm({
 
         return items
     }, [currentCodeReview.items, filterStatus, localSearchTerm, showRxHcc, showHcc])
-    console.log("🚀 ~ filteredItems ~ filteredItems:", filteredItems)
 
     const handleSearchChange = useCallback((value: string) => {
         setLocalSearchTerm(value)
@@ -199,18 +241,6 @@ export default function ImprovedCodeReviewForm({
                         <div className="flex items-center gap-4 px-1">
                             <div className="flex items-center space-x-2">
                                 <Checkbox
-                                    id="rx-hcc-filter"
-                                    checked={showRxHcc}
-                                    onCheckedChange={(checked) => setShowRxHcc(checked as boolean)}
-                                    className="h-4 w-4"
-                                />
-                                <Label htmlFor="rx-hcc-filter" className="text-base font-medium cursor-pointer select-none">
-                                    Rx-HCC
-                                </Label>
-                            </div>
-
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
                                     id="hcc-filter"
                                     checked={showHcc}
                                     onCheckedChange={(checked) => setShowHcc(checked as boolean)}
@@ -218,6 +248,17 @@ export default function ImprovedCodeReviewForm({
                                 />
                                 <Label htmlFor="hcc-filter" className="text-base font-medium cursor-pointer select-none">
                                     HCC
+                                </Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    id="rx-hcc-filter"
+                                    checked={showRxHcc}
+                                    onCheckedChange={(checked) => setShowRxHcc(checked as boolean)}
+                                    className="h-4 w-4"
+                                />
+                                <Label htmlFor="rx-hcc-filter" className="text-base font-medium cursor-pointer select-none">
+                                    Rx-HCC
                                 </Label>
                             </div>
                         </div>
@@ -263,114 +304,21 @@ export default function ImprovedCodeReviewForm({
                                                 layout: { duration: 0.3, ease: "easeInOut" },
                                             }}
                                         >
-                                            <Card
-                                                className={cn(
-                                                    "border transition-all duration-200 overflow-hidden",
-                                                    item.status === "accepted" && "border-emerald-200 bg-emerald-50/30",
-                                                    item.status === "rejected" && "border-rose-200 bg-rose-50/30",
-                                                    expandedCard === item.id && "ring-2 ring-blue-200 shadow-md",
-                                                )}
-                                            >
-                                                <CardContent className="p-2 flex gap-2.5 items-center justify-between">
-                                                    <div className="flex-1 min-w-0">
-                                                        {/* Header Row */}
-                                                        <div className="flex items-start justify-between gap-3 mb-3">
-                                                            <div className="flex items-center gap-2 flex-wrap">
-                                                                {item.icdCode && (
-                                                                    <Tooltip>
-                                                                        <TooltipTrigger asChild>
-                                                                            <Badge
-                                                                                variant="outline"
-                                                                                className="font-mono text-xs bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
-                                                                            >
-                                                                                ICD:{item.icdCode}
-                                                                            </Badge>
-                                                                        </TooltipTrigger>
-                                                                        {item.icd10_desc && item.icd10_desc?.length > 0 && (
-                                                                            <TooltipContent>{item.icd10_desc}</TooltipContent>
-                                                                        )}
-                                                                    </Tooltip>
-                                                                )}
-
-                                                                {item.hccV28Code && (
-                                                                    <Tooltip>
-                                                                        <TooltipTrigger asChild>
-                                                                            <Badge
-                                                                                variant="outline"
-                                                                                className="font-mono text-xs bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                                                                            >
-                                                                                HCC:{item.hccV28Code}
-                                                                            </Badge>
-                                                                        </TooltipTrigger>
-                                                                    </Tooltip>
-                                                                )}
-                                                                {item.hccCode && (
-                                                                    <Tooltip>
-                                                                        <TooltipTrigger asChild>
-                                                                            <Badge
-                                                                                variant="outline"
-                                                                                className="font-mono text-xs bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
-                                                                            >
-                                                                                RX-HCC:{item.hccCode}
-                                                                            </Badge>
-                                                                        </TooltipTrigger>
-                                                                    </Tooltip>
-                                                                )}
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Main Content */}
-                                                        <div className="space-y-2">
-                                                            <div>
-                                                                <h3 className="font-semibold text-gray-900 text-sm leading-tight">{item.diagnosis}</h3>
-                                                                <p className="text-sm text-gray-600 text-justify pr-2 mt-0.5">{item.description}</p>
-                                                            </div>
-
-                                                            {/* Evidence Section */}
-                                                            <div className="bg-gray-50 p-1.5 border rounded">
-                                                                <div className="flex items-start justify-between gap-2">
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <div
-                                                                            className={cn(
-                                                                                "overflow-hidden transition-all duration-300",
-                                                                                expandedCard === item.id ? "max-h-none" : "max-h-12",
-                                                                            )}
-                                                                        >
-                                                                            <p className="text-xs text-gray-700 leading-relaxed">
-                                                                                <span className="font-medium text-gray-900">Evidence:</span> {item.evidence}
-                                                                            </p>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    {item.evidence.length > 230 && (
-                                                                        <Button
-                                                                            variant="ghost"
-                                                                            size="sm"
-                                                                            onClick={() => setExpandedCard(expandedCard === item.id ? null : item.id)}
-                                                                            className="h-6 px-2 text-xs shrink-0"
-                                                                        >
-                                                                            {expandedCard === item.id ? (
-                                                                                <ChevronUp className="h-3 w-3" />
-                                                                            ) : (
-                                                                                <ChevronDown className="h-3 w-3" />
-                                                                            )}
-                                                                        </Button>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Reference */}
-                                                            <div className="flex items-center justify-between text-xs text-gray-500">
-                                                                <span className="font-medium">Query: {(item.query || "NA")}</span>
-                                                            </div>
-                                                            {/* <div className="flex items-center justify-between text-xs text-gray-500">
-                                                                <span className="font-medium">Ref: {item.reference}</span>
-                                                            </div> */}
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Action Buttons */}
-                                                    <div className="flex flex-col gap-1.5 shrink-0">
+                                            <ConditionCommonCard
+                                                status={item.status}
+                                                expanded={expandedCard === item.id}
+                                                onExpand={item.evidence.length > 230 ? () => setExpandedCard(expandedCard === item.id ? null : item.id) : undefined}
+                                                icdCode={item.icdCode}
+                                                V24HCC={item?.V24HCC}
+                                                hccV28Code={item.hccV28Code}
+                                                hccCode={item.hccCode}
+                                                icd10_desc={item.icd10_desc}
+                                                diagnosis={item.diagnosis}
+                                                description={item.description}
+                                                evidence={item.evidence}
+                                                query={item.query}
+                                                actionButtons={
+                                                    <>
                                                         <Tooltip>
                                                             <TooltipTrigger asChild>
                                                                 <Button
@@ -394,7 +342,6 @@ export default function ImprovedCodeReviewForm({
                                                             </TooltipTrigger>
                                                             <TooltipContent>Accept</TooltipContent>
                                                         </Tooltip>
-
                                                         <Tooltip>
                                                             <TooltipTrigger asChild>
                                                                 <Button
@@ -417,9 +364,27 @@ export default function ImprovedCodeReviewForm({
                                                             </TooltipTrigger>
                                                             <TooltipContent>Reject</TooltipContent>
                                                         </Tooltip>
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    onClick={() => setUpdateIcdModal({ open: true, item })}
+                                                                    className="h-10 w-10 p-0 !rounded-none transition-all"
+                                                                    aria-label="Suggest ICD"
+                                                                >
+                                                                    {icdLoadingId === item.id ? (
+                                                                        <Loader2 className="h-10 w-10 animate-spin text-selectedText" />
+                                                                    ) : (
+                                                                        <IcdSuggestionIconSimple className="h-10 w-10 text-selectedText" />
+                                                                    )}
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>Suggest ICD</TooltipContent>
+                                                        </Tooltip>
+                                                    </>
+                                                }
+                                            />
                                         </motion.div>
                                     ))}
                                 </AnimatePresence>
@@ -480,6 +445,16 @@ export default function ImprovedCodeReviewForm({
                     )}
                 </div>
             </motion.div>
+
+            <UpdateIcdCodeModal
+                open={updateIcdModal.open}
+                onClose={() => setUpdateIcdModal({ open: false, item: null })}
+                item={updateIcdModal.item}
+                onUpdateIcdLoading={(id) => {
+                    setIcdLoadingId(id);
+                    setTimeout(() => setIcdLoadingId(null), 3000);
+                }}
+            />
         </TooltipProvider>
     )
 }

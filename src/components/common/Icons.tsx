@@ -15,7 +15,8 @@ import {
     Loader2,
     Trash2,
     ArrowLeft,
-    ClipboardMinus
+    ClipboardMinus,
+    Pencil
 } from "lucide-react";
 
 export const Icons = {
@@ -34,5 +35,6 @@ export const Icons = {
     dotsHorizontal: MoreHorizontal,
     mixerHorizontal: SlidersHorizontal,
     cross2: X,
-    ArrowLeft, ClipboardMinus
+    ArrowLeft, ClipboardMinus,
+    pencil: Pencil
 };

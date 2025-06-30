@@ -14,6 +14,7 @@ import {
     setSelectedPendingAnalyst,
 } from "@/store/slices/table-document-slice";
 import { setSelectedRows } from "@/store/slices/tableFiltersSlice";
+import { fetchChartCounts } from "@/store/slices/user-slice";
 import { UserPlus, X } from "lucide-react";
 
 interface AssignmentControlsProps {
@@ -78,6 +79,8 @@ export default function AssignmentControls({ currentTab, userType, }: Assignment
                         selectedRows: [],
                     }),
                 );
+                dispatch(fetchChartCounts());
+
             });
         } else if (currentTab === ChartTab.Assigned && selectedAnalyst) {
             dispatch(
@@ -94,6 +97,7 @@ export default function AssignmentControls({ currentTab, userType, }: Assignment
                         selectedRows: [],
                     }),
                 );
+                dispatch(fetchChartCounts());
             });
         } else if (currentTab === ChartTab.Audit && selectedAuditor) {
             dispatch(
@@ -153,7 +157,9 @@ export default function AssignmentControls({ currentTab, userType, }: Assignment
     return (
         <div className="flex items-center gap-4 ml-auto">
             <div className="relative w-[250px]">
-                <Select value={selectedValue} onValueChange={setSelectedValue}>
+                <Select
+                    disabled={selectedDocumentIds.length === 0}
+                    value={selectedValue} onValueChange={setSelectedValue}>
                     <SelectTrigger className="w-full rounded-sm pr-8">
                         <SelectValue placeholder={placeholder} />
                     </SelectTrigger>

@@ -34,9 +34,7 @@ const CustomOption = (props: OptionProps<any, boolean, GroupBase<any>>) => {
 };
 
 export const CreatableSelect = ({ className, isError = false, isMulti = false, ...props }: CreatableSelectProps) => {
-    const [showAllOptions, setShowAllOptions] = useState(false);
     const [inputValue, setInputValue] = useState("");
-    console.info("🚀 ~ CreatableSelect ~ showAllOptions:", showAllOptions)
     const DropdownIndicator = () => null;
     return (
         <CreatableReactSelect
@@ -45,7 +43,7 @@ export const CreatableSelect = ({ className, isError = false, isMulti = false, .
             classNames={{
                 control: (state) =>
                     cn(
-                        "border border-input bg-background !rounded-none py-1 text-sm ring-offset-background",
+                        "border border-input !bg-white !rounded-none  text-sm ring-offset-background",
                         isError ? "" : "!border-input-border",
                         state.isFocused ? "ring-2 ring-ring ring-offset-2" : "",
                         state.isDisabled ? "opacity-50 cursor-not-allowed" : "",
@@ -58,7 +56,7 @@ export const CreatableSelect = ({ className, isError = false, isMulti = false, .
                         state.isFocused ? "bg-accent" : "",
                         state.isSelected ? "bg-primary text-primary-foreground" : "",
                     ),
-                multiValue: () => "bg-accent rounded-md px-1 py-0.5 mr-1",
+                multiValue: () => "bg-accent rounded-md",
                 multiValueLabel: () => "text-sm",
                 multiValueRemove: () => "ml-1 text-muted-foreground hover:text-foreground",
                 menu: () => inputValue ? "bg-background border border-input rounded-md mt-1 overflow-hidden" : "hidden",
@@ -82,7 +80,7 @@ export const CreatableSelect = ({ className, isError = false, isMulti = false, .
                 return option.label.toLowerCase().includes(inputValue.toLowerCase());
             }}
             onMenuOpen={() => {
-                setShowAllOptions(false);
+                // setShowAllOptions(false);
             }}
             {...props}
         />

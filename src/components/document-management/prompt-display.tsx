@@ -87,7 +87,7 @@ const PromptDisplay: React.FC<PromptDisplayProps> = ({ content }) => {
                 <div key={index}>
                     <Separator className="my-1" />
                     <Typography variant="subheading" className="pt-2 font-semibold text-gray-800">
-                        {line.substring(3)}
+                        {line.substring(3)?.replace(/^PASS \d+:\s*/, '')}
                     </Typography>
                 </div>,
             )
@@ -144,7 +144,7 @@ const PromptDisplay: React.FC<PromptDisplayProps> = ({ content }) => {
     flushTable()
 
     return (
-        <Card className="h-full p-0 border-0 shadow-none">
+        <Card className="h-full p-0 border-0 shadow-none !bg-white">
             <CardContent className="font-sans p-0 pb-1">{elements}</CardContent>
         </Card>
     )

@@ -1,11 +1,18 @@
 "use client";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { logoutAction } from "@/app/action/auth-actions";
-import devtoolsDetect from "devtools-detect";
+import devtoolsDetector from "devtools-detector";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import useFullPath from "./use-fullpath";
 
 export function usePreventSave(): void {
     const router = useRouter();
+    const { fullPath } = useFullPath()
+    useEffect(() => {
+        console.log(fullPath, "fullPathfullPath");
+
+    }, [fullPath])
+
 
     useEffect(() => {
         const handleDevToolsChange = async (isOpen: boolean) => {
@@ -19,43 +26,55 @@ export function usePreventSave(): void {
             }
         };
 
-        // Initial check
-        if (devtoolsDetect.isOpen) {
-            handleDevToolsChange(true);
+        devtoolsDetector.addListener(handleDevToolsChange);
+        devtoolsDetector.launch();
+
+        // Strict: Check DevTools on visibility change and focus
+        const checkDevToolsAndRedirect = async () => {
+            if (devtoolsDetector.isOpen) {
+                try {
+                    await logoutAction();
+                    router.push("/unauthorized");
+                } catch (error) {
+                    console.error("Logout failed:", error);
+                }
+            }
+        };
+
+        function handleVisibilityChange() {
+            if (document.visibilityState === "visible") {
+                checkDevToolsAndRedirect();
+            }
         }
+        function handleFocus() {
+            checkDevToolsAndRedirect();
+        }
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        window.addEventListener("focus", handleFocus);
 
-        // Listen for devtools changes
-        window.addEventListener("devtoolschange", (e: any) => {
-            handleDevToolsChange(e.detail.isOpen);
-        });
-
-        // Prevent context menu
         const handleContextMenu = (e: MouseEvent): void => {
             e.preventDefault();
             e.stopPropagation();
         };
-
-        // Prevent keyboard shortcuts
         const handleKeyDown = (e: KeyboardEvent): void => {
             const key = e.key.toLowerCase();
             const isBlocked =
-                (e.ctrlKey && e.shiftKey && ["i", "j", "c"].includes(key)) || // Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
-                key === "f12" || // F12
-                (e.altKey && key === "f12"); // Alt+F12
+                (e.ctrlKey && e.shiftKey && ["i", "j", "c"].includes(key)) || key === "f12" ||
+                (e.altKey && key === "f12");
 
             if (isBlocked) {
                 e.preventDefault();
                 e.stopPropagation();
-                // handleDevToolsChange(true);
             }
         };
 
-        // Add event listeners
         document.addEventListener("contextmenu", handleContextMenu, true);
         document.addEventListener("keydown", handleKeyDown, true);
 
         return () => {
-            window.removeEventListener("devtoolschange", handleDevToolsChange as any);
+            devtoolsDetector.removeListener(handleDevToolsChange);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            window.removeEventListener("focus", handleFocus);
             document.removeEventListener("contextmenu", handleContextMenu, true);
             document.removeEventListener("keydown", handleKeyDown, true);
         };

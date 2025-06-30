@@ -22,6 +22,11 @@ export async function logoutAction() {
         expires: new Date(0),
         path: "/",
     });
+    (await cookieStore).set("buildId", "", {
+        httpOnly: true,
+        expires: new Date(0),
+        path: "/",
+    });
     (await cookieStore).set("userType", "", {
         httpOnly: true,
         expires: new Date(0),
@@ -59,7 +64,6 @@ export async function loginAction(formData: FormData): Promise<LoginResponse> {
             body: JSON.stringify(bodyData),
             cache: "no-store",
         });
-        console.log("🚀 ~ loginAction ~ response:", response)
 
         const data = await response.json();
         if (data.status === "Success") {

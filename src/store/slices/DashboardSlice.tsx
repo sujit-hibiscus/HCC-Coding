@@ -12,6 +12,7 @@ interface DashboardState {
     analystUsers: { id: string | number; name: string }[];
     auditorUsers: { id: string | number; name: string }[];
     columnOrders: Record<string, string[]>;
+    configuration: configuration["data"]
 }
 
 const initialState: DashboardState = {
@@ -38,6 +39,7 @@ const initialState: DashboardState = {
             ""
         ]
     },
+    configuration: [],
 };
 
 interface ApiResponse {
@@ -85,6 +87,31 @@ export const fetchAuditorUsers = createAsyncThunk("dashboard/fetchAuditorUsers",
         }
     } catch (error) {
         return rejectWithValue((error as Error).message || "Failed to fetch auditor users");
+    }
+});
+
+interface configuration {
+    status: string
+    message: string
+    data: {
+        "id": number,
+        "key": string,
+        "value": string,
+        "comments": string
+    }[]
+}
+export const fetchConfiguration = createAsyncThunk("dashboard/fetch/configuration", async (_, { rejectWithValue }) => {
+    try {
+        const response = await fetchData("get_app_configurations/");
+        const data = response.data as configuration;
+        if (data.status === "Success") {
+            return data.data
+        } else {
+            toast.error(`${data.message}`);
+            return [] as configuration['data'];
+        }
+    } catch (error) {
+        return rejectWithValue((error as Error).message || "Failed to fetch configuration");
     }
 });
 
@@ -187,11 +214,12 @@ const dashboardSlice = createSlice({
         builder
             .addCase(fetchAuditorUsers.fulfilled, (state, action) => {
                 state.auditorUsers = action.payload;
-            });
-
-        builder
+            })
             .addCase(fetchAnalystUsers.fulfilled, (state, action) => {
                 state.analystUsers = action.payload; // Fix: use analystUsers instead of analystsData
+            })
+            .addCase(fetchConfiguration.fulfilled, (state, action) => {
+                state.configuration = action.payload
             });
     },
 });

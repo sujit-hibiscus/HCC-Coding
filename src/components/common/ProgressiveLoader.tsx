@@ -87,7 +87,7 @@ export default function ProgressiveLoader() {
                         {dots.map((dot) => (
                             <motion.span
                                 key={dot}
-                                className="h-2 w-2 rounded-full bg-blue-500"
+                                className="h-2 w-2 rounded-full bg-selectedText"
                                 animate={{ y: [0, -8, 0] }}
                                 transition={{
                                     repeat: Number.POSITIVE_INFINITY,

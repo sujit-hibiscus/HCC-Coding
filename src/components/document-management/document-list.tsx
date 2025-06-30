@@ -6,10 +6,10 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useRedux } from "@/hooks/use-redux";
-import { fetchDocuments, fetchPdfFile, selectDocument, fetchTextFile, setActiveDocTab } from "@/store/slices/documentManagementSlice";
+import { fetchDocuments, fetchPdfFile, fetchTextFile, selectDocument, setActiveDocTab } from "@/store/slices/documentManagementSlice";
 import { motion } from "framer-motion";
 import { Calendar, Loader2, RefreshCw, Search } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 type DocumentListProps = {
   onClose: () => void;
@@ -20,7 +20,6 @@ export default function DocumentList({ onClose }: DocumentListProps) {
   const { documents, selectedDocumentId, fetchedPdfPaths, documentLoading } = selector(
     (state) => state.documentManagement,
   );
-  console.log("🚀 ~ DocumentList ~ documents:", documents)
   const [searchTerm, setSearchTerm] = useState("");
 
   const totalDocuments = documents.length;
@@ -44,15 +43,15 @@ export default function DocumentList({ onClose }: DocumentListProps) {
     }
   };
 
-  const getSelectedDocumentUrl = (pdfUrl: string, docId: string) => {
-    if (pdfUrl?.length > 0 && selectedDocumentId !== docId) {
-      const alreadyFetched = fetchedPdfPaths.includes(pdfUrl);
-
-      if (!alreadyFetched) {
-        dispatch(fetchPdfFile(pdfUrl));
-      }
-    }
-  };
+  /*  const getSelectedDocumentUrl = (pdfUrl: string, docId: string) => {
+     if (pdfUrl?.length > 0 && selectedDocumentId !== docId) {
+       const alreadyFetched = fetchedPdfPaths.includes(pdfUrl);
+ 
+       if (!alreadyFetched) {
+         dispatch(fetchPdfFile(pdfUrl));
+       }
+     }
+   }; */
 
   const handleRefresh = () => {
     dispatch(fetchDocuments());
@@ -67,12 +66,12 @@ export default function DocumentList({ onClose }: DocumentListProps) {
   };
 
   return (
-    <div className="h-full flex flex-col py-1.5 px-1.5 max-h-[calc(100vh-2.9rem)]">
+    <div className="h-full flex flex-col py-1.5 px-1.5 max-h-[100%]">
       <div className="flex justify-between items-center mb-3 h-10">
-        <div className="text-sm font-medium">
+        <div className="text-sm fkwont-medium">
           <span>{totalDocuments}</span> total documents
         </div>
-        <div className="absolute right-9">
+        <div className="absolute right-9 top-2">
           <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleRefresh} title="Refresh documents">
             <RefreshCw className="h-4 w-4" />
           </Button>
@@ -121,18 +120,15 @@ export default function DocumentList({ onClose }: DocumentListProps) {
                   whileHover={{ scale: 1 }}
                   transition={{ duration: 0.2 }}
                   onClick={() => {
-                    if (doc?.status === "In Review") {
+                    if (selectedDocumentId === doc.id) {
                       onClose()
+                      return
                     }
                     dispatch(setActiveDocTab("document"))
-                    if (selectedDocumentId !== doc.id) {
-                      if (doc.text_file_path) {
-                        dispatch(fetchTextFile(doc.text_file_path));
-                      } else {
-                        getSelectedDocumentUrl(doc.url, doc.id);
-                      }
-                      dispatch(selectDocument(doc.id));
-                    }
+                    dispatch(selectDocument(doc.id));
+                    dispatch(fetchTextFile(doc.text_file_path));
+                    dispatch(fetchPdfFile(doc.url));
+                    onClose()
                   }}
                 >
                   <Card

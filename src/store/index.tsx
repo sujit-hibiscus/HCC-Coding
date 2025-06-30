@@ -16,7 +16,6 @@ import sessionStorage from "redux-persist/lib/storage/session";
 
 const RESET_STORE = "RESET_STORE";
 
-// Combine all reducers
 const appReducer = combineReducers({
     dashboard: dashboardSlice,
     tableFilters: tableFiltersReducer,
@@ -45,7 +44,7 @@ if (typeof window !== "undefined") {
     // Use sessionStorage instead of localStorage to isolate state per tab
     const persistConfig = {
         key: "root",
-        storage: sessionStorage, // Changed from storage to sessionStorage
+        storage: storage, // Changed from storage to sessionStorage
         whitelist: [
             "dashboard",
             "tableFilters",
@@ -88,5 +87,3 @@ export const resetReduxStore = () => {
         store.dispatch(resetStore());
     }
 };
-
-// Removed the window.addEventListener block as it's client-side specific and can cause hydration issues

@@ -2,6 +2,8 @@ import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/tool
 import type { UserTypes as User } from "@/lib/types/chartsTypes";
 import { fetchData, postData } from "@/lib/api/api-client";
 import toast from "react-hot-toast";
+import { EndDateFilter, StartDateFilter } from "@/lib/utils";
+import { format } from "date-fns";
 
 export interface AppointmentCounts {
     charts: {
@@ -294,8 +296,14 @@ interface ApiResponse {
 }
 export const fetchChartCounts = createAsyncThunk("user/fetchChartCounts", async (_, { rejectWithValue }) => {
     try {
-        // Use getData function if available, otherwise use fetch
-        const response = await fetchData("charts_count/");
+        const formattedStart = format(StartDateFilter, 'yyyy-MM-dd');
+        const formattedEnd = format(EndDateFilter, 'yyyy-MM-dd');
+
+        const bodyData = {
+            "start_date": formattedStart,
+            "end_date": formattedEnd
+        }
+        const response = await postData("charts_count/", bodyData);
         const data = response.data as ApiResponse;
         if (data.status === "Success") {
             return {

@@ -33,6 +33,7 @@ export interface CodeReviewItem {
     status: "accepted" | "rejected"
     addedAt: number
     query?: string | null
+    V24HCC: string
 }
 
 export interface CodeReviewData {
@@ -81,8 +82,11 @@ export interface MedicalCondition {
     code_explanation: string
     reasoning?: string;
 
+    V24HCC?: string;
+
     condition_name?: string;
     diagnosis?: string
+    icd_description?: string;
 
     criteria_met?: string
     clinical_indicators?: string
@@ -105,6 +109,7 @@ interface DocumentManagementState {
     selectedDocumentId: string | null
     pdfFileBase64: string | null
     pdfLoading: boolean
+    pdfLoadingById: Record<string, boolean>
     fetchedPdfPaths: string[]
 
     isRunning: boolean
@@ -115,12 +120,17 @@ interface DocumentManagementState {
     codeReview: Record<string, CodeReviewData>
     medicalConditionsData: Record<string, MedicalCondition[]>
     medicalConditionsLoading: boolean
+    medicalConditionsLoadingById: Record<string, boolean>
 
     activeDocTab: "document" | "prompt"
 
     textFileContent: string | null;
-    textLoading: boolean;
+    textLoading: boolean
+    textLoadingById: Record<string, boolean>
     fetchedTextPaths: string[];
+
+    // NEW: Per-document regenerating state
+    regeneratingById: Record<string, boolean>;
 }
 
 type AnalystAssignment = {
@@ -142,6 +152,7 @@ type DataItem = {
     analyst_notes: string | null
     file_size: number
     file_path: string
+    text_file_path: string;
     status: number
     analyst_assignments?: AnalystAssignment[]
     auditor_assignments?: auditor_assignments[]
@@ -181,10 +192,11 @@ export const fetchDocuments = createAsyncThunk("documentManagement/fetchDocument
 
     if (apiRes.status === "Success") {
         const response = apiRes?.data?.map((item) => {
-            const { id = "", analyst_notes = "", QA_notes = "", title = "", file_path = "", status } = item
+            const { id = "", text_file_path = "", analyst_notes = "", QA_notes = "", title = "", file_path = "", status } = item
             return {
                 id,
-                name: maskFileName(title),
+                name: title,
+                // name: maskFileName(title),
                 url: file_path,
                 assignId:
                     userType === "Analyst"
@@ -205,7 +217,7 @@ export const fetchDocuments = createAsyncThunk("documentManagement/fetchDocument
                 auditorNote: QA_notes ? QA_notes : "",
                 timeSpent: 0,
                 fileSize: item.file_size,
-                text_file_path: "Processed/Sample Test Pdf 1.txt",
+                text_file_path: text_file_path,
             } as Document
         })
         return response
@@ -248,8 +260,6 @@ export const startReviewWithApiData = createAsyncThunk(
             const response = await fetchData(`get_medical_conditions/?chart_id=${conditionData?.id}`)
             const medicalConditionsResponse = (response.data as MedicalConditionsResponse)
             const convertedFormat = medicalConditionsResponse.data?.map(i => {
-                console.log(i, "i");
-
                 const {
                     icd10_code = "", icd_code = "",
                     guideline_reference = "", reference = "",
@@ -258,18 +268,22 @@ export const startReviewWithApiData = createAsyncThunk(
                     query = "NA",
                     text_file_path = "",
                     diagnosis = "", condition_name = "",
+                    V24HCC = "",
+                    icd_description = "",
                     RxHCC = "", code_explanation = "", IsAcceptedbyAnalyst = true, IsAcceptedbyQA = true, icd10_desc = "", id = "", V28HCC = "", created_at = "" } = i
 
                 return {
                     id: `${id}`,
                     icdCode: icd10_code || icd_code || "",
                     hccCode: RxHCC || "",
+                    V24HCC: V24HCC || "",
                     hccV28Code: V28HCC || "",
                     reference: guideline_reference?.length || reference || "",
                     evidence: criteria_met || clinical_indicators || "",
                     status: (conditionData?.type === "Analyst" ? IsAcceptedbyAnalyst : IsAcceptedbyQA) ? "accepted" : "rejected",
                     addedAt: new Date(created_at).getTime(),
-                    diagnosis: diagnosis || condition_name || "",
+                    // diagnosis: diagnosis || condition_name || "",
+                    diagnosis: icd_description || "",
                     description: code_explanation || reasoning || "",
                     text_file_path: text_file_path,
                     icd10_desc: icd10_desc,//not coming?
@@ -398,11 +412,11 @@ export const fetchPdfFile = createAsyncThunk(
     async (pdfFilePath: string, { rejectWithValue, getState }) => {
         try {
             const state = getState() as { documentManagement: DocumentManagementState }
-            const { fetchedPdfPaths } = state.documentManagement
+            // const { fetchedPdfPaths } = state.documentManagement
 
-            if (fetchedPdfPaths.includes(pdfFilePath) && state.documentManagement.pdfFileBase64) {
-                return state.documentManagement.pdfFileBase64 // Return persisted Base64 if already fetched
-            }
+            /*  if (fetchedPdfPaths.includes(pdfFilePath) && state.documentManagement.pdfFileBase64) {
+                 return state.documentManagement.pdfFileBase64 // Return persisted Base64 if already fetched
+             } */
 
             const response = await postData<Blob>("view_pdf/", { file_path: pdfFilePath }, { responseType: "blob" })
             const blob = response.data;
@@ -456,7 +470,6 @@ export const fetchTextFile = createAsyncThunk(
         try {
             const state = getState() as { documentManagement: DocumentManagementState };
             const { fetchedTextPaths } = state.documentManagement;
-            console.log("🚀 ~ fetchedTextPaths:", fetchedTextPaths)
             if (fetchedTextPaths.includes(textFilePath) && state.documentManagement.textFileContent) {
                 return state.documentManagement.textFileContent;
             }
@@ -465,14 +478,14 @@ export const fetchTextFile = createAsyncThunk(
              const text = await response.text();
              return text */
             const response = await postData<string>("view_pdf/", { file_path: textFilePath }, { responseType: "text" });
-            console.log("🚀 ~ response:", response.ok)
-            if (response.ok) {
-                return response.data;
-            } else {
-                const response = await fetch("/pdf/Sample-text-file.txt");
-                const text = await response.text();
-                return text
-            }
+            return response.data;
+            /*  if (response.ok) {
+                 return response.data;
+             } else {
+                 const response = await fetch("/pdf/Sample-text-file.txt");
+                 const text = await response.text();
+                 return text
+             } */
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "Failed to fetch text file";
             toast.error(errorMessage);
@@ -489,6 +502,7 @@ const initialState: DocumentManagementState = {
     selectedDocumentId: null,
     pdfFileBase64: null,
     pdfLoading: false,
+    pdfLoadingById: {},
     fetchedPdfPaths: [],
     isRunning: false,
     elapsedTime: 0,
@@ -497,10 +511,14 @@ const initialState: DocumentManagementState = {
     codeReview: {},
     medicalConditionsData: {},
     medicalConditionsLoading: false,
+    medicalConditionsLoadingById: {},
     activeDocTab: "document",
     textFileContent: null,
     textLoading: false,
+    textLoadingById: {},
     fetchedTextPaths: [],
+    // NEW: Per-document regenerating state
+    regeneratingById: {},
 }
 
 const documentManagementSlice = createSlice({
@@ -751,6 +769,11 @@ const documentManagementSlice = createSlice({
         setActiveDocTab: (state, action: PayloadAction<"document" | "prompt">) => {
             state.activeDocTab = action.payload
         },
+
+        setRegenerating: (state, action: PayloadAction<{ docId: string; value: boolean }>) => {
+            const { docId, value } = action.payload;
+            state.regeneratingById[docId] = value;
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -766,23 +789,36 @@ const documentManagementSlice = createSlice({
                 state.documentLoading = false
                 state.error = action.error.message || "Failed to fetch documents"
             })
-            .addCase(fetchPdfFile.pending, (state) => {
+            .addCase(fetchPdfFile.pending, (state, action) => {
                 state.pdfLoading = true
                 state.error = null
+                const pdfPath = action.meta.arg
+                const doc = state.documents.find(doc => doc.url === pdfPath)
+                if (doc) {
+                    state.pdfLoadingById[doc.id] = true
+                }
             })
             .addCase(fetchPdfFile.fulfilled, (state, action) => {
                 state.pdfLoading = false
                 state.pdfFileBase64 = action.payload
-
                 const pdfPath = action.meta.arg
                 if (!state.fetchedPdfPaths.includes(pdfPath)) {
                     state.fetchedPdfPaths.push(pdfPath)
+                }
+                const doc = state.documents.find(doc => doc.url === pdfPath)
+                if (doc) {
+                    state.pdfLoadingById[doc.id] = false
                 }
             })
             .addCase(fetchPdfFile.rejected, (state, action) => {
                 state.pdfLoading = false
                 state.error = action.error.message || "Failed to fetch PDF file"
                 toast.error("Failed to load PDF file")
+                const pdfPath = action.meta.arg
+                const doc = state.documents.find(doc => doc.url === pdfPath)
+                if (doc) {
+                    state.pdfLoadingById[doc.id] = false
+                }
             })
             .addCase(startReviewWithApi.fulfilled, (state, action) => {
                 const documentId = action.meta.arg.id
@@ -813,37 +849,61 @@ const documentManagementSlice = createSlice({
                     document.startTime = Date.now()
                 }
             })
-            .addCase(startReviewWithApiData.pending, (state) => {
+            .addCase(startReviewWithApiData.pending, (state, action) => {
                 state.medicalConditionsLoading = true
+                const docId = action.meta.arg.id?.toString?.() ?? action.meta.arg.id
+                if (docId) {
+                    state.medicalConditionsLoadingById[docId] = true
+                }
             })
             .addCase(startReviewWithApiData.fulfilled, (state, action) => {
                 state.medicalConditionsLoading = false
                 if (action.payload) {
                     const { documentId, data } = action.payload
-                    // Create a proper CodeReviewData structure
                     state.codeReview[documentId] = {
                         items: data as CodeReviewItem[],
                         analystNotes: "",
                         auditorNotes: "",
                         searchTerm: "",
                     }
+                    if (documentId) {
+                        state.medicalConditionsLoadingById[documentId] = false
+                    }
                 }
             })
             .addCase(startReviewWithApiData.rejected, (state, action) => {
                 state.medicalConditionsLoading = false
                 state.error = action.error.message || "Failed to fetch medical conditions"
+                const docId = action.meta.arg.id?.toString?.() ?? action.meta.arg.id
+                if (docId) {
+                    state.medicalConditionsLoadingById[docId] = false
+                }
             })
-            .addCase(fetchTextFile.pending, (state) => {
+            .addCase(fetchTextFile.pending, (state, action) => {
                 state.textLoading = true;
+                const textPath = action.meta.arg
+                const doc = state.documents.find(doc => doc.text_file_path === textPath)
+                if (doc) {
+                    state.textLoadingById[doc.id] = true
+                }
             })
             .addCase(fetchTextFile.fulfilled, (state, action) => {
                 state.textLoading = false;
                 state.textFileContent = action.payload;
-                // Optionally, add to fetchedTextPaths
+                const textPath = action.meta.arg
+                const doc = state.documents.find(doc => doc.text_file_path === textPath)
+                if (doc) {
+                    state.textLoadingById[doc.id] = false
+                }
             })
-            .addCase(fetchTextFile.rejected, (state) => {
+            .addCase(fetchTextFile.rejected, (state, action) => {
                 state.textLoading = false;
                 state.textFileContent = null;
+                const textPath = action.meta.arg
+                const doc = state.documents.find(doc => doc.text_file_path === textPath)
+                if (doc) {
+                    state.textLoadingById[doc.id] = false
+                }
             });
     },
 })
@@ -870,6 +930,7 @@ export const {
     updateCodeReviewData,
     updateMedicalConditionStatus,
     setActiveDocTab,
+    setRegenerating,
 } = documentManagementSlice.actions
 
 export default documentManagementSlice.reducer

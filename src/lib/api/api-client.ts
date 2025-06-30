@@ -38,16 +38,14 @@ export class FetchError extends Error {
 export const TokenManager = {
     getToken: (): string | null => {
         if (typeof window === "undefined") return null;
-
         const token = localStorage.getItem("authToken");
         if (token) return token;
-
         return getCookie("authToken");
     },
 
     setToken: (token: string): void => {
         if (typeof window === "undefined") return;
-        localStorage.setItem("authToken", token);
+        // localStorage.setItem("authToken", token);
     },
 
     removeToken: (): void => {
@@ -414,6 +412,61 @@ export const uploadFile = <T>(
     options?: ExtendedRequestInit
 ): Promise<ApiResponse<T>> => {
     return fetchClient.uploadFile<T>(url, file, onProgress, options);
+};
+
+export const postDataNoTimeout = async <T>(url: string, data?: any, options: ExtendedRequestInit = {}): Promise<ApiResponse<T>> => {
+    const baseURL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000/api";
+    const fullUrl = url.startsWith("http") ? url : `${options.baseURL || baseURL}${url.startsWith("/") ? "" : ""}${url}`;
+
+    // Token logic
+    const token = TokenManager.getToken();
+
+    // Headers
+    let headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+    if (options.headers) {
+        headers = { ...headers, ...(options.headers as Record<string, string>) };
+    }
+
+    const fetchOptions: RequestInit = {
+        ...options,
+        method: "POST",
+        headers,
+        body: data instanceof FormData ? data : JSON.stringify(data),
+        cache: "no-store",
+        // next: { revalidate: 0 }, // Uncomment if using Next.js App Router
+    };
+
+    const response = await fetch(fullUrl, fetchOptions);
+    const responseType = options.responseType || "json";
+    let responseData: any;
+    switch (responseType) {
+        case "text":
+            responseData = await response.text();
+            break;
+        case "blob":
+            responseData = await response.blob();
+            break;
+        case "arrayBuffer":
+            responseData = await response.arrayBuffer();
+            break;
+        case "formData":
+            responseData = await response.formData();
+            break;
+        case "json":
+        default:
+            responseData = await response.json();
+            break;
+    }
+
+    return {
+        data: responseData,
+        status: response.status,
+        headers: response.headers,
+        ok: response.ok,
+    };
 };
 
 export default fetchClient;

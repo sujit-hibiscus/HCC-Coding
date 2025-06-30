@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { FileQuestion, Home, MoveLeft } from "lucide-react";
 import { redirect, useRouter } from "next/navigation";
+import { logoutAction } from "./action/auth-actions";
+import { resetReduxStore } from "@/store";
 
 export default function NotFound() {
     const router = useRouter();
@@ -60,14 +62,20 @@ export default function NotFound() {
                         variant="default"
                         size="lg"
                         onClick={() => {
-                            redirect("/dashboard");
+                            if (isUnauthorized) {
+                                logoutAction();
+                                resetReduxStore();
+                                redirect(isUnauthorized ? "/" : "/dashboard");
+                            } else {
+                                redirect(isUnauthorized ? "/" : "/dashboard");
+                            }
                         }}
                         className="w-full sm:w-auto"
                     >
                         <Home className="mr-2 h-4 w-4" />
                         Go to Homepage
                     </Button>
-                    <Button
+                    {!isUnauthorized && <Button
                         variant="outline"
                         size="lg"
                         onClick={() => router.back()}
@@ -75,7 +83,7 @@ export default function NotFound() {
                     >
                         <MoveLeft className="mr-2 h-4 w-4" />
                         Go Back
-                    </Button>
+                    </Button>}
                 </motion.div>
             </div>
         </div>

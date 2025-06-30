@@ -1,0 +1,29 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 22.14.0
+    commands:
+      - echo "Installing Node.js dependencies"
+      - npm install
+
+  build:
+    commands:
+      - echo "Build started on `date`"
+      - npm run build
+      - echo Packaging application into a zip file...
+      - zip -r hcc-frontend-dev-cicd.zip * .[^.]* -x "node_modules/*" "node_modules/**"
+
+  post_build:
+    commands:
+      - echo "Build completed on `date`"
+      - echo "Preparing artifacts..."
+      - echo Uploading zip file to S3 root location...
+      - aws s3 cp hcc-frontend-dev-cicd.zip s3://dev-hcc-coding-deployment/dev-hcc-coding/
+      - rm -rf hcc-frontend-dev-cicd.zip
+      - rm -rf node_modules
+artifacts:
+  files:
+    - '**/*'
+  discard-paths: no 

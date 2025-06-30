@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbo",
-    "build": "next build",
+    "build": "node scripts/dynamic-build.js",
     "start": "next start",
     "lint": "next lint"
   },
@@ -30,6 +30,7 @@
     "@radix-ui/react-tooltip": "^1.1.7",
     "@react-pdf-viewer/core": "^3.12.0",
     "@react-pdf-viewer/default-layout": "^3.12.0",
+    "@react-pdf-viewer/search": "^3.12.0",
     "@reduxjs/toolkit": "^2.5.1",
     "@sinm/react-chrome-tabs": "^2.4.6",
     "@tanstack/react-table": "^8.20.6",
@@ -42,7 +43,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.0.4",
     "date-fns": "^4.1.0",
-    "devtools-detect": "^4.0.2",
+    "devtools-detector": "^2.0.23",
     "framer-motion": "^12.0.5",
     "html-to-image": "^1.11.13",
     "lucide-react": "^0.474.0",

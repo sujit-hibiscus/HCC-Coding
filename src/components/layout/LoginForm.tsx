@@ -10,12 +10,12 @@ import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { useRedux } from "@/hooks/use-redux";
 import useToast from "@/hooks/use-toast";
-import { fetchAnalystUsers, fetchAuditorUsers, resetTab } from "@/store/slices/DashboardSlice";
+import { fetchAnalystUsers, fetchAuditorUsers, fetchConfiguration, resetTab } from "@/store/slices/DashboardSlice";
+import { fetchDocuments } from "@/store/slices/documentManagementSlice";
 import { fetchChartCounts, setError, setLoading, setUser } from "@/store/slices/user-slice";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ForgotPassword } from "../common/user/forgot-password";
-import { fetchDocuments } from "@/store/slices/documentManagementSlice";
 
 export default function LoginForm() {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -24,9 +24,6 @@ export default function LoginForm() {
     const router = useRouter();
     const { error } = useToast();
     const { dispatch } = useRedux();
-    console.log("Working new changes!..");
-
-
     async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
         setIsSubmitting(true);
@@ -38,25 +35,26 @@ export default function LoginForm() {
                 formData.append("password", password);
 
                 const response = await loginAction(formData);
-                console.log("API Data => response", response);
-                console.log("API => response", response);
-                if (response?.userType?.toLowerCase()?.includes("admin")) {
-                    dispatch(fetchChartCounts());
-                    dispatch(fetchAnalystUsers());
-                    dispatch(fetchAuditorUsers());
-                } else {
-                    setTimeout(() => {
-                        dispatch(fetchDocuments());
-                    }, 1500);
-                }
-
+                console.log("🚀 New 🚀", response)
                 if (response?.message && response?.message !== "Login successful") {
                     error({ message: response.message });
                     setIsSubmitting(false);
                     return;
                 }
 
+
                 if (response.success) {
+                    if (response?.userType?.toLowerCase()?.includes("admin")) {
+                        dispatch(fetchChartCounts());
+                        dispatch(fetchAnalystUsers());
+                        dispatch(fetchAuditorUsers());
+                        dispatch(fetchConfiguration())
+                    } else {
+                        setTimeout(() => {
+                            dispatch(fetchDocuments());
+                        }, 1500);
+                        dispatch(fetchConfiguration())
+                    }
                     dispatch(
                         setUser({
                             userType: response.userType || "",

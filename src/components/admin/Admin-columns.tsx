@@ -79,11 +79,8 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
         accessorKey: "fileSize",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="File Size" />,
         cell: ({ row }) => {
-            const fileSizeRaw = row.getValue<string>("fileSize"); // example: "1.2 MB"
-            const fileSizeNumber = Number.parseFloat(fileSizeRaw); // extracts 1.2
-            const isLargeFile = fileSizeNumber > 500;
-
-            return <div className={cn(isLargeFile ? "text-red-500 font-semibold" : "", "text-center")}>{fileSizeRaw}</div>;
+            const fileSizeRaw = row.getValue<string>("fileSize");
+            return <div className={cn(false ? "text-red-500 font-semibold" : "", "text-center")}>{fileSizeRaw}</div>;
         },
         enableSorting: true,
         isDragable: true,
@@ -153,11 +150,8 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
         accessorKey: "fileSize",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="File Size" />,
         cell: ({ row }) => {
-            const fileSizeRaw = row.getValue<string>("fileSize"); // example: "1.2 MB"
-            const fileSizeNumber = Number.parseFloat(fileSizeRaw); // extracts 1.2
-            const isLargeFile = fileSizeNumber > 500;
-
-            return <div className={cn(isLargeFile ? "font-semibold text-red-500" : "", "text-center")}>{fileSizeRaw}</div>;
+            const fileSizeRaw = row.getValue<string>("fileSize");
+            return <div className={cn(false ? "font-semibold text-red-500" : "", "text-center")}>{fileSizeRaw}</div>;
         },
         enableSorting: true,
         isDragable: true,
@@ -249,10 +243,8 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="File Size" />,
         cell: ({ row }) => {
             const fileSizeRaw = row.getValue<string>("fileSize"); // example: "1.2 MB"
-            const fileSizeNumber = Number.parseFloat(fileSizeRaw); // extracts 1.2
-            const isLargeFile = fileSizeNumber > 500;
 
-            return <div className={cn(isLargeFile ? "font-semibold text-red-500" : "", "text-center")}>{fileSizeRaw}</div>;
+            return <div className={cn(false ? "font-semibold text-red-500" : "", "text-center")}>{fileSizeRaw}</div>;
         },
         enableSorting: true,
         isDragable: true,
@@ -343,11 +335,8 @@ export const completedDocumentColumns = (): (ColumnDef<CompletedDocument> & { is
         accessorKey: "fileSize",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="File Size" />,
         cell: ({ row }) => {
-            const fileSizeRaw = row.getValue<string>("fileSize"); // example: "1.2 MB"
-            const fileSizeNumber = Number.parseFloat(fileSizeRaw); // extracts 1.2
-            const isLargeFile = fileSizeNumber > 500;
-
-            return <div className={cn(isLargeFile ? "font-semibold text-red-500" : "", "text-center")}>{fileSizeRaw}</div>;
+            const fileSizeRaw = row.getValue<string>("fileSize");
+            return <div className={cn(false ? "font-semibold text-red-500" : "", "text-center")}>{fileSizeRaw}</div>;
         },
         enableSorting: true,
         isDragable: true,

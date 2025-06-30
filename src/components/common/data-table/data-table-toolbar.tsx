@@ -36,7 +36,6 @@ function DataTableToolbarComponent<TData>({
   dateKey = "",
   handleRefresh,
 }: DataTableToolbarProps<TData>) {
-  console.log("🚀 ~ dateRange:", dateRange)
   const isFiltered = table.getState().columnFilters.length > 0;
   const { charts = "", target = "" } = useFullPath();
   const tabKey = `${charts}${target}`;

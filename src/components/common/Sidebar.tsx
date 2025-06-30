@@ -67,10 +67,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
 
     const handleNavigation = (href: string, label: string) => {
         const id = href.split("/").pop() || href;
-        if (id !== 'document') {
-            dispatch(setPageLoading(true))
-        }
-
+        dispatch(setPageLoading(true))
 
         setTimeout(() => {
             if (targetTabs.some(status => id.includes(status))) {
@@ -90,24 +87,11 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
     const { showPromiseToast } = useToast();
 
     const handleLogout = async () => {
-        const logoutPromise = new Promise<void>(async (resolve, reject) => {
-            try {
-                await logoutAction();
-                setTimeout(() => {
-                    resetReduxStore();
-                }, 1000);
-                router.push("/");
-                resolve();
-            } catch (error) {
-                reject(error);
-            }
-        });
-
-        /*  showPromiseToast({
-             promise: logoutPromise,
-             loading: "Logging out...",
-             error: "Failed to log out. Please try again.",
-         }); */
+        await logoutAction();
+        setTimeout(() => {
+            resetReduxStore();
+        }, 1000);
+        router.push("/");
     };
 
     const comparePaths = (path1: string, path2: string) => {
@@ -304,9 +288,6 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                     </div>
                 </div>
             </motion.div>
-
-
-
             <SidebarRail />
         </Sidebar >
     );

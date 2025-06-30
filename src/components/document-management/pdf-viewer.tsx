@@ -5,31 +5,36 @@ import { PreventSaveProvider } from "@/components/layout/prevent-save-provider"
 import { Button } from "@/components/ui/button"
 import PdfUI from "@/components/ui/pdfUI"
 import { useRedux } from "@/hooks/use-redux"
+import useToast from "@/hooks/use-toast"
 import { SubmissionFormSchema } from "@/lib/schemas"
 import {
   completeReviewAuditorWithAPI,
   completeReviewWithAPI,
   fetchDocuments,
+  fetchPdfFile,
+  fetchTextFile,
   resetCodeReview,
   resetFormData,
   resumeReview,
   setActiveDocTab,
   startReviewAuditorWithApi,
   startReviewWithApi,
+  startReviewWithApiData,
   updateElapsedTime,
   updateFormData,
-  fetchTextFile,
+  setRegenerating
 } from "@/store/slices/documentManagementSlice"
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { AnimatePresence, motion } from "framer-motion"
-import { Loader2, Menu, Play } from "lucide-react"
+import { Loader2, Menu, Play, RotateCcw } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "../ui/sheet"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
+import { Tooltip, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
 import AuditorReviewForm from "./auditor-review-form"
 import ImprovedCodeReviewForm from "./code-cart-form"
-import PromptDisplay from "./prompt-display"
 import DocumentList from "./document-list"
+import PromptDisplay from "./prompt-display"
+import { postData, postDataNoTimeout } from "@/lib/api/api-client"
 
 export default function PdfViewer({
   onReviewComplete,
@@ -42,24 +47,31 @@ export default function PdfViewer({
 }) {
   // Sheet open state
   const [open, setOpen] = useState(false);
-  const { dispatch, selector } = useRedux()
+  const { dispatch, selector } = useRedux();
+  const { configuration } = selector(state => state.dashboard)
+  const isPromptVisible = configuration?.find(i => i?.key === "show-analysis")?.value === "True"
+
   const {
     documents,
     selectedDocumentId,
     isRunning,
     pdfFileBase64 = "",
-    pdfLoading,
+    pdfLoadingById,
     formData: allFormData,
     codeReview: allCodeReview,
     activeDocTab: currentTab = "document",
     textFileContent,
-    textLoading,
+    textLoadingById,
+    regeneratingById,
+    medicalConditionsLoadingById,
   } = selector((state) => state.documentManagement)
   const { userType } = selector((state) => state.user)
+  const { success, error } = useToast()
 
   const selectedDocument = documents
     ?.filter((item: { status: string }) => item?.status !== "completed")
     .find((doc: { id: string }) => doc.id === selectedDocumentId)
+
 
   const isSidebar = selectedDocument?.status === "In Review"
 
@@ -68,9 +80,6 @@ export default function PdfViewer({
   const timerRef = useRef<NodeJS.Timeout | null>(null)
 
   const [showSidebar, setShowSidebar] = useState(false)
-  const [isPromptVisible, setIsPromptVisible] = useState(true)
-  const [promptContent, setPromptContent] = useState("")
-
 
   // Get form data for the selected document from Redux store
   const currentFormData = selectedDocumentId ? allFormData[selectedDocumentId] : null
@@ -90,8 +99,6 @@ export default function PdfViewer({
       searchTerm: "",
     }
 
-  console.log(currentCodeReview?.items, "currentCodeReview");
-
 
   const [formErrors, setFormErrors] = useState<{
     codesMissed?: string[]
@@ -106,6 +113,12 @@ export default function PdfViewer({
   const [apiLoading, setApiLoading] = useState(false)
 
   const [displayPdfUrl, setDisplayPdfUrl] = useState<string | null>(null);
+
+  // Per-document loading states
+  const isRegenerating = selectedDocumentId ? regeneratingById[selectedDocumentId] : false;
+  const isPdfLoading = selectedDocumentId ? pdfLoadingById[selectedDocumentId] : false;
+  const isTextLoading = selectedDocumentId ? textLoadingById[selectedDocumentId] : false;
+  const isMedicalLoading = selectedDocumentId ? medicalConditionsLoadingById[selectedDocumentId] : false;
 
   const tabs = [
     { value: "document", label: "Document" },
@@ -458,175 +471,294 @@ export default function PdfViewer({
     rating: 0,
   }
 
-  console.log(formData, "formData");
 
+  const handleRegenerate = async () => {
+    if (!selectedDocumentId) return;
+    dispatch(setRegenerating({ docId: selectedDocumentId, value: true }));
+    const bodyData = {
+      "chart_id": +(selectedDocument.id)
+    };
+    try {
+      const apiData = await postDataNoTimeout<{ status: "Success" | "Not Found" | "Error", message: string }>(
+        "regenerate_charts/",
+        bodyData
+      );
 
-
-
-
+      if (apiData?.data?.status === "Success") {
+        dispatch(setRegenerating({ docId: selectedDocumentId, value: false }));
+        dispatch(startReviewWithApiData({ id: selectedDocument.id, type: userType === "Auditor" ? "Auditor" : "Analyst" }));
+        selectedDocument.text_file_path && selectedDocument.text_file_path?.length > 0 && dispatch(fetchTextFile(selectedDocument.text_file_path));
+        selectedDocument.url && selectedDocument.url?.length > 0 && dispatch(fetchPdfFile(selectedDocument.url));
+        success({ message: "Charts successfully regenerated" });
+        // success({ message: apiData?.data.message });
+      } else {
+        dispatch(setRegenerating({ docId: selectedDocumentId, value: false }));
+        error({ message: apiData?.data.message });
+      }
+    } catch (err: any) {
+      dispatch(setRegenerating({ docId: selectedDocumentId, value: false }));
+      error({ message: err?.message || "Something went wrong" });
+    }
+  };
   return (
-    <div className="h-full flex flex-col bg-gray-50">
-      {/* Enhanced Fullscreen Toggle */}
-      <div className="flex-1 relative flex flex-col md:flex-row">
-        <motion.div
-          className={`${userType === "Auditor" && showSidebar ? "w-full md:w-full" : "w-full"} h-[calc(100vh-2.9rem)] bg-white relative transition-all duration-300 shadow-sm`}
-          layout
-        >
-          <div className="flex h-full flex-col">
-            {isPromptVisible ? (
-              <>
-                {!showControls && selectedDocument.status !== "completed" && (
-                  <div className="flex items-center py-2">
-                    <Button
-                      size="sm"
-                      className="rounded-full h-12 w-16"
-                      onClick={() => {
-                        if (userType === "Auditor") {
-                          setShowSidebar(true)
-                          if (selectedDocument.status === "on_hold") {
-                            handleResume()
-                          } else {
-                            handleStart()
-                          }
-                        } else {
-                          if (selectedDocument.status === "on_hold") {
-                            handleResume()
-                          } else {
-                            handleStart()
-                          }
-                        }
-                      }}
-                      disabled={isStartingReview}
-                    >
-                      Start Review
-                    </Button>
-                  </div>
-                )}
-                <div className="border-b pb-1 ">
-                  <div className="flex gap-1.5 h-full">
-                    <div className="pl-1.5 h-full">
-                      <Sheet open={open} onOpenChange={setOpen}>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <SheetTrigger asChild>
-                                <Button variant="blue" size="icon" className="shadow-lg !rounded-none h-full md:w-[35px] md:h-[35px] flex items-center justify-center">
-                                  <Menu className="w-8 h-8" />
-                                </Button>
-                              </SheetTrigger>
-                            </TooltipTrigger>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </Sheet>
-                    </div>
-                    <TabsComponent
-                      countLoading={false}
-                      tabs={tabs}
-                      currentTab={currentTab}
-                      handleTabChange={handleTabChange}
-                    />
-                  </div>
+    <PreventSaveProvider>
+      <div className="h-full flex flex-col bg-gray-50">
+        {!showControls && selectedDocument.status !== "completed" && <div className="absolute z-20 top-0 left-2">
+          <div className=" top-2 left-0 z-50 md:top-[47px] md:left-[3.2rem]">
+            <Sheet open={open} onOpenChange={setOpen}>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SheetTrigger asChild>
+                      <Button variant="blue" size="icon" className="shadow-lg !rounded-none w-8 h-8 md:w-[35px] md:h-[35px] flex items-center justify-center">
+                        <Menu className="w-8 h-8" />
+                      </Button>
+                    </SheetTrigger>
+                  </TooltipTrigger>
+                  {/*   <TooltipContent side="right" align="center">
+                  Open Document List
+                </TooltipContent> */}
+                </Tooltip>
+              </TooltipProvider>
+            </Sheet>
+          </div>
+          {open && (
+            <Sheet open={open} onOpenChange={setOpen}>
+              <SheetContent side="left" className="p-0 max-w-xs w-[22rem]">
+                <VisuallyHidden>
+                  <SheetTitle>Document List</SheetTitle>
+                </VisuallyHidden>
+                <div className="h-full flex flex-col">
+                  <DocumentList onClose={() => { setOpen(false) }} />
                 </div>
-                <div className="flex-1 overflow-y-auto">
-                  {currentTab === "document" &&
-                    (pdfLoading && selectedDocument.status === "In Review" ? (
-                      <motion.div
-                        className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-blue-50 to-purple-50"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.3 }}
+              </SheetContent>
+            </Sheet>
+          )}
+        </div>}
+        {/* Enhanced Fullscreen Toggle */}
+        <div className="flex-1 relative flex flex-col md:flex-row">
+          <motion.div
+            className={`${userType === "Auditor" && showSidebar ? "w-full md:w-full" : "w-full"} h-[calc(100vh-2.9rem)] bg-white relative transition-all duration-300 shadow-sm`}
+            layout
+          >
+            <div className="flex h-full flex-col">
+              {isPromptVisible ? (
+                <>
+                  {!showControls && selectedDocument.status !== "completed" && (
+                    <div className="flex items-center py-2">
+                      <Button
+                        size="sm"
+                        className="rounded-full h-12 w-16"
+                        onClick={() => {
+                          if (userType === "Auditor") {
+                            setShowSidebar(true)
+                            if (selectedDocument.status === "on_hold") {
+                              handleResume()
+                            } else {
+                              handleStart()
+                            }
+                          } else {
+                            if (selectedDocument.status === "on_hold") {
+                              handleResume()
+                            } else {
+                              handleStart()
+                            }
+                          }
+                        }}
+                        disabled={isStartingReview}
                       >
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                        >
-                          <Loader2 className="h-12 w-12 text-blue-600" />
-                        </motion.div>
-                        <motion.span
-                          className="ml-2 text-lg font-medium text-gray-700 mt-4"
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.2 }}
-                        >
-                          Loading PDF...
-                        </motion.span>
-                      </motion.div>
-                    ) : (
-                      <PreventSaveProvider>
-                        {(displayPdfUrl as string)?.length > 0 ? (
-                          <PdfUI url={displayPdfUrl as string} />
-                        ) : (
-                          <div className="h-full w-full flex justify-center items-center bg-gradient-to-br from-gray-50 to-gray-100">
-                            <motion.div
-                              className="text-center space-y-4"
-                              initial={{ opacity: 0, scale: 0.9 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.5 }}
-                            >
-                              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-red-100 to-orange-100 rounded-full flex items-center justify-center">
-                                <svg
-                                  className="w-8 h-8 text-gray-400"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={1.5}
-                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"
-                                  />
-                                </svg>
-                              </div>
-                              <p className="text-gray-500 font-medium">No Document Available</p>
-                            </motion.div>
-                          </div>
-                        )}
-                      </PreventSaveProvider>
-                    ))}
-                  {/* {currentTab === "prompt" && (
-                    <div className="p-4 bg-gray-100 h-full rounded-md">
-                      <PromptDisplay content={promptContent} />
-                    </div>
-                  )} */}
-                  {currentTab === "prompt" && selectedDocument?.text_file_path && (
-                    <div className="p-4 bg-gray-100 h-full rounded-md">
-                      {textLoading ? (
-                        <div>Loading text document...</div>
-                      ) : (
-                        <PromptDisplay content={textFileContent || "No text content available."} />
-                      )}
+                        Start Review
+                      </Button>
                     </div>
                   )}
-                </div>
-              </>
-            ) : pdfLoading && selectedDocument.status === "In Review" ? (
-              <motion.div
-                className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-blue-50 to-purple-50"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              >
+                  <div className="border-b pb-1 ">
+                    <div className="flex gap-1.5 h-full">
+                      <div className="pl-1.5 h-full">
+                        <Sheet open={open} onOpenChange={setOpen}>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <SheetTrigger asChild>
+                                  <Button variant="blue" size="icon" className="shadow-lg !rounded-none h-full md:w-[35px] md:h-[35px] flex items-center justify-center">
+                                    <Menu className="w-8 h-8" />
+                                  </Button>
+                                </SheetTrigger>
+                              </TooltipTrigger>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </Sheet>
+                      </div>
+                      <div className="flex justify-between w-full">
+                        <TabsComponent
+                          countLoading={false}
+                          tabs={tabs}
+                          currentTab={currentTab}
+                          handleTabChange={handleTabChange}
+                        />
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={handleRegenerate}
+                          className="w-full max-w-[140px] flex gap-0 px-3 h-[35px] sm:w-auto !rounded-none"
+                          disabled={isRegenerating || isPdfLoading || isTextLoading}
+                        >
+                          {isRegenerating ? <Loader2 className="mr-2 animate-spin" /> : <RotateCcw className="mr-2" />}
+                          {isRegenerating ? "Regenerating..." : "Regenerate"}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex-1 overflow-y-auto">
+                    {currentTab === "document" &&
+                      (isPdfLoading && selectedDocument.status === "In Review" ? (
+                        <motion.div
+                          className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-blue-50 to-purple-50"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                          >
+                            <Loader2 className="h-12 w-12 text-blue-600" />
+                          </motion.div>
+                          <motion.span
+                            className="ml-2 text-lg font-medium text-gray-700 mt-4"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                          >
+                            Loading PDF...
+                          </motion.span>
+                        </motion.div>
+                      ) : (
+                        <>
+                          <PreventSaveProvider>
+                            {(displayPdfUrl as string)?.length > 0 ? (
+                              <PdfUI url={displayPdfUrl as string} />
+                            ) : (
+                              <div className="h-full w-full flex justify-center items-center bg-gradient-to-br from-gray-50 to-gray-100">
+                                <motion.div
+                                  className="text-center space-y-4"
+                                  initial={{ opacity: 0, scale: 0.9 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  transition={{ duration: 0.5 }}
+                                >
+                                  <div className="w-16 h-16 mx-auto bg-gradient-to-br from-red-100 to-orange-100 rounded-full flex items-center justify-center">
+                                    <svg
+                                      className="w-8 h-8 text-gray-400"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={1.5}
+                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"
+                                      />
+                                    </svg>
+                                  </div>
+                                  <p className="text-gray-500 font-medium">No Document Available</p>
+                                </motion.div>
+                              </div>
+                            )}
+                          </PreventSaveProvider>
+                        </>
+
+                      ))}
+                    {currentTab === "prompt" && selectedDocument?.text_file_path && (
+                      <div className="px-2 pt-2 bg-white h-full rounded-md">
+                        {isTextLoading ? (
+                          <motion.div
+                            className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-blue-50 to-purple-50"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                            >
+                              <Loader2 className="h-12 w-12 text-blue-600" />
+                            </motion.div>
+                            <motion.span
+                              className="ml-2 text-lg font-medium text-gray-700 mt-4"
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.2 }}
+                            >
+                              Loading text document...
+                            </motion.span>
+                          </motion.div>
+                        ) : (
+                          <PreventSaveProvider>
+                            <PromptDisplay content={textFileContent || "No text content available."} />
+                          </PreventSaveProvider>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : isPdfLoading && selectedDocument.status === "In Review" ? (
                 <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                  className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-blue-50 to-purple-50"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
                 >
-                  <Loader2 className="h-12 w-12 text-blue-600" />
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                  >
+                    <Loader2 className="h-12 w-12 text-blue-600" />
+                  </motion.div>
+                  <motion.span
+                    className="ml-2 text-lg font-medium text-gray-700 mt-4"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    Loading PDF...
+                  </motion.span>
                 </motion.div>
-                <motion.span
-                  className="ml-2 text-lg font-medium text-gray-700 mt-4"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  Loading PDF...
-                </motion.span>
-              </motion.div>
-            ) : (
-              <div className="flex-1 overflow-y-auto">
+              ) : (
                 <PreventSaveProvider>
                   {(displayPdfUrl as string)?.length > 0 ? (
-                    <PdfUI url={displayPdfUrl as string} />
+                    <div className="h-full flex flex-col">
+                      <div className="flex justify-between z-10 pb-1 gap-1.5">
+                        <div className="pl-1.5 h-full">
+                          <Sheet open={open} onOpenChange={setOpen}>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <SheetTrigger asChild>
+                                    <Button variant="blue" size="icon" className="shadow-lg !rounded-none h-full md:w-[35px] md:h-[35px] flex items-center justify-center">
+                                      <Menu className="w-8 h-8" />
+                                    </Button>
+                                  </SheetTrigger>
+                                </TooltipTrigger>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </Sheet>
+                        </div>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={handleRegenerate}
+                          className="w-full max-w-[140px] flex gap-0 px-3 h-[35px] sm:w-auto !rounded-none"
+                          disabled={isRegenerating || isPdfLoading || isTextLoading}
+                        >
+                          {isRegenerating ? <Loader2 className="mr-2 animate-spin" /> : <RotateCcw className="mr-2" />}
+                          {isRegenerating ? "Regenerating..." : "Regenerate"}
+                        </Button>
+                      </div>
+                      <div className="flex-1 overflow-y-auto">
+                        <PdfUI url={displayPdfUrl as string} />
+                      </div>
+
+                    </div>
                   ) : (
                     <div className="h-full w-full flex justify-center items-center bg-gradient-to-br from-gray-50 to-gray-100">
                       <motion.div
@@ -655,130 +787,130 @@ export default function PdfViewer({
                     </div>
                   )}
                 </PreventSaveProvider>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          {/* Enhanced Start Review Overlay */}
-          <AnimatePresence>
-            {!showControls && selectedDocument.status !== "completed" && (
-              <motion.div
-                key="reviewOverlay"
-                className="absolute z-10 inset-0 backdrop-blur-md bg-gradient-to-br from-black/20 to-black/40 flex flex-col items-center justify-center"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-              >
+            {/* Enhanced Start Review Overlay */}
+            <AnimatePresence>
+              {!showControls && selectedDocument.status !== "completed" && (
                 <motion.div
-                  className="text-center space-y-6"
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.2, duration: 0.5 }}
+                  key="reviewOverlay"
+                  className="absolute z-10 inset-0 backdrop-blur-md bg-gradient-to-br from-black/20 to-black/40 flex flex-col items-center justify-center"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
                 >
                   <motion.div
-                    whileHover={{ scale: isStartingReview ? 1 : 1.1 }}
-                    whileTap={{ scale: isStartingReview ? 1 : 0.95 }}
+                    className="text-center space-y-6"
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2, duration: 0.5 }}
                   >
-                    <Button
-                      size="sm"
-                      className="rounded-full h-12 w-16"
-                      onClick={() => {
-                        if (userType === "Auditor") {
-                          setShowSidebar(true)
-                          if (selectedDocument.status === "on_hold") {
-                            handleResume()
-                          } else {
-                            handleStart()
-                          }
-                        } else {
-                          if (selectedDocument.status === "on_hold") {
-                            handleResume()
-                          } else {
-                            handleStart()
-                          }
-                        }
-                      }}
-                      disabled={isStartingReview}
+                    <motion.div
+                      whileHover={{ scale: isStartingReview ? 1 : 1.1 }}
+                      whileTap={{ scale: isStartingReview ? 1 : 0.95 }}
                     >
-                      <motion.div
-                        className="flex items-center  h-full w-full p-2 justify-center"
-                        initial={{ scale: 1 }}
-                        whileHover={{ scale: isStartingReview ? 1 : 1.2 }}
-                        transition={{ duration: 0.3, ease: "easeOut" }}
+                      <Button
+                        size="sm"
+                        className="rounded-full h-12 w-16"
+                        onClick={() => {
+                          if (userType === "Auditor") {
+                            setShowSidebar(true)
+                            if (selectedDocument.status === "on_hold") {
+                              handleResume()
+                            } else {
+                              handleStart()
+                            }
+                          } else {
+                            if (selectedDocument.status === "on_hold") {
+                              handleResume()
+                            } else {
+                              handleStart()
+                            }
+                          }
+                        }}
+                        disabled={isStartingReview}
                       >
-                        {isStartingReview ? (
-                          <Loader2 className="text-white animate-spin h-[25px] w-[25px]" />
-                        ) : (
-                          <Play className="text-white h-[25px] w-[25px] ml-1" />
-                        )}
-                      </motion.div>
-                    </Button>
-                  </motion.div>
+                        <motion.div
+                          className="flex items-center  h-full w-full p-2 justify-center"
+                          initial={{ scale: 1 }}
+                          whileHover={{ scale: isStartingReview ? 1 : 1.2 }}
+                          transition={{ duration: 0.3, ease: "easeOut" }}
+                        >
+                          {isStartingReview ? (
+                            <Loader2 className="text-white animate-spin h-[25px] w-[25px]" />
+                          ) : (
+                            <Play className="text-white h-[25px] w-[25px] ml-1" />
+                          )}
+                        </motion.div>
+                      </Button>
+                    </motion.div>
 
-                  <motion.div
-                    className="space-y-2"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.4 }}
-                  >
-                    <p className="text-white font-semibold text-xl">
-                      {isStartingReview
-                        ? "Starting Review..."
-                        : selectedDocument.status === "on_hold"
-                          ? "Resume Review"
-                          : "Start Review"}
-                    </p>
-                    <p className="text-white/80 text-sm">
-                      {selectedDocument.status === "on_hold"
-                        ? "Continue where you left off"
-                        : "Begin analyzing this document"}
-                    </p>
+                    <motion.div
+                      className="space-y-2"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.4 }}
+                    >
+                      <p className="text-white font-semibold text-xl">
+                        {isStartingReview
+                          ? "Starting Review..."
+                          : selectedDocument.status === "on_hold"
+                            ? "Resume Review"
+                            : "Start Review"}
+                      </p>
+                      <p className="text-white/80 text-sm">
+                        {selectedDocument.status === "on_hold"
+                          ? "Continue where you left off"
+                          : "Begin analyzing this document"}
+                      </p>
+                    </motion.div>
                   </motion.div>
                 </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
 
-        {/* Enhanced Right-side Review Panel */}
-        <AnimatePresence mode="wait">
-          {isSidebar &&
-            (userType === "Auditor" ? (
-              <AuditorReviewForm
-                selectedDocument={selectedDocument}
-                selectedDocumentId={selectedDocumentId}
-                formData={formData}
-                formErrors={formErrors}
-                isSubmitting={isSubmitting}
-                isCompletingReview={isCompletingReview}
-                onSubmit={submitReview}
-              />
-            ) : (
-              <ImprovedCodeReviewForm
-                selectedDocumentId={selectedDocumentId}
-                currentCodeReview={currentCodeReview}
-                selectedDocument={selectedDocument}
-                showSidebar={showSidebar}
-                isCompletingReview={isCompletingReview}
-                apiLoading={apiLoading}
-                onComplete={handleComplete}
-              />
-            ))}
-        </AnimatePresence>
+          {/* Enhanced Right-side Review Panel */}
+          <AnimatePresence mode="wait">
+            {isSidebar &&
+              (userType === "Auditor" ? (
+                <AuditorReviewForm
+                  selectedDocument={selectedDocument}
+                  selectedDocumentId={selectedDocumentId}
+                  formData={formData}
+                  formErrors={formErrors}
+                  isSubmitting={isSubmitting}
+                  isCompletingReview={isCompletingReview}
+                  onSubmit={submitReview}
+                />
+              ) : (
+                <ImprovedCodeReviewForm
+                  selectedDocumentId={selectedDocumentId}
+                  currentCodeReview={currentCodeReview}
+                  selectedDocument={selectedDocument}
+                  showSidebar={showSidebar}
+                  isCompletingReview={isCompletingReview}
+                  apiLoading={apiLoading}
+                  onComplete={handleComplete}
+                />
+              ))}
+          </AnimatePresence>
+        </div>
+        {open && (
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetContent side="left" className="p-0 max-w-xs w-[22rem]">
+              <VisuallyHidden>
+                <SheetTitle>Document List</SheetTitle>
+              </VisuallyHidden>
+              <div className="h-full flex flex-col">
+                <DocumentList onClose={() => { setOpen(false) }} />
+              </div>
+            </SheetContent>
+          </Sheet>
+        )}
       </div>
-      {open && (
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetContent side="left" className="p-0 max-w-xs w-[22rem]">
-            <VisuallyHidden>
-              <SheetTitle>Document List</SheetTitle>
-            </VisuallyHidden>
-            <div className="h-full flex flex-col">
-              <DocumentList onClose={() => { setOpen(false) }} />
-            </div>
-          </SheetContent>
-        </Sheet>
-      )}
-    </div>
+    </PreventSaveProvider>
   )
 }

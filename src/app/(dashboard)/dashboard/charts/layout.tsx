@@ -10,12 +10,11 @@ import { updateTab } from "@/store/slices/DashboardSlice";
 import { useApiCall } from "@/components/common/ApiCall";
 import ProgressiveLoader from "@/components/common/ProgressiveLoader";
 import { ChartTab } from "@/lib/types/chartsTypes";
+import { format, isWithinInterval, parse, parseISO, startOfDay } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, Clock, FileEdit } from "lucide-react";
 import { redirect, usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { isWithinInterval, parse } from "date-fns";
-import { EndDateFilter, StartDateFilter } from "@/lib/utils";
 
 const tabVariants = {
     hidden: { opacity: 0, y: 0 },
@@ -23,18 +22,6 @@ const tabVariants = {
     exit: { opacity: 0, y: 0 },
 };
 
-const filterDocumentsByDateRange = (docs: any[], range: [string, string]) => {
-    return docs.filter(d => {
-        if (d.received) {
-            const parsedDate = parse(d.received, 'MM-dd-yyyy', new Date());
-            return isWithinInterval(parsedDate, {
-                start: new Date(range[0]),
-                end: new Date(range[1]),
-            });
-        }
-        return false;
-    });
-};
 
 export default function ChartsLayout({
     children,
@@ -42,6 +29,19 @@ export default function ChartsLayout({
     children: React.ReactNode
 }) {
     const pathname = usePathname();
+    const filterDocumentsByDateRange = (docs: any[], range: [string, string]) => {
+        return docs.filter(d => {
+            if (d.received) {
+                const parsedDate = parse(d.received, 'MM-dd-yyyy', new Date());
+                return isWithinInterval(startOfDay(parsedDate), {
+                    start: startOfDay(new Date(range[0])),
+                    end: startOfDay(new Date(range[1])),
+                });
+            }
+            return false;
+        });
+    };
+
     const router = useRouter();
     const { selector, dispatch } = useRedux();
     const [currentTab, setCurrentTab] = useState(pathname.split("/").pop() || "pending");
@@ -52,45 +52,79 @@ export default function ChartsLayout({
         redirect("/unauthorized");
     }
 
+
     const chartsCounts = appointmentCounts?.data?.charts;
     const tabCountLoading = appointmentCounts?.status;
     const { getChartApi } = useApiCall();
 
     const { pendingDocuments, assignedDocuments, auditDocuments, completedDocuments } = selector((state) => state.documentTable);
     const storedData = selector((state) => state.tableFilters);
-    console.log("🚀 ~ storedData:", storedData)
-
     const filteredPendinCount = filterDocumentsByDateRange(
         pendingDocuments?.data,
         (storedData["dashboard/charts/pending"]?.dateRange ?? []).map(date =>
-            date instanceof Date ? date.toISOString().slice(0, 10) : ""
+            date
+                ? format(
+                    typeof date === "string"
+                        ? parseISO(date)
+                        : date instanceof Date
+                            ? date
+                            : new Date(date),
+                    'yyyy-MM-dd'
+                )
+                : ""
         ) as [string, string]
     )
+
+
+
+
     const filteredAssignedCount = filterDocumentsByDateRange(
         assignedDocuments?.data,
         (storedData["dashboard/charts/assigned"]?.dateRange ?? []).map(date =>
-            date instanceof Date ? date.toISOString().slice(0, 10) : ""
+            date
+                ? format(
+                    typeof date === "string"
+                        ? parseISO(date)
+                        : date instanceof Date
+                            ? date
+                            : new Date(date),
+                    'yyyy-MM-dd'
+                )
+                : ""
         ) as [string, string]
     )
     const filteredAuditCount = filterDocumentsByDateRange(
         auditDocuments?.data,
         (storedData["dashboard/charts/audit"]?.dateRange ?? []).map(date =>
-            date instanceof Date ? date.toISOString().slice(0, 10) : ""
+            date
+                ? format(
+                    typeof date === "string"
+                        ? parseISO(date)
+                        : date instanceof Date
+                            ? date
+                            : new Date(date),
+                    'yyyy-MM-dd'
+                )
+                : ""
         ) as [string, string]
     )
     const filteredCompletedCount = filterDocumentsByDateRange(
         completedDocuments?.data,
         (storedData["dashboard/charts/completed"]?.dateRange ?? []).map(date =>
-            date instanceof Date ? date.toISOString().slice(0, 10) : ""
+            date
+                ? format(
+                    typeof date === "string"
+                        ? parseISO(date)
+                        : date instanceof Date
+                            ? date
+                            : new Date(date),
+                    'yyyy-MM-dd'
+                )
+                : ""
         ) as [string, string]
     )
 
-
-
-    const bodyData = [EndDateFilter, StartDateFilter]
-    console.log("🚀 ~ bodyData:", bodyData)
-
-
+    // const bodyData = [EndDateFilter, StartDateFilter]
     const tabs = [
         {
             value: ChartTab.Pending,
