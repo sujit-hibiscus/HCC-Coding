@@ -293,7 +293,7 @@ td.p-4.align-middle .truncate {
   /* Non-prefixed version, currently supported by Chrome and Opera */
 }
 
-/* .rpv-core__text-layer {
+.rpv-core__text-layer {
   -webkit-user-select: none !important;
   user-select: none !important;
   pointer-events: none !important;
@@ -303,7 +303,7 @@ td.p-4.align-middle .truncate {
   -webkit-user-select: none !important;
   user-select: none !important;
   pointer-events: none !important;
-} */
+}
 
 /* For the iframe mode */
 iframe {

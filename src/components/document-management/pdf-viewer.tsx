@@ -502,7 +502,8 @@ export default function PdfViewer({
   };
   return (
     <PreventSaveProvider>
-      <div className="h-full flex flex-col bg-gray-50">
+      <div className={`h-full flex flex-col bg-gray-50 overflow-hidden
+      `}>
         {!showControls && selectedDocument.status !== "completed" && <div className="absolute z-20 top-0 left-2">
           <div className=" top-2 left-0 z-50 md:top-[47px] md:left-[3.2rem]">
             <Sheet open={open} onOpenChange={setOpen}>

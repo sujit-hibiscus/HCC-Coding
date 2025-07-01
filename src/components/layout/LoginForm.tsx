@@ -35,7 +35,7 @@ export default function LoginForm() {
                 formData.append("password", password);
 
                 const response = await loginAction(formData);
-                console.log("🚀 New 🚀", response)
+                console.log("🚀 Final 🚀", response)
                 if (response?.message && response?.message !== "Login successful") {
                     error({ message: response.message });
                     setIsSubmitting(false);

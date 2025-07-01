@@ -4,7 +4,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useRedux } from "@/hooks/use-redux"
 import { useChromeSearch } from "@/hooks/useChromeSearch"
 import { updatePdfFilters } from "@/store/slices/pdfFiltersSlice"
-import { ProgressBar, type RotateDirection, Viewer, Worker } from "@react-pdf-viewer/core"
+import { ProgressBar, RotateDirection, Viewer, Worker } from "@react-pdf-viewer/core"
 import "@react-pdf-viewer/core/lib/styles/index.css"
 import { defaultLayoutPlugin, type ToolbarSlot } from "@react-pdf-viewer/default-layout"
 import "@react-pdf-viewer/default-layout/lib/styles/index.css"
@@ -190,14 +190,11 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
                 /> */}
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={isSearchVisible}
-                      className={`p-2 pt-3 h-8 w-8 !bg-transparent !text-[#585858]`}
+                    <div
+                      className={` h-8 w-8 !bg-transparent !text-[#585858]`}
                     >
-                      <Rotate direction={"Forward" as RotateDirection} />
-                    </Button>
+                      <Rotate direction={RotateDirection?.Forward} />
+                    </div>
                   </TooltipTrigger>
                   <TooltipContent side="left" align="center">
                     Rotate

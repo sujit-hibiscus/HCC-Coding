@@ -86,24 +86,22 @@ export default function AuditorReviewForm({
     const filteredItems = useMemo(() => {
         let items = [...currentCodeReview.items]
 
-        // Filter by status
         if (filterStatus !== "all") {
             items = items.filter((item) => item.status === filterStatus)
         }
 
-        // Filter by code type checkboxes
         items = items.filter((item) => {
             const hasRxHcc = item.hccCode && item.hccCode.trim() !== ""
-            const hasHcc = item.hccV28Code && item.hccV28Code.trim() !== ""
+            const hasV28 = item.hccV28Code && item.hccV28Code.trim() !== ""
+            const hasV24 = item.hccV28Code && item.hccV28Code.trim() !== ""
 
-            // If both checkboxes are unchecked, show all items
             if (!showRxHcc && !showHcc) {
                 return true
             }
 
             // If both checkboxes are checked, show items that have either RX-HCC or HCC
             if (showRxHcc && showHcc) {
-                return hasRxHcc || hasHcc
+                return hasRxHcc || hasV28 || hasV24
             }
 
             // If only Rx-HCC is checked, show items with Rx-HCC codes
@@ -113,7 +111,7 @@ export default function AuditorReviewForm({
 
             // If only HCC is checked, show items with HCC codes
             if (!showRxHcc && showHcc) {
-                return hasHcc
+                return hasV28 || hasV24
             }
 
             return true
@@ -122,16 +120,26 @@ export default function AuditorReviewForm({
         // Filter by search term
         const searchTerm = localSearchTerm.toLowerCase().trim()
         if (searchTerm) {
-            items = items.filter((item) => {
-                return (
-                    (item.icdCode || "").toLowerCase().includes(searchTerm) ||
-                    (item.description || "").toLowerCase().includes(searchTerm) ||
-                    (item.hccCode || "").toLowerCase().includes(searchTerm) ||
-                    (item.evidence || "").toLowerCase().includes(searchTerm) ||
-                    (item.diagnosis || "").toLowerCase().includes(searchTerm)
+            const lowerSearchTerm = searchTerm.toLowerCase();
+            const keysToSearch: (keyof typeof items[number])[] = [
+                "icdCode",
+                "hccCode",
+                "V24HCC",
+                "hccV28Code",
+                "evidence",
+                "diagnosis",
+                "description",
+                "query",
+                "icd10_desc"
+            ];
+
+            items = items.filter((item) =>
+                keysToSearch.some((key) =>
+                    (item[key] ?? "").toString().toLowerCase().includes(lowerSearchTerm)
                 )
-            })
+            );
         }
+
 
         return items
     }, [currentCodeReview.items, filterStatus, localSearchTerm, showRxHcc, showHcc])

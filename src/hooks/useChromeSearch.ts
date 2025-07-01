@@ -18,8 +18,6 @@ export const useChromeSearch = () => {
 
     // Clear all highlights
     const clearHighlights = useCallback(() => {
-        console.log("🚀 ~ useChromeSearch ~ searchMatches:", searchMatches)
-
         document.querySelectorAll(".chrome-search-highlight, .chrome-search-current").forEach((el) => {
             const parent = el.parentNode
             if (parent) {

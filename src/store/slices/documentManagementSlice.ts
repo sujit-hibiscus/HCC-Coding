@@ -283,7 +283,7 @@ export const startReviewWithApiData = createAsyncThunk(
                     status: (conditionData?.type === "Analyst" ? IsAcceptedbyAnalyst : IsAcceptedbyQA) ? "accepted" : "rejected",
                     addedAt: new Date(created_at).getTime(),
                     // diagnosis: diagnosis || condition_name || "",
-                    diagnosis: icd_description || "",
+                    diagnosis: icd_description || condition_name || "",
                     description: code_explanation || reasoning || "",
                     text_file_path: text_file_path,
                     icd10_desc: icd10_desc,//not coming?

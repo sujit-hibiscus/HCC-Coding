@@ -21,7 +21,6 @@ export default function RootLayout({
         setMounted(true);
     }, []);
 
-    // Hybrid: Poll buildId cookie every 1s and check on tab focus/visibilitychange
     const lastBuildIdRef = useRef<string | undefined>(undefined);
     function getBuildIdCookie() {
         return document.cookie
@@ -77,7 +76,6 @@ export default function RootLayout({
                 <ReduxProvider>
                     <Suspense
                         fallback={<Loading />}
-                        unstable_expectedLoadTime={100}
                     >
                         <div
                             className="page-transition min-h-screen"

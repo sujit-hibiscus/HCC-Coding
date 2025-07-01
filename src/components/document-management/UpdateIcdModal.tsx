@@ -19,6 +19,7 @@ const ICD_OPTIONS: SearchableSelectOption[] = [
 const ICD_DATA = {
     "Z93.2": {
         hccCode: "463",
+        V24HCC: "260",
         rxHccCode: "280",
         description:
             "Presence of an ileostomy, a surgically created opening in the abdominal wall for waste to exit the body after bowel removal.",
@@ -26,18 +27,21 @@ const ICD_DATA = {
     "J44.9": {
         hccCode: "111",
         rxHccCode: "202",
+        V24HCC: "111",
         description:
             "Chronic obstructive pulmonary disease, unspecified, characterized by airflow limitation that is not fully reversible and worsens over time.",
     },
     "E11.9": {
         hccCode: "19",
         rxHccCode: "0",
+        V24HCC: "159",
         description:
             "Type 2 diabetes mellitus without complications, a chronic condition affecting the way the body processes blood sugar (glucose).",
     },
     I10: {
         hccCode: "21",
         rxHccCode: "0",
+        V24HCC: "166",
         description:
             "Essential (primary) hypertension, a condition in which the force of the blood against artery walls is consistently too high.",
     },
@@ -117,7 +121,7 @@ export const UpdateIcdCodeModal: React.FC<UpdateIcdCodeModalProps> = ({ open, on
 
                                 {selectedIcd && ICD_DATA[selectedIcd as keyof typeof ICD_DATA] && (
                                     <ConditionCommonCard
-                                        V24HCC=""
+                                        V24HCC={ICD_DATA[selectedIcd as keyof typeof ICD_DATA].V24HCC}
                                         icdCode={selectedIcd}
                                         hccCode={ICD_DATA[selectedIcd as keyof typeof ICD_DATA].hccCode}
                                         hccV28Code={ICD_DATA[selectedIcd as keyof typeof ICD_DATA].hccCode}

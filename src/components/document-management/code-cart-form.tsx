@@ -91,30 +91,7 @@ export default function ImprovedCodeReviewForm({
     const [showRxHcc, setShowRxHcc] = useState(false)
 
     const [updateIcdModal, setUpdateIcdModal] = useState<{ open: boolean; item: CodeReviewItem | null }>({ open: false, item: null })
-
-    const [selectedIcd, setSelectedIcd] = useState<string | null>(null)
-    const [icdTouched, setIcdTouched] = useState(false)
-
     const [icdLoadingId, setIcdLoadingId] = useState<string | null>(null)
-
-    const resetUpdateIcdModal = () => {
-        setUpdateIcdModal({ open: false, item: null })
-        setSelectedIcd(null)
-        setIcdTouched(false)
-    }
-
-    /*  const handleUpdateIcd = async () => {
-         setIcdTouched(true)
-         if (!selectedIcd) return
-         const bodyData = {
-             oldIcd: updateIcdModal.item?.icdCode,
-             newIcd: selectedIcd,
-             ...ICD_DATA[selectedIcd],
-         }
-         await new Promise((resolve) => setTimeout(resolve, 1000))
-         toast.success("ICD updated successfully!")
-         resetUpdateIcdModal()
-     } */
 
     const filteredItems = useMemo(() => {
         let items = [...currentCodeReview.items]
@@ -124,29 +101,25 @@ export default function ImprovedCodeReviewForm({
             items = items.filter((item) => item.status === filterStatus)
         }
 
-        // Filter by code type checkboxes
         items = items.filter((item) => {
             const hasRxHcc = item.hccCode && item.hccCode.trim() !== ""
-            const hasHcc = item.hccV28Code && item.hccV28Code.trim() !== ""
+            const hasV28 = item.hccV28Code && item.hccV28Code.trim() !== ""
+            const hasV24 = item.hccV28Code && item.hccV28Code.trim() !== ""
 
-            // If both checkboxes are unchecked, show all items
             if (!showRxHcc && !showHcc) {
                 return true
             }
 
-            // If both checkboxes are checked, show items that have either RX-HCC or HCC
             if (showRxHcc && showHcc) {
-                return hasRxHcc || hasHcc
+                return hasRxHcc || hasV28 || hasV24
             }
 
-            // If only Rx-HCC is checked, show items with Rx-HCC codes
             if (showRxHcc && !showHcc) {
                 return hasRxHcc
             }
 
-            // If only HCC is checked, show items with HCC codes
             if (!showRxHcc && showHcc) {
-                return hasHcc
+                return hasV28 || hasV24
             }
 
             return true
@@ -155,29 +128,33 @@ export default function ImprovedCodeReviewForm({
         // Filter by search term
         const searchTerm = localSearchTerm.toLowerCase().trim()
         if (searchTerm) {
-            items = items.filter((item) => {
-                return (
-                    (item.icdCode || "").toLowerCase().includes(searchTerm) ||
-                    (item.description || "").toLowerCase().includes(searchTerm) ||
-                    (item.hccCode || "").toLowerCase().includes(searchTerm) ||
-                    (item.evidence || "").toLowerCase().includes(searchTerm) ||
-                    (item.diagnosis || "").toLowerCase().includes(searchTerm)
+            const lowerSearchTerm = searchTerm.toLowerCase();
+            const keysToSearch: (keyof typeof items[number])[] = [
+                "icdCode",
+                "hccCode",
+                "V24HCC",
+                "hccV28Code",
+                "evidence",
+                "diagnosis",
+                "description",
+                "query",
+                "icd10_desc"
+            ];
+
+            items = items.filter((item) =>
+                keysToSearch.some((key) =>
+                    (item[key] ?? "").toString().toLowerCase().includes(lowerSearchTerm)
                 )
-            })
+            );
         }
+
+
 
         return items
     }, [currentCodeReview.items, filterStatus, localSearchTerm, showRxHcc, showHcc])
 
     const handleSearchChange = useCallback((value: string) => {
         setLocalSearchTerm(value)
-    }, [])
-
-    // Optimized filter change handler
-    const handleFilterChange = useCallback((value: string) => {
-        startTransition(() => {
-            setFilterStatus(value)
-        })
     }, [])
 
     const handleStatusUpdate = useCallback(
@@ -265,11 +242,11 @@ export default function ImprovedCodeReviewForm({
                     </div>
 
                     {/* Loading indicator */}
-                    {isPending && (
+                    {/* {isPending && (
                         <div className="flex items-center justify-center py-2">
                             <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
                         </div>
-                    )}
+                    )} */}
 
                     {/* Optimized Code Cards */}
                     <div className="flex-1 overflow-hidden">

@@ -38,13 +38,13 @@ const rootReducer = (state: any, action: any) => {
     return appReducer(state, action);
 };
 
-let persistedReducer = rootReducer; // Default to non-persisted reducer
+let persistedReducer = rootReducer;
 
 if (typeof window !== "undefined") {
-    // Use sessionStorage instead of localStorage to isolate state per tab
+
     const persistConfig = {
         key: "root",
-        storage: storage, // Changed from storage to sessionStorage
+        storage: storage,
         whitelist: [
             "dashboard",
             "tableFilters",
@@ -68,7 +68,6 @@ const store = configureStore({
     devTools: process.env.NEXT_PUBLIC_LOCAL === "true",
 });
 
-// Export persistor only if window is defined
 export const persistor = typeof window !== "undefined" ? persistStore(store) : ({} as ReturnType<typeof persistStore>);
 export default store;
 

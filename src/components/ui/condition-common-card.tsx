@@ -1,10 +1,10 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import Image from "next/image";
 import React from "react";
 
 interface ConditionCommonCardProps {
@@ -79,7 +79,7 @@ export const ConditionCommonCard: React.FC<ConditionCommonCardProps> = ({
                                             variant="outline"
                                             className="font-mono text-xs bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
                                         >
-                                            HCC:{hccV28Code}
+                                            V28:{hccV28Code}
                                         </Badge>
                                     </TooltipTrigger>
                                 </Tooltip>
@@ -129,7 +129,7 @@ export const ConditionCommonCard: React.FC<ConditionCommonCardProps> = ({
                                         </div>
                                     </div>
                                 </div>}
-                                {evidence.length > 230 && onExpand && (
+                                {evidence.length > 300 && onExpand && (
                                     <Button
                                         variant="ghost"
                                         size="sm"
