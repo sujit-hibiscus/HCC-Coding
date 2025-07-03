@@ -216,7 +216,7 @@ function DataTableToolbarComponent<TData>({
         <TasksTableToolbarActions table={table} />
       </div>
 
-      {(target !== "completed" && target !== "assigned") && <Button
+      {(target !== "completed" && target !== "assigned" && tabKey !== "dashboard/add-user/") && <Button
         onClick={handleAutoAssign}
         disabled={isSubmitting || (!(selectedDocumentIds?.length > 0 && !(selectedDocumentNames?.length > 0)))}
         className="h-8 px-2 lg:px-3"

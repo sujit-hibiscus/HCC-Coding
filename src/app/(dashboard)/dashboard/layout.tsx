@@ -1,6 +1,5 @@
 "use client";
 
-import { useApiCall } from "@/components/common/ApiCall";
 import ChromeTabBar from "@/components/common/Chrome-tab-bar";
 import { Header } from "@/components/common/Header";
 import RouteProgressWrapper from "@/components/common/RouteProgressWrapper";
@@ -17,26 +16,7 @@ export default function DashboardLayout({
 }>) {
   const { addTab } = useTabs();
   const { selector } = useRedux();
-  const token = selector(state => state.user.token) || "";
-  const { userType } = selector(state => state.user);
-  const { getChartApi } = useApiCall();
 
-  /*  useEffect(() => {
-     const initializeData = async () => {
-       try {
-         // Make API call to get charts data
-         if (userType?.toLowerCase().includes("analyst") || userType?.toLowerCase().includes("auditor")) {
-           await getChartApi("pending");
-         }
-       } catch (error) {
-         console.error("Error initializing data:", error);
-       }
-     };
- 
-     if (token?.length > 0) {
-       initializeData();
-     }
-   }, [token, userType]); */
 
   return (
     <SidebarProvider>

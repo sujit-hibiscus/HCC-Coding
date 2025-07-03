@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useRedux } from "@/hooks/use-redux";
 import { fetchDocuments, fetchPdfFile, fetchTextFile, selectDocument, setActiveDocTab } from "@/store/slices/documentManagementSlice";
+import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { Calendar, Loader2, RefreshCw, Search } from "lucide-react";
 import { useState } from "react";
@@ -65,6 +66,8 @@ export default function DocumentList({ onClose }: DocumentListProps) {
     }
   };
 
+
+
   return (
     <div className="h-full flex flex-col py-1.5 px-1.5 max-h-[100%]">
       <div className="flex justify-between items-center mb-3 h-10">
@@ -111,7 +114,7 @@ export default function DocumentList({ onClose }: DocumentListProps) {
           [...filteredDocuments]
             ?.filter((item) => item?.status !== "completed")
             .map((doc: any) => {
-
+              const assignedDate = format(new Date(doc.assignedAt), 'MM/dd/yyyy');
               return (
                 <motion.div
                   key={doc.id}
@@ -157,11 +160,11 @@ export default function DocumentList({ onClose }: DocumentListProps) {
                                 <TooltipTrigger asChild>
                                   <div className="flex items-center cursor-default">
                                     <Calendar className="h-3 w-3 mr-1" />
-                                    {new Date(doc.assignedAt).toLocaleDateString()}
+                                    {assignedDate}
                                   </div>
                                 </TooltipTrigger>
                                 <TooltipContent side="top" className="text-xs">
-                                  Assigned: {new Date(doc.assignedAt).toLocaleDateString()}
+                                  Assigned: {assignedDate}
                                 </TooltipContent>
                               </Tooltip>
                               {doc.fileSize && (

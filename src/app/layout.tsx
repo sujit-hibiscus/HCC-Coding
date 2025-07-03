@@ -9,6 +9,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { logoutAction } from "./action/auth-actions";
 import "./globals.css";
 import Loading from "./loading";
+import { ThemeProvider } from "@/components/layout/ThemeProvider";
 
 export default function RootLayout({
     children,
@@ -73,24 +74,26 @@ export default function RootLayout({
                 <title>HCC Coding</title>
             </head>
             <body className="custom-scroll" suppressHydrationWarning>
-                <ReduxProvider>
-                    <Suspense
-                        fallback={<Loading />}
-                    >
-                        <div
-                            className="page-transition min-h-screen"
-                            style={{
-                                contain: "layout style paint",
-                                willChange: "transform"
-                            }}
+                <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+                    <ReduxProvider>
+                        <Suspense
+                            fallback={<Loading />}
                         >
-                            {children}
-                        </div>
-                    </Suspense>
-                    <ScrollToTopButton />
-                    <SpeedInsights />
-                    <ToastProvider />
-                </ReduxProvider>
+                            <div
+                                className="page-transition min-h-screen"
+                                style={{
+                                    contain: "layout style paint",
+                                    willChange: "transform"
+                                }}
+                            >
+                                {children}
+                            </div>
+                        </Suspense>
+                        <ScrollToTopButton />
+                        <SpeedInsights />
+                        <ToastProvider />
+                    </ReduxProvider>
+                </ThemeProvider>
             </body>
         </html>
     );

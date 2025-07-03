@@ -695,9 +695,35 @@ export default function PdfViewer({
                           </motion.div>
                         ) : (
                           <PreventSaveProvider>
-                            <PromptDisplay content={textFileContent || "No text content available."} />
+                            {textFileContent ? <PromptDisplay content={textFileContent || "No summery available."} /> : <div className="h-full w-full flex justify-center items-center bg-gradient-to-br from-gray-50 to-gray-100">
+                              <motion.div
+                                className="text-center space-y-4"
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.5 }}
+                              >
+                                <div className="w-16 h-16 mx-auto bg-gradient-to-br from-red-100 to-orange-100 rounded-full flex items-center justify-center">
+                                  <svg
+                                    className="w-8 h-8 text-gray-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={1.5}
+                                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"
+                                    />
+                                  </svg>
+                                </div>
+                                <p className="text-gray-500 font-medium">No summery available.</p>
+                              </motion.div>
+                            </div>}
+
                           </PreventSaveProvider>
                         )}
+
                       </div>
                     )}
                   </div>

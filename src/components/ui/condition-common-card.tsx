@@ -13,6 +13,7 @@ interface ConditionCommonCardProps {
     onExpand?: () => void;
     icdCode?: string;
     hccV28Code?: string;
+    code_status?: string | null
     hccCode?: string;
     icd10_desc?: string;
     diagnosis: string;
@@ -31,7 +32,7 @@ export const ConditionCommonCard: React.FC<ConditionCommonCardProps> = ({
     onExpand,
     icdCode,
     hccV28Code,
-    hccCode,
+    hccCode, code_status,
     icd10_desc,
     diagnosis,
     description,
@@ -52,7 +53,7 @@ export const ConditionCommonCard: React.FC<ConditionCommonCardProps> = ({
                 className
             )}
         >
-            <CardContent className="p-2 flex gap-2.5 items-center justify-between">
+            <CardContent className="p-2 relative flex gap-2.5 items-center justify-between">
                 <div className="flex-1 min-w-0">
                     {/* Header Row */}
                     <div className="flex items-start justify-between gap-3 mb-3">
@@ -62,7 +63,7 @@ export const ConditionCommonCard: React.FC<ConditionCommonCardProps> = ({
                                     <TooltipTrigger asChild>
                                         <Badge
                                             variant="outline"
-                                            className={`font-mono text-xs ${icdCode?.includes("$") ? " text-yellow-700 border-yellow-200 bg-yellow-100" : "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"}`}
+                                            className={`font-mono px-1.5 text-xs ${icdCode?.includes("$") ? " text-yellow-700 border-yellow-200 bg-yellow-100" : "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"}`}
                                         >
                                             ICD:{icdCode?.replace("$", "")}
                                         </Badge>
@@ -77,7 +78,7 @@ export const ConditionCommonCard: React.FC<ConditionCommonCardProps> = ({
                                     <TooltipTrigger asChild>
                                         <Badge
                                             variant="outline"
-                                            className="font-mono text-xs bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                                            className="font-mono px-1.5 text-xs bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
                                         >
                                             V28:{hccV28Code}
                                         </Badge>
@@ -89,7 +90,7 @@ export const ConditionCommonCard: React.FC<ConditionCommonCardProps> = ({
                                     <TooltipTrigger asChild>
                                         <Badge
                                             variant="outline"
-                                            className="font-mono text-xs bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100"
+                                            className="font-mono px-1.5 text-xs bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100"
                                         >
                                             V24:{V24HCC}
                                         </Badge>
@@ -101,62 +102,81 @@ export const ConditionCommonCard: React.FC<ConditionCommonCardProps> = ({
                                     <TooltipTrigger asChild>
                                         <Badge
                                             variant="outline"
-                                            className="font-mono text-xs bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
+                                            className="font-mono px-1.5 text-xs bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100"
                                         >
                                             RX-HCC:{hccCode}
                                         </Badge>
                                     </TooltipTrigger>
                                 </Tooltip>
                             )}
+
                         </div>
-                    </div>
-                    {/* Main Content */}
-                    <div className="space-y-2">
-                        <div>
-                            <h3 className="font-semibold text-gray-900 text-sm leading-tight">{diagnosis}</h3>
-                            <p className="text-sm text-gray-600 text-justify pr-2 mt-0.5">{description}</p>
-                        </div>
-                        {/* Evidence Section */}
-                        <div className="bg-blue-50 ">
-                            <div className="flex items-start justify-between gap-2">
-                                {evidence?.length > 0 && <div className="flex-1 min-w-0">
-                                    <div className={cn("overflow-hidden transition-all duration-300", expanded ? "max-h-none" : "")}>
-                                        <div className="text-xs gap-2 items-start p-1 text-gray-700 flex leading-relaxed">
-                                            <div className=" flex flex-shrink-0">
-                                                <Image src="/images/Lab.svg" alt="Clinical Indicators" width={15} height={15} className="pt-0.5 inline-block" />
-                                            </div>
-                                            :{" "}{evidence}
-                                        </div>
-                                    </div>
-                                </div>}
-                                {evidence.length > 300 && onExpand && (
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={onExpand}
-                                        className="h-6 px-2 text-xs shrink-0"
+                        {code_status && (
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Badge
+                                        variant="outline"
+                                        className="font-mono text-xs bg-lime-50 text-lime-700 px-1.5 border-lime-200 hover:bg-lime-100"
                                     >
-                                        {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                                    </Button>
-                                )}
-                            </div>
-                        </div>
-                        {(query && query !== "NA") && (
-                            <div className="flex items-center justify-between text-xs text-gray-500 bg-yellow-50">
-                                <div className="text-xs gap-2 items-start p-1 text-gray-700 flex leading-relaxed">
-                                    <div className=" flex flex-shrink-0">
-                                        <Image src="/images/query.svg" alt="Query icon" width={15} height={15} className="pt-0.5 inline-block" />
-                                    </div>
-                                    :{" "}
-                                    <span className="italic">{query}</span>
-                                </div>
-                            </div>
+                                        {code_status}
+                                    </Badge>
+                                </TooltipTrigger>
+                            </Tooltip>
                         )}
                     </div>
-                    {children}
+                    <div className="flex items-start justify-between gap-2 relative">
+                        <div className="flex-1 min-w-0">
+                            {/* Main Content */}
+                            <div className="space-y-2">
+                                <div>
+                                    <h3 className="font-semibold text-gray-900 text-sm leading-tight">{diagnosis}</h3>
+                                    <p className="text-sm text-gray-600 text-justify pr-2 mt-0.5">{description}</p>
+                                </div>
+                                {/* Evidence Section */}
+                                <div className="bg-blue-50 ">
+                                    <div className="flex items-start justify-between gap-2">
+                                        {evidence?.length > 0 && <div className="flex-1 min-w-0">
+                                            <div className={cn("overflow-hidden transition-all duration-300", expanded ? "max-h-none" : "")}>
+                                                <div className="text-xs gap-1 items-start p-1 text-gray-700 flex leading-relaxed text-justify">
+                                                    <div className=" flex flex-shrink-0">
+                                                        <Image src="/images/Lab.svg" alt="Clinical Indicators" width={15} height={15} className="pt-0.5 inline-block" />
+                                                    </div>
+                                                    :{" "}{evidence}
+                                                </div>
+                                            </div>
+                                        </div>}
+                                        {evidence.length > 300 && onExpand && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={onExpand}
+                                                className="h-6 px-2 text-xs shrink-0"
+                                            >
+                                                {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                                            </Button>
+                                        )}
+                                    </div>
+                                </div>
+                                {(query && query !== "NA") && (
+                                    <div className="flex items-center justify-between text-xs text-gray-500 bg-yellow-50">
+                                        <div className="text-xs gap-1 items-start p-1 text-gray-700 flex leading-relaxed">
+                                            <div className=" flex flex-shrink-0">
+                                                <Image src="/images/query.svg" alt="Query icon" width={15} height={15} className="pt-0.5 inline-block" />
+                                            </div>
+                                            :{" "}
+                                            <span className="italic text-justify">{query}</span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            {children}
+                        </div>
+                        {actionButtons && <div className="flex relative flex-col gap-1.5 shrink-0 self-center">
+                            {actionButtons}
+                        </div>}
+
+                    </div>
                 </div>
-                {/* Action Buttons */}
-                {actionButtons && <div className="flex flex-col gap-1.5 shrink-0">{actionButtons}</div>}
             </CardContent>
         </Card>
     );

@@ -14,7 +14,6 @@ import { updateAnalystNotes, updateCodeReviewItemStatus } from "@/store/slices/d
 import { AnimatePresence, motion } from "framer-motion"
 import { Check, CheckCircle, FileText, Loader2, Search, X } from "lucide-react"
 import { useCallback, useMemo, useState, useTransition } from "react"
-import toast from "react-hot-toast"
 import { IcdSuggestionIconSimple } from "../common/icd-suggestion-icon"
 import { UpdateIcdCodeModal } from "./UpdateIcdModal"
 
@@ -34,6 +33,7 @@ interface CodeReviewItem {
     query?: string | null
     status: "accepted" | "rejected"
     addedAt: number
+    code_status?: string | null
 }
 
 interface CodeReviewData {
@@ -104,7 +104,7 @@ export default function ImprovedCodeReviewForm({
         items = items.filter((item) => {
             const hasRxHcc = item.hccCode && item.hccCode.trim() !== ""
             const hasV28 = item.hccV28Code && item.hccV28Code.trim() !== ""
-            const hasV24 = item.hccV28Code && item.hccV28Code.trim() !== ""
+            const hasV24 = item.V24HCC && item.V24HCC.trim() !== ""
 
             if (!showRxHcc && !showHcc) {
                 return true
@@ -138,7 +138,8 @@ export default function ImprovedCodeReviewForm({
                 "diagnosis",
                 "description",
                 "query",
-                "icd10_desc"
+                "icd10_desc",
+                "code_status"
             ];
 
             items = items.filter((item) =>
@@ -287,6 +288,7 @@ export default function ImprovedCodeReviewForm({
                                                 onExpand={item.evidence.length > 230 ? () => setExpandedCard(expandedCard === item.id ? null : item.id) : undefined}
                                                 icdCode={item.icdCode}
                                                 V24HCC={item?.V24HCC}
+                                                code_status={item?.code_status}
                                                 hccV28Code={item.hccV28Code}
                                                 hccCode={item.hccCode}
                                                 icd10_desc={item.icd10_desc}
@@ -380,8 +382,8 @@ export default function ImprovedCodeReviewForm({
                                     </div>
                                     <p className="text-sm text-gray-500 font-medium">No codes found</p>
                                     <p className="text-xs text-gray-400 mt-1">
-                                        {localSearchTerm || (!showRxHcc && !showHcc)
-                                            ? "Try adjusting your filters"
+                                        {(localSearchTerm || (!showRxHcc && !showHcc)) ?
+                                            (localSearchTerm?.length > 0 ? "Try adjusting your filters" : "No codes available for review")
                                             : "No codes available for review"}
                                     </p>
                                 </motion.div>

@@ -1,5 +1,4 @@
 "use client"
-import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useRedux } from "@/hooks/use-redux"
 import { useChromeSearch } from "@/hooks/useChromeSearch"
@@ -11,7 +10,6 @@ import "@react-pdf-viewer/default-layout/lib/styles/index.css"
 import { searchPlugin } from "@react-pdf-viewer/search"
 import "@react-pdf-viewer/search/lib/styles/index.css"
 import React, { type ReactElement, useEffect } from "react"
-import ChromeSearchBar from "./ChromeSearchBar"
 
 interface PdfViewerProps {
   url: string
@@ -270,7 +268,11 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
                 applyHighlightsOnly(searchTerm)
               }}
               onZoom={(newZoom) => {
-                setZoom(newZoom?.scale * 100)
+                if (newZoom?.scale > 0.3 && newZoom?.scale < 4) {
+                  setZoom(newZoom?.scale * 100)
+                } else {
+                  setZoom(100)
+                }
               }}
               onSwitchTheme={(theme) => {
                 setIsDarkTheme(theme === "dark")

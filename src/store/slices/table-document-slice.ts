@@ -25,6 +25,7 @@ export interface DocumentBase {
 
 export interface PendingDocument extends DocumentBase {
     action?: string
+    PendingDocument?: string
 }
 
 export interface AssignedDocument extends DocumentBase {
@@ -209,6 +210,16 @@ const getDocumentStatusFromNumber = (num: number): DOCUMENT_STATUS | undefined =
     return statusByIndex[num];
 };
 
+
+const formatSizeFromKB = (kb: number): string => {
+    if (kb >= 1024 * 1024) {
+        return `${(kb / (1024 * 1024)).toFixed(2)} GB`;
+    } else if (kb >= 1024) {
+        return `${(kb / 1024).toFixed(2)} MB`;
+    } else {
+        return `${kb} KB`;
+    }
+};
 // Async Thunks
 export const fetchPendingDocuments = createAsyncThunk<PendingDocument[], void, { rejectValue: string }>(
     "documents/fetchPendingDocuments",
@@ -224,6 +235,7 @@ export const fetchPendingDocuments = createAsyncThunk<PendingDocument[], void, {
                         title: item.title?.replace(/^dev-/, ""),
                         received: formatToMMDDYYYYIfNeeded(item.received_date),
                         fileSize: `${item.file_size} KB`,
+                        formattedSize: item.file_size ? formatSizeFromKB(+item.file_size) : "",
                         category: "Medical",
                         status: getDocumentStatusFromNumber(item.status) || DOCUMENT_STATUS.PENDING,
                     };

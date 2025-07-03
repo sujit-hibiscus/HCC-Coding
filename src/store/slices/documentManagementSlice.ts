@@ -34,6 +34,7 @@ export interface CodeReviewItem {
     addedAt: number
     query?: string | null
     V24HCC: string
+    code_status?: string | null
 }
 
 export interface CodeReviewData {
@@ -83,6 +84,7 @@ export interface MedicalCondition {
     reasoning?: string;
 
     V24HCC?: string;
+    code_status?: string | null;
 
     condition_name?: string;
     diagnosis?: string
@@ -269,6 +271,7 @@ export const startReviewWithApiData = createAsyncThunk(
                     text_file_path = "",
                     diagnosis = "", condition_name = "",
                     V24HCC = "",
+                    code_status = "",
                     icd_description = "",
                     RxHCC = "", code_explanation = "", IsAcceptedbyAnalyst = true, IsAcceptedbyQA = true, icd10_desc = "", id = "", V28HCC = "", created_at = "" } = i
 
@@ -277,6 +280,7 @@ export const startReviewWithApiData = createAsyncThunk(
                     icdCode: icd10_code || icd_code || "",
                     hccCode: RxHCC || "",
                     V24HCC: V24HCC || "",
+                    code_status: code_status || "",
                     hccV28Code: V28HCC || "",
                     reference: guideline_reference?.length || reference || "",
                     evidence: criteria_met || clinical_indicators || "",

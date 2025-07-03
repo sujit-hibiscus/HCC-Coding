@@ -18,7 +18,7 @@ import {
     updateFormData,
 } from "@/store/slices/documentManagementSlice"
 import { AnimatePresence, motion } from "framer-motion"
-import { Asterisk, Check, CheckCircle, Info, Loader2, Search, X } from "lucide-react"
+import { Asterisk, Check, CheckCircle, FileText, Info, Loader2, Search, X } from "lucide-react"
 import { useCallback, useMemo, useState, useTransition } from "react"
 import { IcdSuggestionIconSimple } from "../common/icd-suggestion-icon"
 import { Checkbox } from "../ui/checkbox"
@@ -58,7 +58,6 @@ export default function AuditorReviewForm({
     onSubmit,
 }: AuditorReviewFormProps) {
     const { dispatch, selector } = useRedux()
-    // New state for checkbox filters
     const [showRxHcc, setShowRxHcc] = useState(false)
     const [showHcc, setShowHcc] = useState(false)
     const { codeReview } = selector((state: RootState) => state.documentManagement)
@@ -93,7 +92,7 @@ export default function AuditorReviewForm({
         items = items.filter((item) => {
             const hasRxHcc = item.hccCode && item.hccCode.trim() !== ""
             const hasV28 = item.hccV28Code && item.hccV28Code.trim() !== ""
-            const hasV24 = item.hccV28Code && item.hccV28Code.trim() !== ""
+            const hasV24 = item.V24HCC && item.V24HCC.trim() !== ""
 
             if (!showRxHcc && !showHcc) {
                 return true
@@ -130,7 +129,8 @@ export default function AuditorReviewForm({
                 "diagnosis",
                 "description",
                 "query",
-                "icd10_desc"
+                "icd10_desc",
+                "code_status",
             ];
 
             items = items.filter((item) =>
@@ -144,26 +144,10 @@ export default function AuditorReviewForm({
         return items
     }, [currentCodeReview.items, filterStatus, localSearchTerm, showRxHcc, showHcc])
 
-    // Optimized status counts
-    const statusCounts = useMemo(() => {
-        return currentCodeReview.items.reduce(
-            (acc: Record<string, number>, item) => {
-                acc[item.status] = (acc[item.status] || 0) + 1
-                return acc
-            },
-            { accepted: 0, rejected: 0 } as Record<string, number>,
-        )
-    }, [currentCodeReview.items])
 
     // Optimized handlers
     const handleSearchChange = useCallback((value: string) => {
         setLocalSearchTerm(value)
-    }, [])
-
-    const handleFilterChange = useCallback((value: string) => {
-        startTransition(() => {
-            setFilterStatus(value)
-        })
     }, [])
 
     const handleStatusUpdate = useCallback(
@@ -201,19 +185,10 @@ export default function AuditorReviewForm({
         [selectedDocumentId, dispatch],
     )
 
-    const handleAuditorNotesChange = useCallback(
-        (notes: string) => {
-            if (selectedDocumentId) {
-                dispatch(updateAuditorNotes({ documentId: selectedDocumentId, notes }))
-            }
-        },
-        [selectedDocumentId, dispatch],
-    )
-
     return (
         <TooltipProvider>
             <motion.div
-                className="w-full flex flex-col min-w-[30rem] md:w-[50vw] h-full border-t md:border-t-0 md:border-l overflow-hidden bg-gradient-to-br from-slate-50 to-white"
+                className="w-full bg-red-200 flex flex-col min-w-[30rem] md:w-[50vw] h-full border-t md:border-t-0 md:border-l overflow-hidden bg-gradient-to-br from-slate-50 to-white"
                 initial={{ x: "100%", opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: "100%", opacity: 0 }}
@@ -223,8 +198,8 @@ export default function AuditorReviewForm({
                     damping: 30,
                 }}
             >
-                <div className="flex flex-col h-full px-2 pb-1 space-y-3 overflow-y-auto">
-                    {/* Optimized Form Fields */}
+                <div className="flex flex-col h-full px-2 pb-1 space-y-3 max-h-[calc(100vh-2.9rem)] overflow-y-auto">
+
                     <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-2">
@@ -431,73 +406,8 @@ export default function AuditorReviewForm({
                         </div>
                     </div>
 
-                    {/* Optimized Search and Filter */}
+
                     <div className="w-full">
-                        {/* Add Code Dropdown */}
-                        {/* <div className="flex-1">
-                            <Popover open={open} onOpenChange={setOpen}>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        role="combobox"
-                                        aria-expanded={open}
-                                        className="w-full justify-between text-xs h-8 transition-all duration-200 hover:border-blue-300 focus:ring-2 focus:ring-blue-200"
-                                    >
-                                        <div className="flex items-center">
-                                            <Plus className="mr-2 h-3 w-3 shrink-0 opacity-50" />
-                                            Add DX code...
-                                        </div>
-                                        <ChevronsUpDown className="ml-2 h-3 w-3 shrink-0 opacity-50" />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                                    <Command>
-                                        <CommandInput placeholder="Search DX code..." />
-                                        <CommandList>
-                                            <CommandEmpty>No codes found.</CommandEmpty>
-                                            <CommandGroup>
-                                                {DX_CODES.slice(0, 10).map((item) => {
-                                                    const exists = currentCodeReview.items.some((code) => code.icdCode === item.code)
-
-                                                    return (
-                                                        <CommandItem
-                                                            key={item.code}
-                                                            value={`${item.code} ${item.description}`}
-                                                            onSelect={() => {
-                                                                if (!exists) {
-                                                                    handleAddCode(item)
-                                                                }
-                                                            }}
-                                                            disabled={exists}
-                                                            className={cn(
-                                                                "flex items-center justify-between transition-colors",
-                                                                exists && "opacity-50 cursor-not-allowed",
-                                                            )}
-                                                        >
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="flex items-center gap-2">
-                                                                    <span className="font-medium text-sm">{item.code}</span>
-                                                                    <span className="text-xs bg-purple-100 text-purple-700 px-1 rounded">
-                                                                        {item.hccCode}
-                                                                    </span>
-                                                                </div>
-                                                                <div className="text-xs text-muted-foreground truncate">{item.description}</div>
-                                                            </div>
-                                                            {exists ? (
-                                                                <Check className="ml-2 h-4 w-4 text-green-600" />
-                                                            ) : (
-                                                                <Plus className="ml-2 h-4 w-4" />
-                                                            )}
-                                                        </CommandItem>
-                                                    )
-                                                })}
-                                            </CommandGroup>
-                                        </CommandList>
-                                    </Command>
-                                </PopoverContent>
-                            </Popover>
-                        </div> */}
-
                         {/* Search and Filter Section */}
                         <div className="flex flex-col md:flex-row md:items-center gap-3 w-full">
                             {/* Search Input */}
@@ -541,16 +451,16 @@ export default function AuditorReviewForm({
                         </div>
                     </div>
 
-                    {/* Loading indicator */}
+
                     {isPending && (
                         <div className="flex items-center justify-center py-2">
                             <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
                         </div>
                     )}
 
-                    {/* Optimized Code Cards */}
+
                     <div className="flex-1 min-h-0">
-                        <div className="h-full space-y-2 pr-1 overflow-y-auto overflow-x-hidden max-h-[540px]">
+                        <div className="h-full space-y-2 pr-1 overflow-y-auto overflow-x-hidden ">
                             {isCodeLoading ? (
                                 <motion.div
                                     className="flex flex-col items-center justify-center py-12 text-center"
@@ -594,6 +504,7 @@ export default function AuditorReviewForm({
                                                 evidence={item.evidence}
                                                 query={item.query}
                                                 V24HCC={item?.V24HCC}
+                                                code_status={item?.code_status}
                                                 actionButtons={
                                                     <>
                                                         <Tooltip>
@@ -667,24 +578,6 @@ export default function AuditorReviewForm({
                                 </AnimatePresence>
                             )}
 
-                            {/*   {(!isCodeLoading) && filteredItems.length === 0 && !isPending && (
-                                <motion.div
-                                    className="flex flex-col items-center justify-center py-12 text-center"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ delay: 0.2 }}
-                                >
-                                    <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4">
-                                        <Search className="w-8 h-8 text-gray-400" />
-                                    </div>
-                                    <p className="text-sm text-gray-500 font-medium">No codes found</p>
-                                    <p className="text-xs text-gray-400 mt-1">
-                                        {localSearchTerm || filterStatus !== "all"
-                                            ? "Try adjusting your filters"
-                                            : "No codes available for review"}
-                                    </p>
-                                </motion.div>
-                            )} */}
 
                             {/* Empty State */}
                             {(!isCodeLoading && filteredItems.length === 0 && !isPending) && (
@@ -699,39 +592,31 @@ export default function AuditorReviewForm({
                                     </div>
                                     <p className="text-sm text-gray-500 font-medium">No codes found</p>
                                     <p className="text-xs text-gray-400 mt-1">
-                                        {localSearchTerm || filterStatus !== "all"
-                                            ? "Try adjusting your filters"
-                                            : "Add codes using the dropdown above"}
+                                        {(localSearchTerm || (!showRxHcc && !showHcc)) ?
+                                            (localSearchTerm?.length > 0 ? "Try adjusting your filters" : "No codes available for review")
+                                            : "No codes available for review"}
                                     </p>
                                 </motion.div>
                             )}
                         </div>
                     </div>
 
-                    {/* Optimized Notes */}
                     <div className="space-y-2">
                         <div className="grid grid-cols-1 gap-3">
                             <div className="space-y-1">
-                                <Label className="text-xs font-medium text-gray-700">Analyst Notes</Label>
+                                <Label className="text-sm font-medium flex items-center gap-1">
+                                    <FileText className="w-3 h-3" />
+                                    Analyst Notes
+                                </Label>
                                 <Textarea
                                     placeholder="Analyst notes..."
                                     value={selectedDocument?.analystNote}
                                     onChange={(e) => handleAnalystNotesChange(e.target.value)}
                                     rows={2}
                                     disabled
-                                    className="text-xs resize-none !opacity-80 transition-all duration-200 focus:ring-2 focus:ring-blue-200"
+                                    className="text-sm resize-none transition-all duration-200 focus:ring-2 focus:ring-blue-200 min-h-[100px]"
                                 />
                             </div>
-                            {/* <div className="space-y-1">
-                                <Label className="text-xs font-medium text-gray-700">Auditor Notes</Label>
-                                <Textarea
-                                    placeholder="Auditor notes..."
-                                    value={currentCodeReview.auditorNotes}
-                                    onChange={(e) => handleAuditorNotesChange(e.target.value)}
-                                    rows={2}
-                                    className="text-xs resize-none transition-all duration-200 focus:ring-2 focus:ring-blue-200"
-                                />
-                            </div> */}
                         </div>
                     </div>
 
