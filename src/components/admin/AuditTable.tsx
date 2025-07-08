@@ -40,10 +40,10 @@ export default function AuditDocumentsTable() {
             </div>
         </div>
     );
-
     return (
         <div className="h-full relative">
-            <div className="absolute flex items-center h-10">
+            <div className={`absolute flex items-center h-10
+            `}>
                 <motion.div
                     className="flex items-center"
                     initial={{ opacity: 0, y: -10 }}
@@ -70,7 +70,7 @@ export default function AuditDocumentsTable() {
                 tableLoader
             ) : (
                 <div className="flex h-full flex-col gap-1">
-                    {(showUnassignedOnly ? sortedDocuments?.filter(i => i.auditor?.trim()?.length === 0) : sortedDocuments)?.length > 0 && <div className="flex justify-end pr-2">
+                    {<div className="flex justify-end pr-2">
                         <AssignmentControls currentTab={ChartTab.Audit} userType={userType as string} />
                     </div>}
                     {sortedDocuments.length === 0 && showUnassignedOnly ? (

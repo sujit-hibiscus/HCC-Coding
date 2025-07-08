@@ -361,3 +361,22 @@ iframe {
   background: var(--scrollbar-thumb);
   border-radius: 4px;
 }
+
+.tab-closing .chrome-tab-close,
+.tabs-disabled .chrome-tab-close {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+/* More specific selectors to ensure all tabs are affected */
+.tab-closing .chrome-tabs .chrome-tab .chrome-tab-close,
+.tabs-disabled .chrome-tabs .chrome-tab .chrome-tab-close {
+  opacity: 0.5 !important;
+  pointer-events: none !important;
+  cursor: not-allowed !important;
+}
+
+.single-tab .chrome-tab-close {
+  display: none !important;
+}

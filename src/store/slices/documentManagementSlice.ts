@@ -133,6 +133,9 @@ interface DocumentManagementState {
 
     // NEW: Per-document regenerating state
     regeneratingById: Record<string, boolean>;
+
+    // Add new state for code review tab
+    currentCodeReviewTab: string;
 }
 
 type AnalystAssignment = {
@@ -523,6 +526,8 @@ const initialState: DocumentManagementState = {
     fetchedTextPaths: [],
     // NEW: Per-document regenerating state
     regeneratingById: {},
+    // Add new state for code review tab
+    currentCodeReviewTab: "Documented",
 }
 
 const documentManagementSlice = createSlice({
@@ -778,6 +783,10 @@ const documentManagementSlice = createSlice({
             const { docId, value } = action.payload;
             state.regeneratingById[docId] = value;
         },
+
+        setCurrentCodeReviewTab: (state, action: PayloadAction<string>) => {
+            state.currentCodeReviewTab = action.payload;
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -935,6 +944,7 @@ export const {
     updateMedicalConditionStatus,
     setActiveDocTab,
     setRegenerating,
+    setCurrentCodeReviewTab,
 } = documentManagementSlice.actions
 
 export default documentManagementSlice.reducer

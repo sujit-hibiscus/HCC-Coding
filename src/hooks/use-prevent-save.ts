@@ -3,16 +3,9 @@ import { logoutAction } from "@/app/action/auth-actions";
 import devtoolsDetector from "devtools-detector";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import useFullPath from "./use-fullpath";
 
 export function usePreventSave(): void {
     const router = useRouter();
-    const { fullPath } = useFullPath()
-    useEffect(() => {
-        console.log(fullPath, "fullPathfullPath");
-
-    }, [fullPath])
-
 
     useEffect(() => {
         const handleDevToolsChange = async (isOpen: boolean) => {

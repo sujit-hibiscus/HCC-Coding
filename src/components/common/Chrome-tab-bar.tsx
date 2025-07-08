@@ -4,13 +4,14 @@ import { useTabs } from "@/hooks/use-tabs";
 import { reorderTab } from "@/store/slices/DashboardSlice";
 import { Tabs } from "@sinm/react-chrome-tabs";
 import "@sinm/react-chrome-tabs/css/chrome-tabs.css";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 
 function ChromeTabBar() {
     const { fullPath = "", charts, target } = useFullPath();
     const { selector, dispatch } = useRedux();
     const tabs = selector((state) => state.dashboard.tabs);
+    const [isClosing, setIsClosing] = useState(false);
     const { closeTab, changeTab, } = useTabs();
     const finalizeTab = useMemo(() => {
         let hasActiveTab = false;
@@ -48,8 +49,16 @@ function ChromeTabBar() {
         <div className="w-full">
             <Tabs
                 darkMode={true}
-                className="capitalize bg-white dark:bg-accent animate-smooth"
-                onTabClose={closeTab}
+                className={`capitalize bg-white dark:bg-accent animate-smooth 
+                    ${isClosing ? " tabs-disabled" :
+                        finalizeTab?.length === 1 ? "single-tab" : ""}`}
+                // onTabClose={closeTab}
+                onTabClose={async (tab) => {
+                    if (isClosing) return;
+                    setIsClosing(true);
+                    await closeTab(tab);
+                    setTimeout(() => setIsClosing(false), 1500);
+                }}
                 onTabActive={changeTab}
                 tabs={finalizeTab}
                 onTabReorder={reorder}

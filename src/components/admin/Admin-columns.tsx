@@ -76,10 +76,10 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
         isDragable: true,
     },
     {
-        accessorKey: "formattedSize",
+        accessorKey: "fileSize",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="File Size" />,
         cell: ({ row }) => {
-            const fileSizeRaw = row.getValue<string>("formattedSize");
+            const fileSizeRaw = row.getValue<string>("fileSize");
             return <div className={cn(false ? "text-red-500 font-semibold" : "", "text-center")}>{fileSizeRaw}</div>;
         },
         enableSorting: true,

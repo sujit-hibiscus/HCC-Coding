@@ -10,14 +10,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useRedux } from "@/hooks/use-redux"
 import { cn } from "@/lib/utils"
-import { updateAnalystNotes, updateCodeReviewItemStatus } from "@/store/slices/documentManagementSlice"
+import { setCurrentCodeReviewTab, updateAnalystNotes, updateCodeReviewItemStatus } from "@/store/slices/documentManagementSlice"
 import { AnimatePresence, motion } from "framer-motion"
 import { Check, CheckCircle, FileText, Loader2, Search, X } from "lucide-react"
-import { useCallback, useMemo, useState, useTransition } from "react"
+import { useCallback, useMemo, useRef, useState, useTransition } from "react"
+import TabsComponent from "../common/CommonTab"
 import { IcdSuggestionIconSimple } from "../common/icd-suggestion-icon"
 import { UpdateIcdCodeModal } from "./UpdateIcdModal"
-
-
 // Interfaces
 interface CodeReviewItem {
     id: string
@@ -57,18 +56,6 @@ interface CodeReviewFormProps {
     onComplete: () => void
 }
 
-const ICD_OPTIONS: ICDOption[] = [
-    { label: "ICD:Z93.2", value: "Z93.2" },
-    { label: "ICD:J44.9", value: "J44.9" },
-    { label: "ICD:E11.9", value: "E11.9" },
-]
-
-const ICD_DATA: Record<string, { hccCode: string; rxHccCode: string; description: string }> = {
-    "Z93.2": { hccCode: "463", rxHccCode: "280", description: "Presence of ileostomy" },
-    "J44.9": { hccCode: "111", rxHccCode: "202", description: "Chronic obstructive pulmonary disease" },
-    "E11.9": { hccCode: "19", rxHccCode: "0", description: "Type 2 diabetes mellitus without complications" },
-}
-
 export default function ImprovedCodeReviewForm({
     selectedDocumentId,
     currentCodeReview,
@@ -80,79 +67,52 @@ export default function ImprovedCodeReviewForm({
 }: CodeReviewFormProps) {
     const { dispatch, selector } = useRedux()
     const isCodeLoading = selector((state) => state.documentManagement.medicalConditionsLoading)
+    const currentTab = selector((state) => state.documentManagement.currentCodeReviewTab)
     const [expandedCard, setExpandedCard] = useState<string | null>(null)
-    const [filterStatus, setFilterStatus] = useState<string>("all")
     const [localSearchTerm, setLocalSearchTerm] = useState("")
     const [isPending, startTransition] = useTransition()
     const [updatingItemId, setUpdatingItemId] = useState<string | null>(null)
 
-    // New state for checkbox filters
     const [showHcc, setShowHcc] = useState(false)
     const [showRxHcc, setShowRxHcc] = useState(false)
 
     const [updateIcdModal, setUpdateIcdModal] = useState<{ open: boolean; item: CodeReviewItem | null }>({ open: false, item: null })
     const [icdLoadingId, setIcdLoadingId] = useState<string | null>(null)
 
-    const filteredItems = useMemo(() => {
-        let items = [...currentCodeReview.items]
-
-        // Filter by status
-        if (filterStatus !== "all") {
-            items = items.filter((item) => item.status === filterStatus)
-        }
-
+    const filteredBySearchAndHcc = useMemo(() => {
+        let items = [...currentCodeReview.items];
         items = items.filter((item) => {
-            const hasRxHcc = item.hccCode && item.hccCode.trim() !== ""
-            const hasV28 = item.hccV28Code && item.hccV28Code.trim() !== ""
-            const hasV24 = item.V24HCC && item.V24HCC.trim() !== ""
-
-            if (!showRxHcc && !showHcc) {
-                return true
-            }
-
-            if (showRxHcc && showHcc) {
-                return hasRxHcc || hasV28 || hasV24
-            }
-
-            if (showRxHcc && !showHcc) {
-                return hasRxHcc
-            }
-
-            if (!showRxHcc && showHcc) {
-                return hasV28 || hasV24
-            }
-
-            return true
-        })
-
-        // Filter by search term
-        const searchTerm = localSearchTerm.toLowerCase().trim()
+            const hasRxHcc = item.hccCode && item.hccCode.trim() !== "";
+            const hasV28 = item.hccV28Code && item.hccV28Code.trim() !== "";
+            const hasV24 = item.V24HCC && item.V24HCC.trim() !== "";
+            if (!showRxHcc && !showHcc) return true;
+            if (showRxHcc && showHcc) return hasRxHcc || hasV28 || hasV24;
+            if (showRxHcc && !showHcc) return hasRxHcc;
+            if (!showRxHcc && showHcc) return hasV28 || hasV24;
+            return true;
+        });
+        const searchTerm = localSearchTerm.toLowerCase().trim();
         if (searchTerm) {
             const lowerSearchTerm = searchTerm.toLowerCase();
-            const keysToSearch: (keyof typeof items[number])[] = [
-                "icdCode",
-                "hccCode",
-                "V24HCC",
-                "hccV28Code",
-                "evidence",
-                "diagnosis",
-                "description",
-                "query",
-                "icd10_desc",
-                "code_status"
+            const keysToSearch = [
+                "icdCode", "hccCode", "V24HCC", "hccV28Code", "evidence", "diagnosis", "description", "query", "icd10_desc", "code_status"
             ];
-
             items = items.filter((item) =>
-                keysToSearch.some((key) =>
-                    (item[key] ?? "").toString().toLowerCase().includes(lowerSearchTerm)
-                )
+                keysToSearch.some((key) => ((item as any)[key] ?? "").toString().toLowerCase().includes(lowerSearchTerm))
             );
         }
+        return items;
+    }, [currentCodeReview.items, localSearchTerm, showRxHcc, showHcc]);
 
+    const documentedItems = useMemo(() => filteredBySearchAndHcc.filter(item => item?.code_status?.toLowerCase() === "documented"), [filteredBySearchAndHcc]);
+    const opportunitiesItems = useMemo(() => filteredBySearchAndHcc.filter(item => item?.code_status?.toLowerCase() !== "documented"), [filteredBySearchAndHcc]);
 
+    const filteredItems = useMemo(() => currentTab === "Documented" ? documentedItems : opportunitiesItems, [currentTab, documentedItems, opportunitiesItems]);
 
-        return items
-    }, [currentCodeReview.items, filterStatus, localSearchTerm, showRxHcc, showHcc])
+    const tabs = [
+        { value: "Documented", label: `Documented`, count: documentedItems.length },
+        { value: "Opportunities", label: `Opportunities`, count: opportunitiesItems.length },
+    ];
 
     const handleSearchChange = useCallback((value: string) => {
         setLocalSearchTerm(value)
@@ -162,15 +122,12 @@ export default function ImprovedCodeReviewForm({
         async (itemId: string, status: "accepted" | "rejected") => {
             if (selectedDocumentId && !updatingItemId) {
                 setUpdatingItemId(itemId)
-
-                // Add a small delay to prevent rapid clicking and ensure smooth transition
                 await new Promise((resolve) => setTimeout(resolve, 150))
 
                 startTransition(() => {
                     dispatch(updateCodeReviewItemStatus({ documentId: selectedDocumentId, itemId, status }))
                 })
 
-                // Clear the updating state after a brief moment
                 setTimeout(() => {
                     setUpdatingItemId(null)
                 }, 300)
@@ -187,6 +144,15 @@ export default function ImprovedCodeReviewForm({
         },
         [selectedDocumentId, dispatch],
     )
+
+    const codeCardScrollRef = useRef<HTMLDivElement>(null);
+
+    const handleTabChange = (tabId: string) => {
+        dispatch(setCurrentCodeReviewTab(tabId));
+        if (codeCardScrollRef.current) {
+            codeCardScrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
+        }
+    };
 
     return (
         <TooltipProvider>
@@ -241,17 +207,18 @@ export default function ImprovedCodeReviewForm({
                             </div>
                         </div>
                     </div>
-
-                    {/* Loading indicator */}
-                    {/* {isPending && (
-                        <div className="flex items-center justify-center py-2">
-                            <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                        </div>
-                    )} */}
-
+                    <div className="flex items-center justify-between gap-2">
+                        <TabsComponent
+                            countLoading={isCodeLoading}
+                            tabs={tabs}
+                            currentTab={currentTab}
+                            handleTabChange={handleTabChange}
+                        />
+                        {/*  <span className="text-xs md:text-sm whitespace-nowrap font-semibold text-gray-500 mr-2">Total: {documentedItems.length + opportunitiesItems?.length}</span> */}
+                    </div>
                     {/* Optimized Code Cards */}
                     <div className="flex-1 overflow-hidden">
-                        <div className="h-full max-h-[calc(100vh-18rem)] space-y-2 pr-1 overflow-y-auto overflow-x-hidden">
+                        <div ref={codeCardScrollRef} className="h-full max-h-[calc(100vh-18rem)] space-y-2 pr-1 overflow-y-auto overflow-x-hidden">
                             {apiLoading || isCodeLoading ? (
                                 <motion.div
                                     className="flex flex-col items-center justify-center py-12 text-center"

@@ -16,6 +16,7 @@ import { fetchChartCounts, setError, setLoading, setUser } from "@/store/slices/
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ForgotPassword } from "../common/user/forgot-password";
+import { resetReduxStore } from '../../store/index';
 
 export default function LoginForm() {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -28,6 +29,7 @@ export default function LoginForm() {
         event.preventDefault();
         setIsSubmitting(true);
         dispatch(setLoading(true));
+        resetReduxStore();
         const loginPromise = new Promise<void>(async (resolve, reject) => {
             try {
                 const formData = new FormData();
@@ -35,7 +37,6 @@ export default function LoginForm() {
                 formData.append("password", password);
 
                 const response = await loginAction(formData);
-                console.log("🚀 Final 🚀", response)
                 if (response?.message && response?.message !== "Login successful") {
                     error({ message: response.message });
                     setIsSubmitting(false);

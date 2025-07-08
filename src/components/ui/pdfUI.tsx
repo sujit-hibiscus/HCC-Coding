@@ -44,8 +44,6 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
     clearHighlights,
     applyHighlightsOnly,
   } = useChromeSearch()
-
-  // Search plugin (we'll use our custom implementation)
   const searchPluginInstance = searchPlugin()
 
   const renderToolbar = (Toolbar: (props: { children: (slots: ToolbarSlot) => ReactElement }) => ReactElement) => (

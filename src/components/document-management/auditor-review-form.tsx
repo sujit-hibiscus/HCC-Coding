@@ -16,13 +16,16 @@ import {
     updateAuditorNotes,
     updateCodeReviewItemStatus,
     updateFormData,
+    setCurrentCodeReviewTab,
 } from "@/store/slices/documentManagementSlice"
 import { AnimatePresence, motion } from "framer-motion"
 import { Asterisk, Check, CheckCircle, FileText, Info, Loader2, Search, X } from "lucide-react"
-import { useCallback, useMemo, useState, useTransition } from "react"
+import { useCallback, useMemo, useState, useTransition, useRef } from "react"
 import { IcdSuggestionIconSimple } from "../common/icd-suggestion-icon"
 import { Checkbox } from "../ui/checkbox"
 import { UpdateIcdCodeModal } from "./UpdateIcdModal"
+import TabsComponent from "../common/CommonTab"
+import { count } from "console"
 
 interface FormData {
     codesMissed: Array<{ value: string; label: string }>
@@ -69,6 +72,8 @@ export default function AuditorReviewForm({
     const isCodeLoading = selector((state) => state.documentManagement.medicalConditionsLoading)
     const [updateIcdModal, setUpdateIcdModal] = useState<{ open: boolean; item: any | null }>({ open: false, item: null })
     const [icdLoadingId, setIcdLoadingId] = useState<string | null>(null)
+    const currentTab = selector((state) => state.documentManagement.currentCodeReviewTab)
+    const codeCardScrollRef = useRef<HTMLDivElement>(null);
 
     // Get current document's code review data
     const currentCodeReview = useMemo(() => {
@@ -82,68 +87,51 @@ export default function AuditorReviewForm({
             }
     }, [selectedDocumentId, codeReview])
 
-    const filteredItems = useMemo(() => {
-        let items = [...currentCodeReview.items]
-
-        if (filterStatus !== "all") {
-            items = items.filter((item) => item.status === filterStatus)
-        }
-
+    // 1. Apply search and HCC/Rx-HCC filters first
+    const filteredBySearchAndHcc = useMemo(() => {
+        let items = [...currentCodeReview.items];
         items = items.filter((item) => {
-            const hasRxHcc = item.hccCode && item.hccCode.trim() !== ""
-            const hasV28 = item.hccV28Code && item.hccV28Code.trim() !== ""
-            const hasV24 = item.V24HCC && item.V24HCC.trim() !== ""
-
-            if (!showRxHcc && !showHcc) {
-                return true
-            }
-
-            // If both checkboxes are checked, show items that have either RX-HCC or HCC
-            if (showRxHcc && showHcc) {
-                return hasRxHcc || hasV28 || hasV24
-            }
-
-            // If only Rx-HCC is checked, show items with Rx-HCC codes
-            if (showRxHcc && !showHcc) {
-                return hasRxHcc
-            }
-
-            // If only HCC is checked, show items with HCC codes
-            if (!showRxHcc && showHcc) {
-                return hasV28 || hasV24
-            }
-
-            return true
-        })
-
-        // Filter by search term
-        const searchTerm = localSearchTerm.toLowerCase().trim()
+            const hasRxHcc = item.hccCode && item.hccCode.trim() !== "";
+            const hasV28 = item.hccV28Code && item.hccV28Code.trim() !== "";
+            const hasV24 = item.V24HCC && item.V24HCC.trim() !== "";
+            if (!showRxHcc && !showHcc) return true;
+            if (showRxHcc && showHcc) return hasRxHcc || hasV28 || hasV24;
+            if (showRxHcc && !showHcc) return hasRxHcc;
+            if (!showRxHcc && showHcc) return hasV28 || hasV24;
+            return true;
+        });
+        const searchTerm = localSearchTerm.toLowerCase().trim();
         if (searchTerm) {
             const lowerSearchTerm = searchTerm.toLowerCase();
-            const keysToSearch: (keyof typeof items[number])[] = [
-                "icdCode",
-                "hccCode",
-                "V24HCC",
-                "hccV28Code",
-                "evidence",
-                "diagnosis",
-                "description",
-                "query",
-                "icd10_desc",
-                "code_status",
+            const keysToSearch = [
+                "icdCode", "hccCode", "V24HCC", "hccV28Code", "evidence", "diagnosis", "description", "query", "icd10_desc", "code_status"
             ];
-
             items = items.filter((item) =>
-                keysToSearch.some((key) =>
-                    (item[key] ?? "").toString().toLowerCase().includes(lowerSearchTerm)
-                )
+                keysToSearch.some((key) => ((item as any)[key] ?? "").toString().toLowerCase().includes(lowerSearchTerm))
             );
         }
+        return items;
+    }, [currentCodeReview.items, localSearchTerm, showRxHcc, showHcc]);
 
+    // 2. Divide filtered data into tab groups
+    const documentedItems = useMemo(() => filteredBySearchAndHcc.filter(item => item?.code_status?.toLowerCase() === "documented"), [filteredBySearchAndHcc]);
+    const opportunitiesItems = useMemo(() => filteredBySearchAndHcc.filter(item => item?.code_status?.toLowerCase() !== "documented"), [filteredBySearchAndHcc]);
 
-        return items
-    }, [currentCodeReview.items, filterStatus, localSearchTerm, showRxHcc, showHcc])
+    // 3. Use tab to select which group to show
+    const filteredItems = useMemo(() => currentTab === "Documented" ? documentedItems : opportunitiesItems, [currentTab, documentedItems, opportunitiesItems]);
 
+    // 4. Tabs and counts reflect filtered data
+    const tabs = [
+        { value: "Documented", label: `Documented`, count: documentedItems.length },
+        { value: "Opportunities", label: `Opportunities`, count: opportunitiesItems.length },
+    ];
+
+    const handleTabChange = (tabId: string) => {
+        dispatch(setCurrentCodeReviewTab(tabId));
+        if (codeCardScrollRef.current) {
+            codeCardScrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
+        }
+    };
 
     // Optimized handlers
     const handleSearchChange = useCallback((value: string) => {
@@ -459,8 +447,18 @@ export default function AuditorReviewForm({
                     )}
 
 
+                    <div className="flex items-center justify-between gap-2">
+                        <TabsComponent
+                            countLoading={isCodeLoading}
+                            tabs={tabs}
+                            currentTab={currentTab}
+                            handleTabChange={handleTabChange}
+                        />
+                        {/* <span className="text-xs  md:text-sm whitespace-nowrap font-semibold text-gray-500 mr-2">Total: {documentedItems.length + opportunitiesItems?.length}</span> */}
+                    </div>
                     <div className="flex-1 min-h-0">
-                        <div className="h-full space-y-2 pr-1 overflow-y-auto overflow-x-hidden ">
+
+                        <div className="h-full space-y-2 pr-1 overflow-y-auto overflow-x-hidden" ref={codeCardScrollRef}>
                             {isCodeLoading ? (
                                 <motion.div
                                     className="flex flex-col items-center justify-center py-12 text-center"
