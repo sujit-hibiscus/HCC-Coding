@@ -494,6 +494,8 @@ export function DataTable<TData, TValue>({
                       }
                       const isLargeFile = fileSizeNumber > limitInKB;
 
+
+
                       return (
                         <TableRow
                           key={row.id + index}
@@ -511,7 +513,7 @@ export function DataTable<TData, TValue>({
                           {row.getVisibleCells().map((cell) => {
 
                             return (
-                              <TableCell className={`${(cell?.id?.includes("fileSize") && isLargeFile) ? "text-red-500 font-semibold" : ""}`} key={cell.id}>
+                              <TableCell className={`${(cell?.id?.includes("formattedSize") && isLargeFile) ? "text-red-500 font-semibold" : ""}`} key={cell.id}>
                                 {flexRender(cell.column.columnDef.cell, {
                                   ...cell.getContext(),
                                   onAction: (action: string) => onAction(action, row.original),

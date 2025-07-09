@@ -1,13 +1,15 @@
 "use client"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ConditionCommonCard } from "@/components/ui/condition-common-card"
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@/components/ui/dialog"
+import { SearchableSelect, type SearchableSelectOption } from "@/components/ui/searchable-select"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import useToast from "@/hooks/use-toast"
 import { AnimatePresence, motion } from "framer-motion"
 import type React from "react"
 import { useState } from "react"
-import { SearchableSelect, type SearchableSelectOption } from "@/components/ui/searchable-select"
 
 const ICD_OPTIONS: SearchableSelectOption[] = [
     { label: "ICD:Z93.2", value: "Z93.2" },
@@ -103,7 +105,19 @@ export const UpdateIcdCodeModal: React.FC<UpdateIcdCodeModalProps> = ({ open, on
                                 <div className="w-full gap-3 items-start flex">
                                     <div className="flex whitespace-nowrap items-center gap-2 mb-2 pt-[4.5px]">
                                         <span className="text-sm font-semibold text-gray-700">Current ICD Code:</span>
-                                        <span className="text-base text-gray-900 font-mono px-2">{item?.icdCode || "-"}</span>
+                                        {item?.icdCode ? (
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Badge
+                                                        variant="outline"
+                                                        className={`font-mono px-1.5 text-xs ${item?.icdCode?.includes("$") ? " text-yellow-700 border-yellow-200 bg-yellow-100" : "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"}`}
+                                                    >
+                                                        ICD:{item?.icdCode?.replace("$", "")}
+                                                    </Badge>
+                                                </TooltipTrigger>
+                                            </Tooltip>
+                                        ) : <span className="text-base text-gray-900 font-mono px-2">{item?.icdCode || "-"}</span>}
+
                                     </div>
 
                                     <div className="w-full flex gap-1 items-center">

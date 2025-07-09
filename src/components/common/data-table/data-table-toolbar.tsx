@@ -11,7 +11,7 @@ import { autoAssign } from "@/store/slices/documentManagementSlice";
 import { fetchAssignedDocuments, fetchAuditDocuments, fetchPendingDocuments } from "@/store/slices/table-document-slice";
 import { setTabPagination } from "@/store/slices/tableFiltersSlice";
 import type { SortingState, Table } from "@tanstack/react-table";
-import { endOfWeek, isSameDay, startOfWeek } from "date-fns";
+import { format } from 'date-fns';
 import { motion } from "framer-motion";
 import { LoaderCircle, RefreshCw, Sparkles, X } from "lucide-react";
 import { CalendarDateRangePicker } from "./CalendarDateRangePicker";
@@ -27,6 +27,23 @@ interface DataTableToolbarProps<TData> {
   setDateRange: (range: [Date | null, Date | null]) => void
 }
 
+export function areDatesEqualByDay(
+  dateRange: [Date | null, Date | null],
+  filterRange: [Date | null, Date | null]
+): boolean {
+  const [startDate, endDate] = dateRange;
+  const [filterStartDate, filterEndDate] = filterRange;
+
+  const formattedStartDate = startDate ? format(startDate, "MM-dd-yyyy") : "";
+  const formattedEndDate = endDate ? format(endDate, "MM-dd-yyyy") : "";
+  const formattedFilterStart = filterStartDate ? format(filterStartDate, "MM-dd-yyyy") : "";
+  const formattedFilterEnd = filterEndDate ? format(filterEndDate, "MM-dd-yyyy") : "";
+
+  return (
+    formattedStartDate === formattedFilterStart &&
+    formattedEndDate === formattedFilterEnd
+  );
+}
 function DataTableToolbarComponent<TData>({
   table,
   dateRange,
@@ -36,6 +53,7 @@ function DataTableToolbarComponent<TData>({
   dateKey = "",
   handleRefresh,
 }: DataTableToolbarProps<TData>) {
+  const isSameDate = areDatesEqualByDay(dateRange, [StartDateFilter, EndDateFilter]);
   const isFiltered = table.getState().columnFilters.length > 0;
   const { charts = "", target = "" } = useFullPath();
   const tabKey = `${charts}${target}`;
@@ -54,24 +72,10 @@ function DataTableToolbarComponent<TData>({
       dispatch(fetchAuditDocuments());
     }
   };
-  const isInThisWeekRange = (start: Date, end: Date): boolean => {
-    const startDate = startOfWeek(new Date(), { weekStartsOn: 1 });
-    const endDate = endOfWeek(new Date(), { weekStartsOn: 1 });
-
-    return isSameDay(start, startDate) && isSameDay(end, endDate);
-  };
 
   const isChangePage = pageSize ? pageSize !== 25 : false || pageIndex ? pageIndex !== 0 : false;
   const isSort = storedFilters?.sorting;
-  const isDateRange =
-    storedFilters?.dateRange &&
-      storedFilters.dateRange[0] instanceof Date &&
-      storedFilters.dateRange[1] instanceof Date
-      ? !(isInThisWeekRange(storedFilters.dateRange[0], storedFilters.dateRange[1]))
-      : false;
-
-
-
+  const isDateRange = !isSameDate || false;
   // Check if any rows are selected
   const hasSelectedRows = Object.keys(table.getState().rowSelection || {}).length > 0;
 
@@ -79,7 +83,6 @@ function DataTableToolbarComponent<TData>({
   const currentPage = table.getState().pagination.pageIndex + 1
 
   const showResetButton = currentPage > 1 || isFiltered || isDateRange || invisibleColumnCount > 0 || isChangePage || isSort?.length > 0 || hasSelectedRows
-
   const handleResetSorting = () => {
     if (setSorting) {
       setSorting([]);
@@ -182,8 +185,6 @@ function DataTableToolbarComponent<TData>({
 
   return (
     <div className="flex flex-wrap items-center justify-end w-full lg:w-auto space-x-2">
-
-
       <div className="flex items-center gap-1">
         {showResetButton && (
           <Button variant="blue" onClick={() => handleReset()} className="h-8 px-2 lg:px-3">

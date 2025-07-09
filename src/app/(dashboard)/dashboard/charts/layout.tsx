@@ -59,7 +59,7 @@ export default function ChartsLayout({
 
     const { pendingDocuments, assignedDocuments, auditDocuments, completedDocuments } = selector((state) => state.documentTable);
     const storedData = selector((state) => state.tableFilters);
-    const filteredPendinCount = filterDocumentsByDateRange(
+    const filteredPendingCount = filterDocumentsByDateRange(
         pendingDocuments?.data,
         (storedData["dashboard/charts/pending"]?.dateRange ?? []).map(date =>
             date
@@ -130,7 +130,7 @@ export default function ChartsLayout({
             value: ChartTab.Pending,
             label: "Pending",
             icon: Clock,
-            count: pendingDocuments?.data?.length > 0 ? filteredPendinCount?.length : chartsCounts?.Pending,
+            count: pendingDocuments?.data?.length > 0 ? filteredPendingCount?.length : chartsCounts?.Pending,
         },
         {
             value: ChartTab.Assigned,

@@ -76,10 +76,10 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
         isDragable: true,
     },
     {
-        accessorKey: "fileSize",
+        accessorKey: "formattedSize",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="File Size" />,
         cell: ({ row }) => {
-            const fileSizeRaw = row.getValue<string>("fileSize");
+            const fileSizeRaw = row.getValue<string>("formattedSize");
             return <div className={cn(false ? "text-red-500 font-semibold" : "", "text-center")}>{fileSizeRaw}</div>;
         },
         enableSorting: true,
@@ -147,15 +147,16 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
         isDragable: true,
     },
     {
-        accessorKey: "fileSize",
+        accessorKey: "formattedSize",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="File Size" />,
         cell: ({ row }) => {
-            const fileSizeRaw = row.getValue<string>("fileSize");
+            const fileSizeRaw = row.getValue<string>("formattedSize");
             return <div className={cn(false ? "font-semibold text-red-500" : "", "text-center")}>{fileSizeRaw}</div>;
         },
         enableSorting: true,
         isDragable: true,
     },
+
     {
         accessorKey: "assignedTo",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Assigned To" />,
@@ -239,10 +240,10 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
         isDragable: true,
     },
     {
-        accessorKey: "fileSize",
+        accessorKey: "formattedSize",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="File Size" />,
         cell: ({ row }) => {
-            const fileSizeRaw = row.getValue<string>("fileSize"); // example: "1.2 MB"
+            const fileSizeRaw = row.getValue<string>("formattedSize"); // example: "1.2 MB"
 
             return <div className={cn(false ? "font-semibold text-red-500" : "", "text-center")}>{fileSizeRaw}</div>;
         },
@@ -332,10 +333,10 @@ export const completedDocumentColumns = (): (ColumnDef<CompletedDocument> & { is
         isDragable: true,
     },
     {
-        accessorKey: "fileSize",
+        accessorKey: "formattedSize",
         header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="File Size" />,
         cell: ({ row }) => {
-            const fileSizeRaw = row.getValue<string>("fileSize");
+            const fileSizeRaw = row.getValue<string>("formattedSize");
             return <div className={cn(false ? "font-semibold text-red-500" : "", "text-center")}>{fileSizeRaw}</div>;
         },
         enableSorting: true,
