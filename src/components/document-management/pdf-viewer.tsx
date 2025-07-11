@@ -1,12 +1,13 @@
-"use client"
+"use client";
 
-import TabsComponent from "@/components/common/CommonTab"
-import { PreventSaveProvider } from "@/components/layout/prevent-save-provider"
-import { Button } from "@/components/ui/button"
-import PdfUI from "@/components/ui/pdfUI"
-import { useRedux } from "@/hooks/use-redux"
-import useToast from "@/hooks/use-toast"
-import { SubmissionFormSchema } from "@/lib/schemas"
+import TabsComponent from "@/components/common/CommonTab";
+import { PreventSaveProvider } from "@/components/layout/prevent-save-provider";
+import { Button } from "@/components/ui/button";
+import PdfUI from "@/components/ui/pdfUI";
+import { useRedux } from "@/hooks/use-redux";
+import useToast from "@/hooks/use-toast";
+import { postDataNoTimeout } from "@/lib/api/api-client";
+import { SubmissionFormSchema } from "@/lib/schemas";
 import {
   completeReviewAuditorWithAPI,
   completeReviewWithAPI,
@@ -17,29 +18,26 @@ import {
   resetFormData,
   resumeReview,
   setActiveDocTab,
+  setRegenerating,
   startReviewAuditorWithApi,
   startReviewWithApi,
   startReviewWithApiData,
   updateElapsedTime,
   updateFormData,
-  setRegenerating
-} from "@/store/slices/documentManagementSlice"
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
-import { AnimatePresence, motion } from "framer-motion"
-import { Loader2, Menu, Play, RotateCcw } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "../ui/sheet"
-import { Tooltip, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
-import AuditorReviewForm from "./auditor-review-form"
-import ImprovedCodeReviewForm from "./code-cart-form"
-import DocumentList from "./document-list"
-import PromptDisplay from "./prompt-display"
-import { postData, postDataNoTimeout } from "@/lib/api/api-client"
+} from "@/store/slices/documentManagementSlice";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { AnimatePresence, motion } from "framer-motion";
+import { Loader2, Menu, Play, RotateCcw, Search } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "../ui/sheet";
+import { Tooltip, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import AuditorReviewForm from "./auditor-review-form";
+import ImprovedCodeReviewForm from "./code-cart-form";
+import DocumentList from "./document-list";
+import PromptDisplay from "./prompt-display";
 
 export default function PdfViewer({
   onReviewComplete,
-  toggleFullScreen,
-  isFullScreenMode = false,
 }: {
   onReviewComplete?: () => void
   isFullScreenMode?: boolean
@@ -48,8 +46,8 @@ export default function PdfViewer({
   // Sheet open state
   const [open, setOpen] = useState(false);
   const { dispatch, selector } = useRedux();
-  const { configuration } = selector(state => state.dashboard)
-  const isPromptVisible = configuration?.find(i => i?.key === "show-analysis")?.value === "True"
+  const { configuration } = selector((state) => state.dashboard);
+  const isPromptVisible = configuration?.find((i) => i?.key === "show-analysis")?.value === "True";
 
   const {
     documents,
@@ -63,26 +61,24 @@ export default function PdfViewer({
     textFileContent,
     textLoadingById,
     regeneratingById,
-    medicalConditionsLoadingById,
-  } = selector((state) => state.documentManagement)
-  const { userType } = selector((state) => state.user)
-  const { success, error } = useToast()
+  } = selector((state) => state.documentManagement);
+  const { userType } = selector((state) => state.user);
+  const { success, error } = useToast();
 
   const selectedDocument = documents
     ?.filter((item: { status: string }) => item?.status !== "completed")
-    .find((doc: { id: string }) => doc.id === selectedDocumentId)
+    .find((doc: { id: string }) => doc.id === selectedDocumentId);
 
+  const isSidebar = selectedDocument?.status === "In Review";
 
-  const isSidebar = selectedDocument?.status === "In Review"
+  const [showControls, setShowControls] = useState(false);
+  const [, setCurrentTime] = useState(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const [showControls, setShowControls] = useState(false)
-  const [, setCurrentTime] = useState(0)
-  const timerRef = useRef<NodeJS.Timeout | null>(null)
-
-  const [showSidebar, setShowSidebar] = useState(false)
+  const [showSidebar, setShowSidebar] = useState(false);
 
   // Get form data for the selected document from Redux store
-  const currentFormData = selectedDocumentId ? allFormData[selectedDocumentId] : null
+  const currentFormData = selectedDocumentId ? allFormData[selectedDocumentId] : null;
 
   // Get code review data for the selected document
   const currentCodeReview = selectedDocumentId
@@ -97,20 +93,19 @@ export default function PdfViewer({
       analystNotes: "",
       auditorNotes: "",
       searchTerm: "",
-    }
-
+    };
 
   const [formErrors, setFormErrors] = useState<{
     codesMissed?: string[]
     codesCorrected?: string[]
     auditRemarks?: string
     rating?: string
-  }>({})
+  }>({});
 
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isStartingReview, setIsStartingReview] = useState(false)
-  const [isCompletingReview, setIsCompletingReview] = useState(false)
-  const [apiLoading, setApiLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isStartingReview, setIsStartingReview] = useState(false);
+  const [isCompletingReview, setIsCompletingReview] = useState(false);
+  const [apiLoading, setApiLoading] = useState(false);
 
   const [displayPdfUrl, setDisplayPdfUrl] = useState<string | null>(null);
 
@@ -118,31 +113,39 @@ export default function PdfViewer({
   const isRegenerating = selectedDocumentId ? regeneratingById[selectedDocumentId] : false;
   const isPdfLoading = selectedDocumentId ? pdfLoadingById[selectedDocumentId] : false;
   const isTextLoading = selectedDocumentId ? textLoadingById[selectedDocumentId] : false;
-  const isMedicalLoading = selectedDocumentId ? medicalConditionsLoadingById[selectedDocumentId] : false;
+
+
+  // Add ref for PromptDisplay to access search function
+  const promptDisplayRef = useRef<{ openSearch: () => void } | null>(null);
 
   const tabs = [
     { value: "document", label: "Document" },
     { value: "prompt", label: "Summary" },
-  ]
-
+  ];
 
   const handleTabChange = (tabId: string) => {
-    dispatch(setActiveDocTab(tabId as "document" | "prompt"))
-  }
+    dispatch(setActiveDocTab(tabId as "document" | "prompt"));
+  };
+
+  const handleSearchClick = () => {
+    if (promptDisplayRef.current) {
+      promptDisplayRef.current.openSearch();
+    }
+  };
 
   useEffect(() => {
     if (selectedDocument) {
-      setShowControls(selectedDocument.status === "In Review")
+      setShowControls(selectedDocument.status === "In Review");
       if (selectedDocument.startTime && selectedDocument.status === "In Review") {
-        const elapsed = Math.floor((Date.now() - selectedDocument.startTime) / 1000) + (selectedDocument.timeSpent || 0)
-        setCurrentTime(elapsed)
+        const elapsed = Math.floor((Date.now() - selectedDocument.startTime) / 1000) + (selectedDocument.timeSpent || 0);
+        setCurrentTime(elapsed);
       } else if (selectedDocument.timeSpent) {
-        setCurrentTime(selectedDocument.timeSpent)
+        setCurrentTime(selectedDocument.timeSpent);
       } else {
-        setCurrentTime(0)
+        setCurrentTime(0);
       }
     }
-  }, [selectedDocumentId, selectedDocument])
+  }, [selectedDocumentId, selectedDocument]);
 
   // Initialize form data for the selected document if it doesn't exist
   useEffect(() => {
@@ -151,51 +154,50 @@ export default function PdfViewer({
         updateFormData({
           documentId: selectedDocumentId,
           data: {
-            codesMissed: [
-              { label: "N18.6", value: "N18.6" }
-            ],
+            codesMissed: [{ label: "N18.6", value: "N18.6" }],
             codesCorrected: [
               { label: "N18.6", value: "N18.6" },
-              { label: "Z99.2", value: "Z99.2" }
+              { label: "Z99.2", value: "Z99.2" },
             ],
-            auditRemarks: "Added N18.6 and Z99.2 as per documentation. Patient undergoing hemodialysis 3 times weekly for ESRD. Documentation confirms CKD stage 5 with dialysis dependency",
-            rating: 90
+            auditRemarks:
+              "Added N18.6 and Z99.2 as per documentation. Patient undergoing hemodialysis 3 times weekly for ESRD. Documentation confirms CKD stage 5 with dialysis dependency",
+            rating: 90,
           },
         }),
-      )
+      );
     }
-  }, [selectedDocumentId, allFormData, dispatch, userType])
+  }, [selectedDocumentId, allFormData, dispatch, userType]);
 
   useEffect(() => {
     if (isRunning && selectedDocument?.status === "In Review" && !showSidebar) {
       timerRef.current = setInterval(() => {
         if (selectedDocument.startTime) {
           const elapsed =
-            Math.floor((Date.now() - selectedDocument.startTime) / 1000) + (selectedDocument.timeSpent || 0)
-          setCurrentTime(elapsed)
-          dispatch(updateElapsedTime())
+            Math.floor((Date.now() - selectedDocument.startTime) / 1000) + (selectedDocument.timeSpent || 0);
+          setCurrentTime(elapsed);
+          dispatch(updateElapsedTime());
         }
-      }, 1000)
+      }, 1000);
     } else {
       if (timerRef.current) {
-        clearInterval(timerRef.current)
-        timerRef.current = null
+        clearInterval(timerRef.current);
+        timerRef.current = null;
       }
     }
 
     return () => {
       if (timerRef.current) {
-        clearInterval(timerRef.current)
+        clearInterval(timerRef.current);
       }
-    }
-  }, [isRunning, selectedDocument, dispatch, showSidebar])
+    };
+  }, [isRunning, selectedDocument, dispatch, showSidebar]);
 
   useEffect(() => {
     if (showSidebar && isRunning) {
       // Pause the timer when sidebar opens
       if (timerRef.current) {
-        clearInterval(timerRef.current)
-        timerRef.current = null
+        clearInterval(timerRef.current);
+        timerRef.current = null;
       }
     } else if (!showSidebar && selectedDocument?.status === "In Review") {
       // Resume the timer when sidebar closes if document is still in progress
@@ -203,24 +205,24 @@ export default function PdfViewer({
         timerRef.current = setInterval(() => {
           if (selectedDocument.startTime) {
             const elapsed =
-              Math.floor((Date.now() - selectedDocument.startTime) / 1000) + (selectedDocument.timeSpent || 0)
-            setCurrentTime(elapsed)
-            dispatch(updateElapsedTime())
+              Math.floor((Date.now() - selectedDocument.startTime) / 1000) + (selectedDocument.timeSpent || 0);
+            setCurrentTime(elapsed);
+            dispatch(updateElapsedTime());
           }
-        }, 1000)
+        }, 1000);
       }
     }
-  }, [showSidebar, isRunning, selectedDocument, dispatch])
+  }, [showSidebar, isRunning, selectedDocument, dispatch]);
 
   useEffect(() => {
     if (pdfFileBase64) {
-      const byteCharacters = atob(pdfFileBase64.split(',')[1]);
+      const byteCharacters = atob(pdfFileBase64.split(",")[1]);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
       const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      const blob = new Blob([byteArray], { type: "application/pdf" });
 
       const url = URL.createObjectURL(blob);
       setDisplayPdfUrl(url);
@@ -241,7 +243,11 @@ export default function PdfViewer({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <SheetTrigger asChild>
-                      <Button variant="blue" size="icon" className="shadow-lg !rounded-none w-8 h-8 md:w-[35px] md:h-[35px] flex items-center justify-center">
+                      <Button
+                        variant="blue"
+                        size="icon"
+                        className="shadow-lg !rounded-none w-8 h-8 md:w-[35px] md:h-[35px] flex items-center justify-center"
+                      >
                         <Menu className="w-8 h-8" />
                       </Button>
                     </SheetTrigger>
@@ -260,7 +266,11 @@ export default function PdfViewer({
                   <SheetTitle>Document List</SheetTitle>
                 </VisuallyHidden>
                 <div className="h-full flex flex-col">
-                  <DocumentList onClose={() => { setOpen(false) }} />
+                  <DocumentList
+                    onClose={() => {
+                      setOpen(false);
+                    }}
+                  />
                 </div>
               </SheetContent>
             </Sheet>
@@ -286,95 +296,93 @@ export default function PdfViewer({
             {!(documents?.length > 0) ? "No documents available!" : "Select a document to review"}
           </p>
           <p className="text-gray-400 text-sm">
-            {!(documents?.length > 0)
-              ? ""
-              : "Choose from the document list to get started"}
+            {!(documents?.length > 0) ? "" : "Choose from the document list to get started"}
           </p>
         </motion.div>
       </div>
-    )
+    );
   }
 
   const handleStart = async () => {
-    setIsStartingReview(true)
-    setApiLoading(true)
+    setIsStartingReview(true);
+    setApiLoading(true);
     if (userType === "Auditor") {
       try {
-        const resultAction = await dispatch(startReviewAuditorWithApi(selectedDocument))
+        const resultAction = await dispatch(startReviewAuditorWithApi(selectedDocument));
         if (startReviewAuditorWithApi.fulfilled.match(resultAction)) {
-          dispatch(fetchDocuments())
-          setShowControls(true)
+          dispatch(fetchDocuments());
+          setShowControls(true);
         }
       } catch (error) {
-        console.error("Error starting review:", error)
+        console.error("Error starting review:", error);
       } finally {
-        setIsStartingReview(false)
-        setApiLoading(false)
+        setIsStartingReview(false);
+        setApiLoading(false);
       }
     } else {
       try {
-        const resultAction = await dispatch(startReviewWithApi(selectedDocument))
+        const resultAction = await dispatch(startReviewWithApi(selectedDocument));
         if (startReviewWithApi.fulfilled.match(resultAction)) {
-          dispatch(fetchDocuments())
-          setShowControls(true)
+          dispatch(fetchDocuments());
+          setShowControls(true);
         }
       } catch (error) {
-        console.error("Error starting review:", error)
+        console.error("Error starting review:", error);
       } finally {
-        setIsStartingReview(false)
-        setApiLoading(false)
+        setIsStartingReview(false);
+        setApiLoading(false);
       }
     }
-  }
+  };
 
   const handleResume = () => {
-    setIsStartingReview(true)
+    setIsStartingReview(true);
     try {
-      dispatch(resumeReview(selectedDocument.id))
-      setShowControls(true)
+      dispatch(resumeReview(selectedDocument.id));
+      setShowControls(true);
     } catch (error) {
-      console.error("Error resuming review:", error)
+      console.error("Error resuming review:", error);
     } finally {
-      setIsStartingReview(false)
+      setIsStartingReview(false);
     }
-  }
+  };
 
   const handleComplete = () => {
     if (userType === "Auditor") {
-      setShowSidebar(true)
+      setShowSidebar(true);
     } else {
-      setIsCompletingReview(true)
-      setApiLoading(true)
-      submitChartApiCall()
+      setIsCompletingReview(true);
+      setApiLoading(true);
+      submitChartApiCall();
     }
     if (onReviewComplete) {
-      onReviewComplete()
+      onReviewComplete();
     }
-  }
+  };
 
   const validateForm = () => {
-    if (!currentFormData) return false
+    if (!currentFormData) return false;
 
-    const result = SubmissionFormSchema.safeParse(currentFormData)
+    const result = SubmissionFormSchema.safeParse(currentFormData);
 
     if (!result.success) {
-      const formattedErrors = result.error.format()
+      const formattedErrors = result.error.format();
       setFormErrors({
         codesMissed: formattedErrors.codesMissed?._errors,
         codesCorrected: formattedErrors.codesCorrected?._errors,
         auditRemarks: formattedErrors.auditRemarks?._errors?.[0],
         rating: formattedErrors.rating?._errors?.[0],
-      })
-      return false
+      });
+      return false;
     }
 
-    setFormErrors({})
-    return true
-  }
+    setFormErrors({});
+    return true;
+  };
 
   const submitChartApiCall = async () => {
-    setIsCompletingReview(true)
-    setApiLoading(true)
+    setIsCompletingReview(true);
+    setApiLoading(true);
     try {
       // Include code review data in the API call
       const resultAction = await dispatch(
@@ -382,86 +390,85 @@ export default function PdfViewer({
           ...selectedDocument,
           reviewData: currentCodeReview,
           bodyData: {
-            mc_ids: currentCodeReview?.items?.filter(i => i.status === "rejected")?.map(i => +i.id),
-            notes: currentCodeReview?.analystNotes
-          }
+            mc_ids: currentCodeReview?.items?.filter((i) => i.status === "rejected")?.map((i) => +i.id),
+            notes: currentCodeReview?.analystNotes,
+          },
         }),
-      )
+      );
       if (completeReviewWithAPI.fulfilled.match(resultAction)) {
-        dispatch(fetchDocuments())
-        setShowControls(false)
+        dispatch(fetchDocuments());
+        setShowControls(false);
         if (selectedDocumentId) {
-          dispatch(resetCodeReview(selectedDocumentId))
+          dispatch(resetCodeReview(selectedDocumentId));
         }
         if (onReviewComplete) {
-          onReviewComplete()
+          onReviewComplete();
         }
       }
     } catch (error) {
-      console.error("Error completing review:", error)
+      console.error("Error completing review:", error);
     } finally {
-      setIsCompletingReview(false)
-      setApiLoading(false)
+      setIsCompletingReview(false);
+      setApiLoading(false);
     }
-  }
+  };
 
   const submitChartAuditorApiCall = async () => {
-    setIsCompletingReview(true)
-    setApiLoading(true)
+    setIsCompletingReview(true);
+    setApiLoading(true);
 
     const bodyData = {
       codes_corrected: formData.codesCorrected?.map((item) => item.value) || [],
       codes_missed: formData.codesMissed?.map((item) => item.value) || [],
       rating: formData.rating || "0",
       audit_remarks: formData.auditRemarks || "",
-      mc_ids: currentCodeReview?.items?.filter(i => i.status === "rejected")?.map(i => +i.id),
-      notes: currentCodeReview?.auditorNotes
+      mc_ids: currentCodeReview?.items?.filter((i) => i.status === "rejected")?.map((i) => +i.id),
+      notes: currentCodeReview?.auditorNotes,
     } as {
       codes_corrected: string[]
       codes_missed: string[]
       rating: number | string
       audit_remarks: string
-    }
+    };
 
     try {
-      const resultAction = await dispatch(completeReviewAuditorWithAPI({ doc: selectedDocument, body: bodyData }))
+      const resultAction = await dispatch(completeReviewAuditorWithAPI({ doc: selectedDocument, body: bodyData }));
       if (completeReviewAuditorWithAPI.fulfilled.match(resultAction)) {
-        dispatch(fetchDocuments())
-        setShowControls(false)
+        dispatch(fetchDocuments());
+        setShowControls(false);
         if (onReviewComplete) {
-          onReviewComplete()
+          onReviewComplete();
         }
       }
     } catch (error) {
-      console.error("Error completing review:", error)
+      console.error("Error completing review:", error);
     } finally {
-      setIsSubmitting(false)
-      setIsCompletingReview(false)
-      setApiLoading(false)
+      setIsSubmitting(false);
+      setIsCompletingReview(false);
+      setApiLoading(false);
     }
-  }
+  };
 
   const submitReview = () => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     if (!validateForm()) {
-      setIsSubmitting(false)
-      return
+      setIsSubmitting(false);
+      return;
     }
 
-    submitChartAuditorApiCall()
+    submitChartAuditorApiCall();
 
     if (selectedDocumentId) {
-      dispatch(resetFormData(selectedDocumentId))
+      dispatch(resetFormData(selectedDocumentId));
     }
 
-    setShowSidebar(false)
-
+    setShowSidebar(false);
 
     if (onReviewComplete) {
-      onReviewComplete()
+      onReviewComplete();
     }
-  }
+  };
 
   // Create a default empty form data object if currentFormData is null
   const formData = currentFormData || {
@@ -469,25 +476,30 @@ export default function PdfViewer({
     codesCorrected: [],
     auditRemarks: "",
     rating: 0,
-  }
-
+  };
 
   const handleRegenerate = async () => {
     if (!selectedDocumentId) return;
     dispatch(setRegenerating({ docId: selectedDocumentId, value: true }));
     const bodyData = {
-      "chart_id": +(selectedDocument.id)
+      chart_id: +selectedDocument.id,
     };
     try {
-      const apiData = await postDataNoTimeout<{ status: "Success" | "Not Found" | "Error", message: string }>(
+      const apiData = await postDataNoTimeout<{ status: "Success" | "Not Found" | "Error"; message: string }>(
         "regenerate_charts/",
-        bodyData
+        bodyData,
       );
 
       if (apiData?.data?.status === "Success") {
         dispatch(setRegenerating({ docId: selectedDocumentId, value: false }));
-        dispatch(startReviewWithApiData({ id: selectedDocument.id, type: userType === "Auditor" ? "Auditor" : "Analyst" }));
-        selectedDocument.text_file_path && selectedDocument.text_file_path?.length > 0 && dispatch(fetchTextFile(selectedDocument.text_file_path));
+        dispatch(
+          startReviewWithApiData({ id: selectedDocument.id, type: userType === "Auditor" ? "Auditor" : "Analyst" }),
+        );
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+        selectedDocument.text_file_path &&
+          selectedDocument.text_file_path?.length > 0 &&
+          dispatch(fetchTextFile(selectedDocument.text_file_path));
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         selectedDocument.url && selectedDocument.url?.length > 0 && dispatch(fetchPdfFile(selectedDocument.url));
         success({ message: "Charts successfully regenerated" });
         // success({ message: apiData?.data.message });
@@ -495,6 +507,7 @@ export default function PdfViewer({
         dispatch(setRegenerating({ docId: selectedDocumentId, value: false }));
         error({ message: apiData?.data.message });
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       dispatch(setRegenerating({ docId: selectedDocumentId, value: false }));
       error({ message: err?.message || "Something went wrong" });
@@ -502,40 +515,52 @@ export default function PdfViewer({
   };
   return (
     <PreventSaveProvider>
-      <div className={`h-full flex flex-col bg-gray-50 overflow-hidden
-      `}>
-        {!showControls && selectedDocument.status !== "completed" && <div className="absolute z-20 top-0 left-2">
-          <div className=" top-2 left-0 z-50 md:top-[47px] md:left-[3.2rem]">
-            <Sheet open={open} onOpenChange={setOpen}>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <SheetTrigger asChild>
-                      <Button variant="blue" size="icon" className="shadow-lg !rounded-none w-8 h-8 md:w-[35px] md:h-[35px] flex items-center justify-center">
-                        <Menu className="w-8 h-8" />
-                      </Button>
-                    </SheetTrigger>
-                  </TooltipTrigger>
-                  {/*   <TooltipContent side="right" align="center">
+      <div
+        className={`h-full flex flex-col bg-gray-50 overflow-hidden
+      `}
+      >
+        {!showControls && selectedDocument.status !== "completed" && (
+          <div className="absolute z-20 top-0 left-2">
+            <div className=" top-2 left-0 z-50 md:top-[47px] md:left-[3.2rem]">
+              <Sheet open={open} onOpenChange={setOpen}>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SheetTrigger asChild>
+                        <Button
+                          variant="blue"
+                          size="icon"
+                          className="shadow-lg !rounded-none w-8 h-8 md:w-[35px] md:h-[35px] flex items-center justify-center"
+                        >
+                          <Menu className="w-8 h-8" />
+                        </Button>
+                      </SheetTrigger>
+                    </TooltipTrigger>
+                    {/*   <TooltipContent side="right" align="center">
                   Open Document List
                 </TooltipContent> */}
-                </Tooltip>
-              </TooltipProvider>
-            </Sheet>
+                  </Tooltip>
+                </TooltipProvider>
+              </Sheet>
+            </div>
+            {open && (
+              <Sheet open={open} onOpenChange={setOpen}>
+                <SheetContent side="left" className="p-0 max-w-xs w-[22rem]">
+                  <VisuallyHidden>
+                    <SheetTitle>Document List</SheetTitle>
+                  </VisuallyHidden>
+                  <div className="h-full flex flex-col">
+                    <DocumentList
+                      onClose={() => {
+                        setOpen(false);
+                      }}
+                    />
+                  </div>
+                </SheetContent>
+              </Sheet>
+            )}
           </div>
-          {open && (
-            <Sheet open={open} onOpenChange={setOpen}>
-              <SheetContent side="left" className="p-0 max-w-xs w-[22rem]">
-                <VisuallyHidden>
-                  <SheetTitle>Document List</SheetTitle>
-                </VisuallyHidden>
-                <div className="h-full flex flex-col">
-                  <DocumentList onClose={() => { setOpen(false) }} />
-                </div>
-              </SheetContent>
-            </Sheet>
-          )}
-        </div>}
+        )}
         {/* Enhanced Fullscreen Toggle */}
         <div className="flex-1 relative flex flex-col md:flex-row">
           <motion.div
@@ -552,17 +577,17 @@ export default function PdfViewer({
                         className="rounded-full h-12 w-16"
                         onClick={() => {
                           if (userType === "Auditor") {
-                            setShowSidebar(true)
+                            setShowSidebar(true);
                             if (selectedDocument.status === "on_hold") {
-                              handleResume()
+                              handleResume();
                             } else {
-                              handleStart()
+                              handleStart();
                             }
                           } else {
                             if (selectedDocument.status === "on_hold") {
-                              handleResume()
+                              handleResume();
                             } else {
-                              handleStart()
+                              handleStart();
                             }
                           }
                         }}
@@ -580,7 +605,11 @@ export default function PdfViewer({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <SheetTrigger asChild>
-                                  <Button variant="blue" size="icon" className="shadow-lg !rounded-none h-full md:w-[35px] md:h-[35px] flex items-center justify-center">
+                                  <Button
+                                    variant="blue"
+                                    size="icon"
+                                    className="shadow-lg !rounded-none h-full md:w-[35px] md:h-[35px] flex items-center justify-center"
+                                  >
                                     <Menu className="w-8 h-8" />
                                   </Button>
                                 </SheetTrigger>
@@ -596,16 +625,33 @@ export default function PdfViewer({
                           currentTab={currentTab}
                           handleTabChange={handleTabChange}
                         />
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={handleRegenerate}
-                          className="w-full max-w-[140px] flex gap-0 px-3 h-[35px] sm:w-auto !rounded-none"
-                          disabled={isRegenerating || isPdfLoading || isTextLoading}
-                        >
-                          {isRegenerating ? <Loader2 className="mr-2 animate-spin" /> : <RotateCcw className="mr-2" />}
-                          {isRegenerating ? "Regenerating..." : "Regenerate"}
-                        </Button>
+                        <div className="flex gap-1.5">
+                          {currentTab === "prompt" && (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={handleSearchClick}
+                              className="w-full max-w-[140px] flex gap-0 px-3 h-[35px] sm:w-auto !rounded-none"
+                            >
+                              <Search className="mr-2" />
+                              Search
+                            </Button>
+                          )}
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={handleRegenerate}
+                            className="w-full max-w-[140px] flex gap-0 px-3 h-[35px] sm:w-auto !rounded-none"
+                            disabled={isRegenerating || isPdfLoading || isTextLoading}
+                          >
+                            {isRegenerating ? (
+                              <Loader2 className="mr-2 animate-spin" />
+                            ) : (
+                              <RotateCcw className="mr-2" />
+                            )}
+                            {isRegenerating ? "Regenerating..." : "Regenerate"}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -667,7 +713,6 @@ export default function PdfViewer({
                             )}
                           </PreventSaveProvider>
                         </>
-
                       ))}
                     {currentTab === "prompt" && selectedDocument?.text_file_path && (
                       <div className="px-2 pt-2 bg-white h-full rounded-md">
@@ -695,35 +740,40 @@ export default function PdfViewer({
                           </motion.div>
                         ) : (
                           <PreventSaveProvider>
-                            {textFileContent ? <PromptDisplay content={textFileContent || "No summery available."} /> : <div className="h-full w-full flex justify-center items-center bg-gradient-to-br from-gray-50 to-gray-100">
-                              <motion.div
-                                className="text-center space-y-4"
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ duration: 0.5 }}
-                              >
-                                <div className="w-16 h-16 mx-auto bg-gradient-to-br from-red-100 to-orange-100 rounded-full flex items-center justify-center">
-                                  <svg
-                                    className="w-8 h-8 text-gray-400"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={1.5}
-                                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"
-                                    />
-                                  </svg>
-                                </div>
-                                <p className="text-gray-500 font-medium">No summery available.</p>
-                              </motion.div>
-                            </div>}
-
+                            {textFileContent ? (
+                              <PromptDisplay
+                                ref={promptDisplayRef}
+                                content={textFileContent || "No summery available."}
+                              />
+                            ) : (
+                              <div className="h-full w-full flex justify-center items-center bg-gradient-to-br from-gray-50 to-gray-100">
+                                <motion.div
+                                  className="text-center space-y-4"
+                                  initial={{ opacity: 0, scale: 0.9 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  transition={{ duration: 0.5 }}
+                                >
+                                  <div className="w-16 h-16 mx-auto bg-gradient-to-br from-red-100 to-orange-100 rounded-full flex items-center justify-center">
+                                    <svg
+                                      className="w-8 h-8 text-gray-400"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={1.5}
+                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z"
+                                      />
+                                    </svg>
+                                  </div>
+                                  <p className="text-gray-500 font-medium">No summery available.</p>
+                                </motion.div>
+                              </div>
+                            )}
                           </PreventSaveProvider>
                         )}
-
                       </div>
                     )}
                   </div>
@@ -761,7 +811,11 @@ export default function PdfViewer({
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <SheetTrigger asChild>
-                                    <Button variant="blue" size="icon" className="shadow-lg !rounded-none h-full md:w-[35px] md:h-[35px] flex items-center justify-center">
+                                    <Button
+                                      variant="blue"
+                                      size="icon"
+                                      className="shadow-lg !rounded-none h-full md:w-[35px] md:h-[35px] flex items-center justify-center"
+                                    >
                                       <Menu className="w-8 h-8" />
                                     </Button>
                                   </SheetTrigger>
@@ -784,7 +838,6 @@ export default function PdfViewer({
                       <div className="flex-1 overflow-y-auto">
                         <PdfUI url={displayPdfUrl as string} />
                       </div>
-
                     </div>
                   ) : (
                     <div className="h-full w-full flex justify-center items-center bg-gradient-to-br from-gray-50 to-gray-100">
@@ -795,12 +848,7 @@ export default function PdfViewer({
                         transition={{ duration: 0.5 }}
                       >
                         <div className="w-16 h-16 mx-auto bg-gradient-to-br from-red-100 to-orange-100 rounded-full flex items-center justify-center">
-                          <svg
-                            className="w-8 h-8 text-gray-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
+                          <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                               strokeLinecap="round"
                               strokeLinejoin="round"
@@ -843,17 +891,17 @@ export default function PdfViewer({
                         className="rounded-full h-12 w-16"
                         onClick={() => {
                           if (userType === "Auditor") {
-                            setShowSidebar(true)
+                            setShowSidebar(true);
                             if (selectedDocument.status === "on_hold") {
-                              handleResume()
+                              handleResume();
                             } else {
-                              handleStart()
+                              handleStart();
                             }
                           } else {
                             if (selectedDocument.status === "on_hold") {
-                              handleResume()
+                              handleResume();
                             } else {
-                              handleStart()
+                              handleStart();
                             }
                           }
                         }}
@@ -932,12 +980,16 @@ export default function PdfViewer({
                 <SheetTitle>Document List</SheetTitle>
               </VisuallyHidden>
               <div className="h-full flex flex-col">
-                <DocumentList onClose={() => { setOpen(false) }} />
+                <DocumentList
+                  onClose={() => {
+                    setOpen(false);
+                  }}
+                />
               </div>
             </SheetContent>
           </Sheet>
         )}
       </div>
     </PreventSaveProvider>
-  )
+  );
 }

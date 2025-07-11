@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import ProgressiveLoader from "@/components/common/ProgressiveLoader"
-import { SidebarProvider } from "@/components/ui/sidebar"
-import ReduxProvider from "@/store/ReduxProvider"
-import { useSelectedLayoutSegments } from "next/navigation"
+import ProgressiveLoader from "@/components/common/ProgressiveLoader";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import ReduxProvider from "@/store/ReduxProvider";
+import { useSelectedLayoutSegments } from "next/navigation";
 
 export default function LoginSkeletonLoader() {
-    const segments = useSelectedLayoutSegments()
-    const fullPath = '/' + segments.join('/')
+    const segments = useSelectedLayoutSegments();
+    const fullPath = `/${segments.join("/")}`;
 
     return (
         fullPath === "/" ? <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -47,7 +47,7 @@ export default function LoginSkeletonLoader() {
         </div> : <ReduxProvider>
             <SidebarProvider>
                 <div className="flex h-screen w-full">
-                    <div className={`absolute z-[111111] `}
+                    <div className={"absolute z-[111111] "}
                         style={{
                             height: "100%",
                             width: "100%",
@@ -60,5 +60,5 @@ export default function LoginSkeletonLoader() {
                 </div>
             </SidebarProvider>
         </ReduxProvider >
-    )
+    );
 }

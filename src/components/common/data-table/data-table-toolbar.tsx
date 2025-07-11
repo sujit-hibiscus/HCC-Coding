@@ -11,7 +11,7 @@ import { autoAssign } from "@/store/slices/documentManagementSlice";
 import { fetchAssignedDocuments, fetchAuditDocuments, fetchPendingDocuments } from "@/store/slices/table-document-slice";
 import { setTabPagination } from "@/store/slices/tableFiltersSlice";
 import type { SortingState, Table } from "@tanstack/react-table";
-import { format } from 'date-fns';
+import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { LoaderCircle, RefreshCw, Sparkles, X } from "lucide-react";
 import { CalendarDateRangePicker } from "./CalendarDateRangePicker";
@@ -80,9 +80,9 @@ function DataTableToolbarComponent<TData>({
   const hasSelectedRows = Object.keys(table.getState().rowSelection || {}).length > 0;
 
   const invisibleColumnCount = table.getAllColumns().filter((column) => !column.getIsVisible()).length;
-  const currentPage = table.getState().pagination.pageIndex + 1
+  const currentPage = table.getState().pagination.pageIndex + 1;
 
-  const showResetButton = currentPage > 1 || isFiltered || isDateRange || invisibleColumnCount > 0 || isChangePage || isSort?.length > 0 || hasSelectedRows
+  const showResetButton = currentPage > 1 || isFiltered || isDateRange || invisibleColumnCount > 0 || isChangePage || isSort?.length > 0 || hasSelectedRows;
   const handleResetSorting = () => {
     if (setSorting) {
       setSorting([]);

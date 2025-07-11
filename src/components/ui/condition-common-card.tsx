@@ -1,9 +1,7 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { ChevronDown, ChevronUp } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 
@@ -29,7 +27,6 @@ interface ConditionCommonCardProps {
 export const ConditionCommonCard: React.FC<ConditionCommonCardProps> = ({
     status,
     expanded,
-    onExpand,
     icdCode,
     hccV28Code,
     hccCode, code_status,
@@ -145,16 +142,6 @@ export const ConditionCommonCard: React.FC<ConditionCommonCardProps> = ({
                                                 </div>
                                             </div>
                                         </div>}
-                                        {evidence.length > 300 && onExpand && (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={onExpand}
-                                                className="h-6 px-2 text-xs shrink-0"
-                                            >
-                                                {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                                            </Button>
-                                        )}
                                     </div>
                                 </div>
                                 {(query && query !== "NA") && (

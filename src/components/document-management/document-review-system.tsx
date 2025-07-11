@@ -9,7 +9,8 @@ export default function DocumentReviewSystem() {
   const { selector, dispatch } = useRedux();
   const { selectedDocumentId, documents, codeReview: allCodeReview,
   } = selector((state) => state.documentManagement);
-  const { userType } = selector((state) => state.user)
+  const { userType } = selector((state) => state.user);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const selectedDocument = documents?.find((doc: { id: any; }) => doc.id === selectedDocumentId);
 
   const currentCodeReview = selectedDocumentId
@@ -24,16 +25,17 @@ export default function DocumentReviewSystem() {
       analystNotes: "",
       auditorNotes: "",
       searchTerm: "",
-    }
+    };
 
   useEffect(() => {
     if (selectedDocument?.status === "In Review") {
       const hasNonPending = documents.some(item => item.status !== "pending");
-      const hasNoDataAvailable = currentCodeReview?.items
+      const hasNoDataAvailable = currentCodeReview?.items;
       if (hasNonPending && hasNoDataAvailable?.length === 0) {
-        dispatch(startReviewWithApiData({ id: selectedDocument.id, type: userType === "Auditor" ? "Auditor" : "Analyst" }))
+        dispatch(startReviewWithApiData({ id: selectedDocument.id, type: userType === "Auditor" ? "Auditor" : "Analyst" }));
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDocument]);
 
 

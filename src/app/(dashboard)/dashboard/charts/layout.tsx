@@ -9,10 +9,8 @@ import { updateTab } from "@/store/slices/DashboardSlice";
 
 import { useApiCall } from "@/components/common/ApiCall";
 import ProgressiveLoader from "@/components/common/ProgressiveLoader";
-import { ChartTab } from "@/lib/types/chartsTypes";
-import { format, isWithinInterval, parse, parseISO, startOfDay } from "date-fns";
+import { useChartTabs } from "@/hooks/use-tabs";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle2, Clock, FileEdit } from "lucide-react";
 import { redirect, usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -29,129 +27,20 @@ export default function ChartsLayout({
     children: React.ReactNode
 }) {
     const pathname = usePathname();
-    const filterDocumentsByDateRange = (docs: any[], range: [string, string]) => {
-        return docs.filter(d => {
-            if (d.received) {
-                const parsedDate = parse(d.received, 'MM-dd-yyyy', new Date());
-                return isWithinInterval(startOfDay(parsedDate), {
-                    start: startOfDay(new Date(range[0])),
-                    end: startOfDay(new Date(range[1])),
-                });
-            }
-            return false;
-        });
-    };
-
     const router = useRouter();
     const { selector, dispatch } = useRedux();
     const [currentTab, setCurrentTab] = useState(pathname.split("/").pop() || "pending");
     const { tabs: storedTabs = [] } = selector((state) => state.dashboard);
-    const { userType = "", appointmentCounts } = selector((state) => state.user);
+    const { userType = "" } = selector((state) => state.user);
 
     if (!(userType?.toLowerCase()?.includes("admin"))) {
         redirect("/unauthorized");
     }
 
+    // Use the new custom hook for chart tabs
+    const { tabs, tabCountLoading } = useChartTabs();
 
-    const chartsCounts = appointmentCounts?.data?.charts;
-    const tabCountLoading = appointmentCounts?.status;
     const { getChartApi } = useApiCall();
-
-    const { pendingDocuments, assignedDocuments, auditDocuments, completedDocuments } = selector((state) => state.documentTable);
-    const storedData = selector((state) => state.tableFilters);
-    const filteredPendingCount = filterDocumentsByDateRange(
-        pendingDocuments?.data,
-        (storedData["dashboard/charts/pending"]?.dateRange ?? []).map(date =>
-            date
-                ? format(
-                    typeof date === "string"
-                        ? parseISO(date)
-                        : date instanceof Date
-                            ? date
-                            : new Date(date),
-                    'yyyy-MM-dd'
-                )
-                : ""
-        ) as [string, string]
-    )
-
-
-
-
-    const filteredAssignedCount = filterDocumentsByDateRange(
-        assignedDocuments?.data,
-        (storedData["dashboard/charts/assigned"]?.dateRange ?? []).map(date =>
-            date
-                ? format(
-                    typeof date === "string"
-                        ? parseISO(date)
-                        : date instanceof Date
-                            ? date
-                            : new Date(date),
-                    'yyyy-MM-dd'
-                )
-                : ""
-        ) as [string, string]
-    )
-    const filteredAuditCount = filterDocumentsByDateRange(
-        auditDocuments?.data,
-        (storedData["dashboard/charts/audit"]?.dateRange ?? []).map(date =>
-            date
-                ? format(
-                    typeof date === "string"
-                        ? parseISO(date)
-                        : date instanceof Date
-                            ? date
-                            : new Date(date),
-                    'yyyy-MM-dd'
-                )
-                : ""
-        ) as [string, string]
-    )
-    const filteredCompletedCount = filterDocumentsByDateRange(
-        completedDocuments?.data,
-        (storedData["dashboard/charts/completed"]?.dateRange ?? []).map(date =>
-            date
-                ? format(
-                    typeof date === "string"
-                        ? parseISO(date)
-                        : date instanceof Date
-                            ? date
-                            : new Date(date),
-                    'yyyy-MM-dd'
-                )
-                : ""
-        ) as [string, string]
-    )
-
-    // const bodyData = [EndDateFilter, StartDateFilter]
-    const tabs = [
-        {
-            value: ChartTab.Pending,
-            label: "Pending",
-            icon: Clock,
-            count: pendingDocuments?.data?.length > 0 ? filteredPendingCount?.length : chartsCounts?.Pending,
-        },
-        {
-            value: ChartTab.Assigned,
-            label: "Assigned",
-            icon: FileEdit,
-            count: assignedDocuments?.data?.length > 0 ? filteredAssignedCount?.length : chartsCounts?.Assigned,
-        },
-        {
-            value: ChartTab.Audit,
-            label: "Audit",
-            icon: CheckCircle2,
-            count: auditDocuments?.data?.length > 0 ? filteredAuditCount?.length : chartsCounts?.Audit,
-        },
-        {
-            value: ChartTab.Completed,
-            label: "Completed",
-            icon: CheckCircle2,
-            count: completedDocuments?.data?.length > 0 ? filteredCompletedCount?.length : chartsCounts?.Completed,
-        },
-    ];
-
     const [isLoading, setIsLoading] = useState(false);
     const [currentPath, setCurrentPath] = useState(pathname);
 
@@ -159,10 +48,7 @@ export default function ChartsLayout({
         if (pathname !== currentPath) {
             setIsLoading(true);
             setCurrentPath(pathname);
-
-            // Use requestAnimationFrame for smoother transitions
             requestAnimationFrame(() => {
-                // Simulate minimum loading time for better UX
                 setTimeout(() => {
                     requestAnimationFrame(() => {
                         setIsLoading(false);
@@ -179,20 +65,15 @@ export default function ChartsLayout({
     const handleTabChange = (value: string) => {
         setCurrentTab(value);
         const targetHref = `/dashboard/charts/${value}`;
-
         const targetTab = (storedTabs as Tab[])?.map((item) => (item?.active ? { ...item, href: targetHref } : item));
-
         setTimeout(() => {
             getChartApi(value as "pending" | "assigned" | "audit" | "completed");
-
         });
-
         dispatch(updateTab(targetTab));
         router.push(targetHref);
     };
 
-    const storedLoader = selector(state => state.dashboard.isPageLoading)
-
+    const storedLoader = selector(state => state.dashboard.isPageLoading);
 
     return (
         <div className="relative h-full ">
@@ -210,8 +91,6 @@ export default function ChartsLayout({
                             </div>
                         )}
                     </div>
-
-
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={currentTab}

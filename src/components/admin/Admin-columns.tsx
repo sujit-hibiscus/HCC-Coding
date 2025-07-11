@@ -13,24 +13,20 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { StatusBadge } from "./StatusBadge";
 import { StatusFilter } from "./StatusHeader";
 import { cn } from "@/lib/utils";
+import { NumFilter, stringFilter } from "@/types/tableFilters";
 
 const ASSIGNED_STATUSES = {
     PENDING: DOCUMENT_STATUS.PENDING,
     In_Review: DOCUMENT_STATUS.In_Review,
-    // ON_HOLD: DOCUMENT_STATUS.ON_HOLD,
 };
 
 const AUDIT_STATUSES = {
-    // PENDING: DOCUMENT_STATUS.PENDING,
-    // IN_PROGRESS: DOCUMENT_STATUS.In_Review,
     ON_HOLD: DOCUMENT_STATUS.ON_HOLD,
     COMPLETED: DOCUMENT_STATUS.COMPLETED,
-    // CLOSED: DOCUMENT_STATUS.ERROR,
 };
 
 // Pending Documents Columns
 export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDragable?: boolean })[] => [
-    // export const pendingDocumentColumns = (): ColumnDef<PendingDocument>[] => [
     {
         id: "select",
         header: ({ table }) => (
@@ -60,6 +56,7 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
         enableSorting: true,
         enableHiding: false,
         isDragable: false,
+        filterFn: NumFilter
     },
     {
         accessorKey: "title",
@@ -67,6 +64,7 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
         cell: ({ row }) => <div className="text-center">{row.getValue("title")}</div>,
         enableSorting: true,
         isDragable: true,
+        filterFn: stringFilter
     },
     {
         accessorKey: "received",
@@ -84,6 +82,7 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
         },
         enableSorting: true,
         isDragable: true,
+        filterFn: stringFilter
     },
     {
         accessorKey: "category",
@@ -91,14 +90,9 @@ export const pendingDocumentColumns = (): (ColumnDef<PendingDocument> & { isDrag
         cell: ({ row }) => <div className="text-center">{row.getValue("category")}</div>,
         enableSorting: true,
         isDragable: true,
+        filterFn: stringFilter
     },
-    /* {
-        accessorKey: "action",
-        header: () => <div className="text-center">Action</div>,
-        cell: () => <div className="text-start">Assign</div>,
-        enableSorting: false,
-        isDragable: false,
-    }, */
+
 ];
 
 // Assigned Documents Columns
@@ -131,6 +125,7 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
         enableSorting: true,
         enableHiding: false,
         isDragable: false,
+        filterFn: NumFilter
     },
     {
         accessorKey: "title",
@@ -138,6 +133,7 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
         cell: ({ row }) => <div className="text-center">{row.getValue("title")}</div>,
         enableSorting: true,
         isDragable: true,
+        filterFn: stringFilter
     },
     {
         accessorKey: "received",
@@ -155,6 +151,7 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
         },
         enableSorting: true,
         isDragable: true,
+        filterFn: stringFilter
     },
 
     {
@@ -163,6 +160,7 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
         cell: ({ row }) => <div className="text-center">{row.getValue("assignedTo")}</div>,
         enableSorting: true,
         isDragable: true,
+        filterFn: stringFilter
     },
     {
         accessorKey: "assignedDate",
@@ -177,6 +175,7 @@ export const assignedDocumentColumns = (): (ColumnDef<AssignedDocument> & { isDr
         cell: ({ row }) => <div className="text-center">{row.getValue("category")}</div>,
         enableSorting: true,
         isDragable: true,
+        filterFn: stringFilter
     },
     {
         accessorKey: "status",
@@ -224,6 +223,7 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
         enableSorting: true,
         enableHiding: false,
         isDragable: false,
+        filterFn: NumFilter
     },
     {
         accessorKey: "title",
@@ -231,6 +231,7 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
         cell: ({ row }) => <div className="text-center">{row.getValue("title")}</div>,
         enableSorting: true,
         isDragable: true,
+        filterFn: stringFilter
     },
     {
         accessorKey: "received",
@@ -238,6 +239,7 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
         cell: ({ row }) => <div className="text-center">{row.getValue("received")}</div>,
         enableSorting: true,
         isDragable: true,
+        filterFn: stringFilter
     },
     {
         accessorKey: "formattedSize",
@@ -249,6 +251,7 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
         },
         enableSorting: true,
         isDragable: true,
+        filterFn: stringFilter
     },
     {
         accessorKey: "category",
@@ -256,6 +259,7 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
         cell: ({ row }) => <div className="text-center">{row.getValue("category")}</div>,
         enableSorting: true,
         isDragable: true,
+        filterFn: stringFilter
     },
     {
         accessorKey: "analyst",
@@ -263,6 +267,7 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
         cell: ({ row }) => <div className="text-center">{row.getValue("analyst")}</div>,
         enableSorting: true,
         isDragable: true,
+        filterFn: stringFilter
     },
     {
         accessorKey: "auditor",
@@ -270,6 +275,7 @@ export const auditDocumentColumns = (): (ColumnDef<AuditDocument> & { isDragable
         cell: ({ row }) => <div className="text-center">{row.getValue("auditor")}</div>,
         enableSorting: true,
         isDragable: true,
+        filterFn: stringFilter
     },
     /*  {
          accessorKey: "endDate",
@@ -303,6 +309,7 @@ export const completedDocumentColumns = (): (ColumnDef<CompletedDocument> & { is
         enableSorting: true,
         enableHiding: false,
         isDragable: false,
+        filterFn: NumFilter
     },
     {
         accessorKey: "title",
@@ -310,6 +317,7 @@ export const completedDocumentColumns = (): (ColumnDef<CompletedDocument> & { is
         cell: ({ row }) => <div className="text-center">{row.getValue("title")}</div>,
         enableSorting: true,
         isDragable: true,
+        filterFn: stringFilter
     },
     {
         accessorKey: "auditor",
@@ -317,6 +325,7 @@ export const completedDocumentColumns = (): (ColumnDef<CompletedDocument> & { is
         cell: ({ row }) => <div className="text-center">{row.getValue("auditor")}</div>,
         enableSorting: true,
         isDragable: true,
+        filterFn: stringFilter
     },
     {
         accessorKey: "received",
@@ -327,10 +336,11 @@ export const completedDocumentColumns = (): (ColumnDef<CompletedDocument> & { is
     },
     {
         accessorKey: "Assign",
-        header: ({ column }) => <DataTableColumnHeader searchType="date" column={column} title="Assign" />,
+        header: ({ column }) => <DataTableColumnHeader searchType="text" column={column} title="Assign" />,
         cell: ({ row }) => <div className="text-center">{row.getValue("Assign")}</div>,
         enableSorting: true,
         isDragable: true,
+        filterFn: stringFilter
     },
     {
         accessorKey: "formattedSize",
@@ -341,6 +351,7 @@ export const completedDocumentColumns = (): (ColumnDef<CompletedDocument> & { is
         },
         enableSorting: true,
         isDragable: true,
+        filterFn: stringFilter
     },
     {
         accessorKey: "category",
@@ -348,6 +359,7 @@ export const completedDocumentColumns = (): (ColumnDef<CompletedDocument> & { is
         cell: ({ row }) => <div className="text-center">{row.getValue("category")}</div>,
         enableSorting: true,
         isDragable: true,
+        filterFn: stringFilter
     },
     {
         accessorKey: "endDate",
@@ -362,6 +374,7 @@ export const completedDocumentColumns = (): (ColumnDef<CompletedDocument> & { is
         cell: ({ row }) => <div className="text-center">{row.getValue("age") || "N/A"}</div>,
         enableSorting: true,
         isDragable: true,
+        filterFn: stringFilter
     },
     {
         accessorKey: "status",

@@ -17,7 +17,7 @@ export function useApiCall() {
     const { pendingDocuments, assignedDocuments, completedDocuments, auditDocuments } = selector((state) => state.documentTable);
     const { documents } = selector((state) => state.documentManagement);
 
-    const { showPromiseToast, success } = useToast();
+    const { success } = useToast();
 
     const getUserApiCall = async (target: string) => {
         if (fullPath !== target) {
@@ -34,7 +34,7 @@ export function useApiCall() {
                         : "";
                     success({ message: message as string });
                 }
-            })
+            });
         }
 
 

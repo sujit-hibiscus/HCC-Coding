@@ -12,7 +12,7 @@ import { useRedux } from "@/hooks/use-redux";
 import useToast from "@/hooks/use-toast";
 import { postData } from "@/lib/api/api-client";
 import { Loader2 } from "lucide-react";
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface ChangePasswordProps {
     setIsOpen: React.Dispatch<React.SetStateAction<boolean>>

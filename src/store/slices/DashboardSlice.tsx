@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 
 interface DashboardState {
     token: string;
-    isPageLoading: Boolean
+    isPageLoading: boolean
     tabs: Tab[]
     activeTab: string;
     search: string;
@@ -105,10 +105,10 @@ export const fetchConfiguration = createAsyncThunk("dashboard/fetch/configuratio
         const response = await fetchData("get_app_configurations/");
         const data = response.data as configuration;
         if (data.status === "Success") {
-            return data.data
+            return data.data;
         } else {
             toast.error(`${data.message}`);
-            return [] as configuration['data'];
+            return [] as configuration["data"];
         }
     } catch (error) {
         return rejectWithValue((error as Error).message || "Failed to fetch configuration");
@@ -122,7 +122,7 @@ const dashboardSlice = createSlice({
         setToken: (state, action: PayloadAction<string>) => {
             state.token = action.payload;
         },
-        setPageLoading: (state, action: PayloadAction<Boolean>) => {
+        setPageLoading: (state, action: PayloadAction<boolean>) => {
             state.isPageLoading = action.payload;
         },
         setGlobalSearch: (state, action: PayloadAction<string>) => {
@@ -219,7 +219,7 @@ const dashboardSlice = createSlice({
                 state.analystUsers = action.payload; // Fix: use analystUsers instead of analystsData
             })
             .addCase(fetchConfiguration.fulfilled, (state, action) => {
-                state.configuration = action.payload
+                state.configuration = action.payload;
             });
     },
 });

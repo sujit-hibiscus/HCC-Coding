@@ -1,16 +1,16 @@
-"use client"
-import { motion } from "framer-motion"
-import { useState } from "react"
+"use client";
+import { motion } from "framer-motion";
+import { useState } from "react";
 
-const dots = [0, 1, 2]
+const dots = [0, 1, 2];
 
 // Define the text as a constant
-const DEFAULT_TEXT = ""
-const LOADING_TEXT = "Loading..."
+const DEFAULT_TEXT = "";
+const LOADING_TEXT = "Loading...";
 
 export default function ProgressiveLoader() {
     // State for dynamic text
-    const [displayText, setDisplayText] = useState(DEFAULT_TEXT)
+    const [displayText] = useState(DEFAULT_TEXT);
 
     // Optional: Uncomment this effect if you want the text to change periodically
     /*
@@ -104,5 +104,5 @@ export default function ProgressiveLoader() {
                 </div>
             </div>
         </motion.div>
-    )
+    );
 }

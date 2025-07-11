@@ -134,7 +134,7 @@ const TabPage: React.FC<LayoutProps> = async ({ params }) => {
     return (
         <>
             {tab === ChartTab.Pending ? (
-                <PendingDocumentsTable />
+                <PendingDocumentsTable /> // 
             ) : tab === ChartTab.Assigned ? (
                 <AssignedDocumentsTable />
             ) : tab === ChartTab.Audit ? (

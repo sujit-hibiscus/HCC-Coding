@@ -11,7 +11,7 @@ import useToast from "@/hooks/use-toast";
 import { postData } from "@/lib/api/api-client";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface ForgotPasswordProps {
     triggerComponent?: React.ReactNode,

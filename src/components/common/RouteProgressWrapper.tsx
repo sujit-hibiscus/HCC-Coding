@@ -8,7 +8,7 @@ import { setPageLoading } from "@/store/slices/DashboardSlice";
 
 export default function RouteProgressWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const { selector, dispatch } = useRedux()
+    const { selector, dispatch } = useRedux();
 
     const [loading, setLoading] = useState(false);
     const [showLoader, setShowLoader] = useState(false);
@@ -23,7 +23,7 @@ export default function RouteProgressWrapper({ children }: { children: React.Rea
             setTimeout(() => {
                 requestAnimationFrame(() => {
                     setLoading(false);
-                    dispatch(setPageLoading(false))
+                    dispatch(setPageLoading(false));
                     // Keep the loader visible for a bit longer for smooth transition
                     setTimeout(() => {
                         setShowLoader(false);
@@ -31,9 +31,9 @@ export default function RouteProgressWrapper({ children }: { children: React.Rea
                 });
             }, 300);
         });
-    }, [pathname]);
-    const storedLoader = selector(state => state.dashboard.isPageLoading)
-    const isLoader = (storedLoader || loading) as boolean
+    }, [dispatch, pathname]);
+    const storedLoader = selector(state => state.dashboard.isPageLoading);
+    const isLoader = (storedLoader || loading) as boolean;
     return (
         <>
             <ProgressBar loading={isLoader} />

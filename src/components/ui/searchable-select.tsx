@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Check, ChevronDown } from "lucide-react"
-import { useState, useRef, useEffect } from "react"
-import { cn } from "@/lib/utils"
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Check, ChevronDown } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { cn } from "@/lib/utils";
 
 export interface SearchableSelectOption {
     label: string
@@ -31,29 +31,29 @@ export function SearchableSelect({
     className,
     disabled = false,
 }: SearchableSelectProps) {
-    const [open, setOpen] = useState(false)
-    const [searchValue, setSearchValue] = useState("")
-    const triggerRef = useRef<HTMLButtonElement>(null)
+    const [open, setOpen] = useState(false);
+    const [searchValue, setSearchValue] = useState("");
+    const triggerRef = useRef<HTMLButtonElement>(null);
 
     // Filter options based on search
-    const filteredOptions = options.filter((option) => option.label.toLowerCase().includes(searchValue.toLowerCase()))
+    const filteredOptions = options.filter((option) => option.label.toLowerCase().includes(searchValue.toLowerCase()));
 
     // Get selected option
-    const selectedOption = options.find((option) => option.value === value)
+    const selectedOption = options.find((option) => option.value === value);
 
     // Reset search when opening/closing
     useEffect(() => {
         if (open) {
-            setSearchValue("")
+            setSearchValue("");
         }
-    }, [open])
+    }, [open]);
 
     // Handle option selection
     const handleSelect = (optionValue: string) => {
-        onValueChange?.(optionValue)
-        setOpen(false)
-        setSearchValue("")
-    }
+        onValueChange?.(optionValue);
+        setOpen(false);
+        setSearchValue("");
+    };
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -107,5 +107,5 @@ export function SearchableSelect({
                 </ScrollArea>
             </PopoverContent>
         </Popover>
-    )
+    );
 }

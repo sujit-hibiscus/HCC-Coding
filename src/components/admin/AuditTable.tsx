@@ -24,7 +24,7 @@ export default function AuditDocumentsTable() {
             const dateA = parse(a.received, "MM-dd-yyyy", new Date());
             const dateB = parse(b.received, "MM-dd-yyyy", new Date());
             return dateB.getTime() - dateA.getTime(); // Descending
-        })
+        });
 
     /*   useEffect(() => {
           dispatch(fetchAuditDocuments());

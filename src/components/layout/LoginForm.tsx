@@ -16,7 +16,7 @@ import { fetchChartCounts, setError, setLoading, setUser } from "@/store/slices/
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ForgotPassword } from "../common/user/forgot-password";
-import { resetReduxStore } from '../../store/index';
+import { resetReduxStore } from "../../store/index";
 
 export default function LoginForm() {
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -30,7 +30,7 @@ export default function LoginForm() {
         setIsSubmitting(true);
         dispatch(setLoading(true));
         resetReduxStore();
-        const loginPromise = new Promise<void>(async (resolve, reject) => {
+        new Promise<void>(async (resolve) => {
             try {
                 const formData = new FormData();
                 formData.append("email", email);
@@ -49,12 +49,12 @@ export default function LoginForm() {
                         dispatch(fetchChartCounts());
                         dispatch(fetchAnalystUsers());
                         dispatch(fetchAuditorUsers());
-                        dispatch(fetchConfiguration())
+                        dispatch(fetchConfiguration());
                     } else {
                         setTimeout(() => {
                             dispatch(fetchDocuments());
                         }, 1500);
-                        dispatch(fetchConfiguration())
+                        dispatch(fetchConfiguration());
                     }
                     dispatch(
                         setUser({

@@ -26,6 +26,6 @@ export function IcdSuggestionIconSimple({ className = "h-10 w-10", size = 30, st
             <path d="M12 9v6" />
             <path d="M9 12h6" />
         </svg>
-    )
+    );
 }
 

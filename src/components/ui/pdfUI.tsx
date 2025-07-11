@@ -1,15 +1,15 @@
-"use client"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useRedux } from "@/hooks/use-redux"
-import { useChromeSearch } from "@/hooks/useChromeSearch"
-import { updatePdfFilters } from "@/store/slices/pdfFiltersSlice"
-import { ProgressBar, RotateDirection, Viewer, Worker } from "@react-pdf-viewer/core"
-import "@react-pdf-viewer/core/lib/styles/index.css"
-import { defaultLayoutPlugin, type ToolbarSlot } from "@react-pdf-viewer/default-layout"
-import "@react-pdf-viewer/default-layout/lib/styles/index.css"
-import { searchPlugin } from "@react-pdf-viewer/search"
-import "@react-pdf-viewer/search/lib/styles/index.css"
-import React, { type ReactElement, useEffect } from "react"
+"use client";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useRedux } from "@/hooks/use-redux";
+import { useChromeSearch } from "@/hooks/useChromeSearch";
+import { updatePdfFilters } from "@/store/slices/pdfFiltersSlice";
+import { ProgressBar, RotateDirection, Viewer, Worker } from "@react-pdf-viewer/core";
+import "@react-pdf-viewer/core/lib/styles/index.css";
+import { defaultLayoutPlugin, type ToolbarSlot } from "@react-pdf-viewer/default-layout";
+import "@react-pdf-viewer/default-layout/lib/styles/index.css";
+import { searchPlugin } from "@react-pdf-viewer/search";
+import "@react-pdf-viewer/search/lib/styles/index.css";
+import React, { type ReactElement, useEffect } from "react";
 
 interface PdfViewerProps {
   url: string
@@ -18,38 +18,28 @@ interface PdfViewerProps {
 }
 
 const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true }) => {
-  const [url] = urlData.split("__")
+  const [url] = urlData.split("__");
 
-  const { dispatch, selector } = useRedux()
+  const { dispatch, selector } = useRedux();
 
-  const savedFilters = selector((state) => state.pdfFilters[url])
-  const [currentPage, setCurrentPage] = React.useState<number>(savedFilters?.currentPage || 1)
-  const [zoom, setZoom] = React.useState<number>(savedFilters?.zoom || 100)
-  const [isDarkTheme, setIsDarkTheme] = React.useState<boolean>(savedFilters?.isDarkTheme || false)
+  const savedFilters = selector((state) => state.pdfFilters[url]);
+  const [currentPage, setCurrentPage] = React.useState<number>(savedFilters?.currentPage || 1);
+  const [zoom, setZoom] = React.useState<number>(savedFilters?.zoom || 100);
+  const [isDarkTheme, setIsDarkTheme] = React.useState<boolean>(savedFilters?.isDarkTheme || false);
 
   // Use the Chrome search hook
   const {
     searchTerm,
-    setSearchTerm,
-    currentMatchIndex,
-    totalMatches,
-    isSearchVisible,
     setIsSearchVisible,
-    isCaseSensitive,
-    setIsCaseSensitive,
-    searchMatches,
     handleSearchChange,
-    handleNextMatch,
-    handlePreviousMatch,
-    clearHighlights,
     applyHighlightsOnly,
-  } = useChromeSearch()
-  const searchPluginInstance = searchPlugin()
+  } = useChromeSearch();
+  const searchPluginInstance = searchPlugin();
 
   const renderToolbar = (Toolbar: (props: { children: (slots: ToolbarSlot) => ReactElement }) => ReactElement) => (
     <Toolbar>
       {(slots: ToolbarSlot) => {
-        if (!slots) return <></>
+        if (!slots) return <></>;
 
         const {
           CurrentPageInput,
@@ -63,7 +53,7 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
           Rotate,
           GoToLastPage,
           GoToFirstPage,
-        } = slots
+        } = slots;
 
         return (
           <div className="flex items-center w-full px-2">
@@ -73,8 +63,8 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
                   <TooltipTrigger asChild>
                     <div className="pt-2"
                       onClick={() => {
-                        handleSearchChange("")
-                        setIsSearchVisible(false)
+                        handleSearchChange("");
+                        setIsSearchVisible(false);
                       }
                       }
                     >
@@ -87,8 +77,8 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
                 </Tooltip>
 
                 <div className="font-semibold" onClick={() => {
-                  handleSearchChange("")
-                  setIsSearchVisible(false)
+                  handleSearchChange("");
+                  setIsSearchVisible(false);
                 }
                 }>
                   <Zoom />
@@ -97,8 +87,8 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="pt-2" onClick={() => {
-                      handleSearchChange("")
-                      setIsSearchVisible(false)
+                      handleSearchChange("");
+                      setIsSearchVisible(false);
                     }
                     }>
                       <ZoomIn />
@@ -187,7 +177,7 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div
-                      className={` h-8 w-8 !bg-transparent !text-[#585858]`}
+                      className={" h-8 w-8 !bg-transparent !text-[#585858]"}
                     >
                       <Rotate direction={RotateDirection?.Forward} />
                     </div>
@@ -209,23 +199,23 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
               </div>
             </TooltipProvider>
           </div >
-        )
+        );
       }}
     </Toolbar >
-  )
+  );
 
   const defaultLayoutPluginInstance = defaultLayoutPlugin({
     sidebarTabs: (defaultTabs) => [defaultTabs[0]],
     renderToolbar,
-  })
+  });
 
   const characterMap = React.useMemo(() => {
     return {
       isCompressed: false,
       url: "",
       get: () => "",
-    }
-  }, [])
+    };
+  }, []);
 
   useEffect(() => {
     dispatch(
@@ -237,8 +227,8 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
           isDarkTheme,
         },
       }),
-    )
-  }, [currentPage, zoom, url, dispatch, isDarkTheme])
+    );
+  }, [currentPage, zoom, url, dispatch, isDarkTheme]);
 
   return (
     <div className={`w-full h-full border-none relative ${isDarkTheme ? "dark-theme" : "light-theme"}`}>
@@ -262,18 +252,18 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
               theme={isDarkTheme ? "dark" : "light"}
               plugins={[defaultLayoutPluginInstance, searchPluginInstance]}
               onPageChange={(page) => {
-                setCurrentPage(page.currentPage + 1)
-                applyHighlightsOnly(searchTerm)
+                setCurrentPage(page.currentPage + 1);
+                applyHighlightsOnly(searchTerm);
               }}
               onZoom={(newZoom) => {
                 if (newZoom?.scale > 0.3 && newZoom?.scale < 4) {
-                  setZoom(newZoom?.scale * 100)
+                  setZoom(newZoom?.scale * 100);
                 } else {
-                  setZoom(100)
+                  setZoom(100);
                 }
               }}
               onSwitchTheme={(theme) => {
-                setIsDarkTheme(theme === "dark")
+                setIsDarkTheme(theme === "dark");
               }}
               characterMap={characterMap}
             />
@@ -289,7 +279,7 @@ const PdfUI: React.FC<PdfViewerProps> = ({ url: urlData = "", isViewer = true })
         />
       )}
     </div>
-  )
-}
+  );
+};
 
-export default PdfUI
+export default PdfUI;

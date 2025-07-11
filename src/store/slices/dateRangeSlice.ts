@@ -30,7 +30,7 @@ const dateRangeSlice = createSlice({
             state.startDate = action.payload.startDate;
             state.endDate = action.payload.endDate;
         },
-        updateFilteredCounts: (state, action: PayloadAction<{ key: keyof DateRangeState['filteredCounts']; count: number }>) => {
+        updateFilteredCounts: (state, action: PayloadAction<{ key: keyof DateRangeState["filteredCounts"]; count: number }>) => {
             const { key, count } = action.payload;
             state.filteredCounts[key] = count;
         },

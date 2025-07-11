@@ -209,7 +209,7 @@ export function DataTableColumnHeader<TData, TValue>({
                               value
                             )
                           ) : (
-                            <span className="text-input-placeholder dark:text-tabBg hover:text-selectedText">
+                            <span className="">
                               Pick a date
                             </span>
                           )}

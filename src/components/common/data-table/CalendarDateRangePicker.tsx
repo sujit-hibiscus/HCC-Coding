@@ -36,7 +36,7 @@ export function CalendarDateRangePicker({
         if (dateRange?.filter(Boolean)?.length === 0) {
             setTempDateRange([null, null]);
         } else {
-            setTempDateRange(dateRange)
+            setTempDateRange(dateRange);
         }
     }, [dateRange]);
 

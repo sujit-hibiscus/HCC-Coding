@@ -18,7 +18,7 @@ type DocumentListProps = {
 
 export default function DocumentList({ onClose }: DocumentListProps) {
   const { dispatch, selector } = useRedux();
-  const { documents, selectedDocumentId, fetchedPdfPaths, documentLoading } = selector(
+  const { documents, selectedDocumentId, documentLoading } = selector(
     (state) => state.documentManagement,
   );
   const [searchTerm, setSearchTerm] = useState("");
@@ -113,8 +113,9 @@ export default function DocumentList({ onClose }: DocumentListProps) {
         ) : (
           [...filteredDocuments]
             ?.filter((item) => item?.status !== "completed")
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .map((doc: any) => {
-              const assignedDate = format(new Date(doc.assignedAt), 'MM/dd/yyyy');
+              const assignedDate = format(new Date(doc.assignedAt), "MM/dd/yyyy");
               return (
                 <motion.div
                   key={doc.id}
@@ -124,14 +125,14 @@ export default function DocumentList({ onClose }: DocumentListProps) {
                   transition={{ duration: 0.2 }}
                   onClick={() => {
                     if (selectedDocumentId === doc.id) {
-                      onClose()
-                      return
+                      onClose();
+                      return;
                     }
-                    dispatch(setActiveDocTab("document"))
+                    dispatch(setActiveDocTab("document"));
                     dispatch(selectDocument(doc.id));
                     dispatch(fetchTextFile(doc.text_file_path));
                     dispatch(fetchPdfFile(doc.url));
-                    onClose()
+                    onClose();
                   }}
                 >
                   <Card

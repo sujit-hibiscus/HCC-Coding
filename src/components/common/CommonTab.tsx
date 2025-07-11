@@ -6,7 +6,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Typography } from "../ui/Typography";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
 
 interface Tab {
     value: string
@@ -26,16 +25,10 @@ interface TabsComponentProps {
 const TabsComponent: React.FC<TabsComponentProps> = ({
     tabs,
     isFull = false,
-    currentTab: tab,
+    currentTab,
     countLoading = false,
     handleTabChange,
 }) => {
-    const [currentTab, setTab] = useState(tab || "");
-
-    useEffect(() => {
-        setTab(tab);
-    }, [tab]);
-
     return (
         <ScrollArea className="w-full">
             <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full flex items-center">
@@ -53,7 +46,7 @@ const TabsComponent: React.FC<TabsComponentProps> = ({
                                 aria-hidden="true"
                                 key={tab.value}
                                 value={tab.value}
-                                className="relative h-full w-full rounded-none inline-flex items-center justify-center whitespace-nowrap px-2 md:px-2.5 gap-1  text-sm lg:text-base font-medium ring-offset-background transition-all duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-selectedText data-[state=active]:shadow-sm data-[state=active]:bg-primary"
+                                className="relative h-full w-full rounded-none inline-flex items-center justify-center whitespace-nowrap px-2 md:px-2.5 gap-1  text-sm lg:text-base font-medium ring-offset-background transition-all duration-300 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-selectedText data-[state=active]:shadow-sm data-[state=active]:bg-primary"
                             >
                                 {Icon && <Icon className="md:mr-2 h-4 w-4" />}
                                 <Typography
@@ -76,7 +69,7 @@ const TabsComponent: React.FC<TabsComponentProps> = ({
                                         ) : (
                                             <Badge
                                                 variant="default"
-                                                className={`text-xs bg-transparent shadow-none ml-1 p-0 ${isSelected ? "text-selectedText " : " text-tabBg"}`}
+                                                className={`text-xs bg-transparent shadow-none ml-1 p-0 transition-colors duration-300 ${isSelected ? "text-selectedText " : " text-tabBg"}`}
                                             >
                                                 {tab.count}
                                             </Badge>

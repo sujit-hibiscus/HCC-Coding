@@ -13,6 +13,6 @@ export default function ProgressBar({ loading }: { loading: boolean }) {
             NProgress.done();
             dispatch(setPageLoading(false));
         }
-    }, [loading]);
+    }, [dispatch, loading]);
     return null;
 } 

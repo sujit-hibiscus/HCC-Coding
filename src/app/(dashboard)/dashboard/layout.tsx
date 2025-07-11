@@ -5,7 +5,6 @@ import { Header } from "@/components/common/Header";
 import RouteProgressWrapper from "@/components/common/RouteProgressWrapper";
 import { AppSidebar } from "@/components/common/Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { useRedux } from "@/hooks/use-redux";
 import { useTabs } from "@/hooks/use-tabs";
 import { type ReactNode } from "react";
 
@@ -15,8 +14,6 @@ export default function DashboardLayout({
   children: ReactNode;
 }>) {
   const { addTab } = useTabs();
-  const { selector } = useRedux();
-
 
   return (
     <SidebarProvider>

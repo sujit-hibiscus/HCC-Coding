@@ -1,31 +1,29 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { ConditionCommonCard } from "@/components/ui/condition-common-card"
-import { CreatableSelect } from "@/components/ui/creatable-select"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useRedux } from "@/hooks/use-redux"
-import { cn } from "@/lib/utils"
-import type { RootState } from "@/store"
+import { Button } from "@/components/ui/button";
+import { ConditionCommonCard } from "@/components/ui/condition-common-card";
+import { CreatableSelect } from "@/components/ui/creatable-select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useRedux } from "@/hooks/use-redux";
+import { cn } from "@/lib/utils";
+import type { RootState } from "@/store";
 import {
     type Document,
-    updateAnalystNotes,
-    updateAuditorNotes,
-    updateCodeReviewItemStatus,
-    updateFormData,
     setCurrentCodeReviewTab,
-} from "@/store/slices/documentManagementSlice"
-import { AnimatePresence, motion } from "framer-motion"
-import { Asterisk, Check, CheckCircle, FileText, Info, Loader2, Search, X } from "lucide-react"
-import { useCallback, useMemo, useState, useTransition, useRef } from "react"
-import { IcdSuggestionIconSimple } from "../common/icd-suggestion-icon"
-import { Checkbox } from "../ui/checkbox"
-import { UpdateIcdCodeModal } from "./UpdateIcdModal"
-import TabsComponent from "../common/CommonTab"
-import { count } from "console"
+    updateAnalystNotes,
+    updateCodeReviewItemStatus,
+    updateFormData
+} from "@/store/slices/documentManagementSlice";
+import { motion } from "framer-motion";
+import { Asterisk, Check, CheckCircle, FileText, Info, Loader2, Search, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import TabsComponent from "../common/CommonTab";
+import { IcdSuggestionIconSimple } from "../common/icd-suggestion-icon";
+import { Checkbox } from "../ui/checkbox";
+import { UpdateIcdCodeModal } from "./UpdateIcdModal";
 
 interface FormData {
     codesMissed: Array<{ value: string; label: string }>
@@ -60,19 +58,19 @@ export default function AuditorReviewForm({
     isCompletingReview,
     onSubmit,
 }: AuditorReviewFormProps) {
-    const { dispatch, selector } = useRedux()
-    const [showRxHcc, setShowRxHcc] = useState(false)
-    const [showHcc, setShowHcc] = useState(false)
-    const { codeReview } = selector((state: RootState) => state.documentManagement)
-    const [expandedCard, setExpandedCard] = useState<string | null>(null)
-    const [filterStatus, setFilterStatus] = useState<string>("all")
-    const [localSearchTerm, setLocalSearchTerm] = useState("")
-    const [isPending, startTransition] = useTransition()
-    const [updatingItemId, setUpdatingItemId] = useState<string | null>(null)
-    const isCodeLoading = selector((state) => state.documentManagement.medicalConditionsLoading)
-    const [updateIcdModal, setUpdateIcdModal] = useState<{ open: boolean; item: any | null }>({ open: false, item: null })
-    const [icdLoadingId, setIcdLoadingId] = useState<string | null>(null)
-    const currentTab = selector((state) => state.documentManagement.currentCodeReviewTab)
+    const { dispatch, selector } = useRedux();
+    const [showRxHcc, setShowRxHcc] = useState(false);
+    const [showHcc, setShowHcc] = useState(false);
+    const { codeReview } = selector((state: RootState) => state.documentManagement);
+    const [expandedCard, setExpandedCard] = useState<string | null>(null);
+    const [localSearchTerm, setLocalSearchTerm] = useState("");
+    const [isPending, startTransition] = useTransition();
+    const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
+    const isCodeLoading = selector((state) => state.documentManagement.medicalConditionsLoading);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [updateIcdModal, setUpdateIcdModal] = useState<{ open: boolean; item: any | null }>({ open: false, item: null });
+    const [icdLoadingId, setIcdLoadingId] = useState<string | null>(null);
+    const currentTab = selector((state) => state.documentManagement.currentCodeReviewTab);
     const codeCardScrollRef = useRef<HTMLDivElement>(null);
 
     // Get current document's code review data
@@ -84,8 +82,8 @@ export default function AuditorReviewForm({
                 analystNotes: "",
                 auditorNotes: "",
                 searchTerm: "",
-            }
-    }, [selectedDocumentId, codeReview])
+            };
+    }, [selectedDocumentId, codeReview]);
 
     // 1. Apply search and HCC/Rx-HCC filters first
     const filteredBySearchAndHcc = useMemo(() => {
@@ -107,6 +105,7 @@ export default function AuditorReviewForm({
                 "icdCode", "hccCode", "V24HCC", "hccV28Code", "evidence", "diagnosis", "description", "query", "icd10_desc", "code_status"
             ];
             items = items.filter((item) =>
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 keysToSearch.some((key) => ((item as any)[key] ?? "").toString().toLowerCase().includes(lowerSearchTerm))
             );
         }
@@ -122,56 +121,69 @@ export default function AuditorReviewForm({
 
     // 4. Tabs and counts reflect filtered data
     const tabs = [
-        { value: "Documented", label: `Documented`, count: documentedItems.length },
-        { value: "Opportunities", label: `Opportunities`, count: opportunitiesItems.length },
+        { value: "Documented", label: "Documented", count: documentedItems.length },
+        { value: "Opportunities", label: "Opportunities", count: opportunitiesItems.length },
     ];
 
     const handleTabChange = (tabId: string) => {
         dispatch(setCurrentCodeReviewTab(tabId));
-        if (codeCardScrollRef.current) {
-            codeCardScrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
-        }
+        // Remove the immediate scroll reset to prevent flashing
+        // Scroll will be handled by the layout animation
     };
+
+    // Add a stable key for the content area to prevent re-mounting
+    const contentKey = useMemo(() => `${currentTab}-${filteredItems.length}`, [currentTab, filteredItems.length]);
+
+    // Handle smooth scroll after tab change animation completes
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (codeCardScrollRef.current) {
+                codeCardScrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
+            }
+        }, 300); // Wait for animation to complete
+
+        return () => clearTimeout(timer);
+    }, [currentTab]);
 
     // Optimized handlers
     const handleSearchChange = useCallback((value: string) => {
-        setLocalSearchTerm(value)
-    }, [])
+        setLocalSearchTerm(value);
+    }, []);
 
     const handleStatusUpdate = useCallback(
         async (itemId: string, status: "accepted" | "rejected") => {
             if (selectedDocumentId && !updatingItemId) {
-                setUpdatingItemId(itemId)
+                setUpdatingItemId(itemId);
 
-                await new Promise((resolve) => setTimeout(resolve, 150))
+                await new Promise((resolve) => setTimeout(resolve, 150));
 
                 startTransition(() => {
-                    dispatch(updateCodeReviewItemStatus({ documentId: selectedDocumentId, itemId, status }))
-                })
+                    dispatch(updateCodeReviewItemStatus({ documentId: selectedDocumentId, itemId, status }));
+                });
 
-                setTimeout(() => setUpdatingItemId(null), 300)
+                setTimeout(() => setUpdatingItemId(null), 300);
             }
         },
         [selectedDocumentId, dispatch, updatingItemId],
-    )
+    );
 
     const handleFormDataUpdate = useCallback(
         (data: Partial<FormData>) => {
             if (selectedDocumentId) {
-                dispatch(updateFormData({ documentId: selectedDocumentId, data }))
+                dispatch(updateFormData({ documentId: selectedDocumentId, data }));
             }
         },
         [selectedDocumentId, dispatch],
-    )
+    );
 
     const handleAnalystNotesChange = useCallback(
         (notes: string) => {
             if (selectedDocumentId) {
-                dispatch(updateAnalystNotes({ documentId: selectedDocumentId, notes }))
+                dispatch(updateAnalystNotes({ documentId: selectedDocumentId, notes }));
             }
         },
         [selectedDocumentId, dispatch],
-    )
+    );
 
     return (
         <TooltipProvider>
@@ -219,7 +231,7 @@ export default function AuditorReviewForm({
                                         onChange={(newValue) => {
                                             handleFormDataUpdate({
                                                 codesMissed: newValue as { value: string; label: string }[],
-                                            })
+                                            });
                                         }}
                                         isError={formErrors.codesMissed && !(formData.codesMissed?.length > 0)}
                                         className={cn(
@@ -227,7 +239,7 @@ export default function AuditorReviewForm({
                                             formErrors.codesMissed && !(formData.codesMissed?.length > 0) && "border-red-500",
                                         )}
                                         styles={{
-                                            control: (base, state) => ({
+                                            control: (base) => ({
                                                 ...base,
                                                 borderColor:
                                                     formErrors.codesMissed && !(formData.codesMissed?.length > 0) ? "#ef4444" : base.borderColor,
@@ -276,12 +288,12 @@ export default function AuditorReviewForm({
                                         onChange={(newValue) => {
                                             handleFormDataUpdate({
                                                 codesCorrected: newValue as { value: string; label: string }[],
-                                            })
+                                            });
                                         }}
                                         isError={formErrors.codesCorrected && !(formData.codesCorrected?.length > 0)}
                                         className="text-xs"
                                         styles={{
-                                            control: (base, state) => ({
+                                            control: (base) => ({
                                                 ...base,
                                                 borderColor:
                                                     formErrors.codesCorrected && !(formData.codesCorrected?.length > 0)
@@ -332,7 +344,7 @@ export default function AuditorReviewForm({
                                             placeholder="Enter audit remarks..."
                                             value={formData.auditRemarks}
                                             onChange={(e) => {
-                                                handleFormDataUpdate({ auditRemarks: e.target.value })
+                                                handleFormDataUpdate({ auditRemarks: e.target.value });
                                             }}
                                             rows={2}
                                             className={cn(
@@ -380,8 +392,8 @@ export default function AuditorReviewForm({
                                             step={1}
                                             value={`${formData.rating || ""}`}
                                             onChange={(e) => {
-                                                const value = Number.parseFloat(e.target.value)
-                                                handleFormDataUpdate({ rating: value })
+                                                const value = Number.parseFloat(e.target.value);
+                                                handleFormDataUpdate({ rating: value });
                                             }}
                                             className={cn(
                                                 "h-8 text-xs transition-all placeholder:text-black duration-200 focus:ring-2 focus:ring-blue-200",
@@ -454,7 +466,6 @@ export default function AuditorReviewForm({
                             currentTab={currentTab}
                             handleTabChange={handleTabChange}
                         />
-                        {/* <span className="text-xs  md:text-sm whitespace-nowrap font-semibold text-gray-500 mr-2">Total: {documentedItems.length + opportunitiesItems?.length}</span> */}
                     </div>
                     <div className="flex-1 min-h-0">
 
@@ -475,18 +486,21 @@ export default function AuditorReviewForm({
                                     </p>
                                 </motion.div>
                             ) : (
-                                <AnimatePresence mode="popLayout">
+                                <motion.div
+                                    key={contentKey}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="space-y-2"
+                                >
                                     {filteredItems.map((item, index) => (
                                         <motion.div
                                             key={item.id}
-                                            layout="position"
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            exit={{ opacity: 0 }}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
                                             transition={{
                                                 duration: 0.2,
-                                                delay: Math.min(index * 0.01, 0.05),
-                                                layout: { duration: 0.3, ease: "easeInOut" },
+                                                delay: Math.min(index * 0.02, 0.1),
                                             }}
                                         >
                                             <ConditionCommonCard
@@ -573,7 +587,7 @@ export default function AuditorReviewForm({
                                             />
                                         </motion.div>
                                     ))}
-                                </AnimatePresence>
+                                </motion.div>
                             )}
 
 
@@ -648,5 +662,5 @@ export default function AuditorReviewForm({
                 }}
             />
         </TooltipProvider>
-    )
+    );
 }

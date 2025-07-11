@@ -1,8 +1,8 @@
-"use client"
-import React, { useRef, useEffect, useCallback } from "react"
-import { Search, ChevronUp, ChevronDown, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+"use client";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { ChevronDown, ChevronUp, Search, X } from "lucide-react";
+import React, { useCallback, useEffect, useRef } from "react";
 
 interface SearchMatch {
   element: Element
@@ -46,50 +46,50 @@ const ChromeSearchBar: React.FC<ChromeSearchBarProps> = ({
   onPreviousMatch,
   onClearHighlights,
 }) => {
-  const searchInputRef = useRef<HTMLInputElement>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Handle keyboard shortcuts
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Enter") {
-        e.preventDefault()
+        e.preventDefault();
         if (e.shiftKey) {
-          onPreviousMatch()
+          onPreviousMatch();
         } else {
-          onNextMatch()
+          onNextMatch();
         }
       } else if (e.key === "Escape") {
-        setIsSearchVisible(false)
-        setSearchTerm("")
-        onClearHighlights()
+        setIsSearchVisible(false);
+        setSearchTerm("");
+        onClearHighlights();
       }
     },
     [onNextMatch, onPreviousMatch, onClearHighlights, setIsSearchVisible, setSearchTerm],
-  )
+  );
 
   // Focus search input when visible
   useEffect(() => {
     if (isSearchVisible && searchInputRef.current) {
-      searchInputRef.current.focus()
+      searchInputRef.current.focus();
     }
-  }, [isSearchVisible])
+  }, [isSearchVisible]);
 
   // Global keyboard shortcut
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "f") {
-        e.preventDefault()
-        setIsSearchVisible(true)
+        e.preventDefault();
+        setIsSearchVisible(true);
       }
-    }
+    };
 
-    document.addEventListener("keydown", handleGlobalKeyDown)
-    return () => document.removeEventListener("keydown", handleGlobalKeyDown)
-  }, [setIsSearchVisible])
+    document.addEventListener("keydown", handleGlobalKeyDown);
+    return () => document.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [setIsSearchVisible]);
 
   // Chrome-like search styles
   useEffect(() => {
-    const style = document.createElement("style")
+    const style = document.createElement("style");
     style.innerHTML = `
       /* Chrome-like search highlights */
       .chrome-search-highlight {
@@ -273,21 +273,21 @@ const ChromeSearchBar: React.FC<ChromeSearchBarProps> = ({
         color: #8ab4f8;
         background-color: #1a73e8;
       }
-    `
-    document.head.appendChild(style)
+    `;
+    document.head.appendChild(style);
 
     return () => {
       if (document.head.contains(style)) {
-        document.head.removeChild(style)
+        document.head.removeChild(style);
       }
-    }
-  }, [])
+    };
+  }, []);
 
   const handleCloseSearch = () => {
-    setIsSearchVisible(false)
-    setSearchTerm("")
-    onClearHighlights()
-  }
+    setIsSearchVisible(false);
+    setSearchTerm("");
+    onClearHighlights();
+  };
 
   return (
     <>
@@ -364,7 +364,7 @@ const ChromeSearchBar: React.FC<ChromeSearchBarProps> = ({
         </div>
       )}
     </>
-  )
-}
+  );
+};
 
-export default ChromeSearchBar 
+export default ChromeSearchBar; 

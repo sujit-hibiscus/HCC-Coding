@@ -17,7 +17,7 @@ export function exportFilteredTableToCSV<TData>(
     const csvContent = [
         exportColumns
             .map((column) => {
-                const title = column.id
+                const title = column.id;
                 return title && title[0].toUpperCase() + title.slice(1);
             })
             .join(","),
@@ -32,7 +32,7 @@ export function exportFilteredTableToCSV<TData>(
                                 : row.getValue(column.id);
                     return `"${cellValue}"`;
                 })
-                .join(",")
+                .join(",");
         }
         ),
     ].join("\n");

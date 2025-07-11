@@ -1,22 +1,22 @@
-"use client"
+"use client";
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { ConditionCommonCard } from "@/components/ui/condition-common-card"
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@/components/ui/dialog"
-import { SearchableSelect, type SearchableSelectOption } from "@/components/ui/searchable-select"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import useToast from "@/hooks/use-toast"
-import { AnimatePresence, motion } from "framer-motion"
-import type React from "react"
-import { useState } from "react"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ConditionCommonCard } from "@/components/ui/condition-common-card";
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@/components/ui/dialog";
+import { SearchableSelect, type SearchableSelectOption } from "@/components/ui/searchable-select";
+import { Tooltip, TooltipTrigger } from "@/components/ui/tooltip";
+import useToast from "@/hooks/use-toast";
+import { AnimatePresence, motion } from "framer-motion";
+import type React from "react";
+import { useState } from "react";
 
 const ICD_OPTIONS: SearchableSelectOption[] = [
     { label: "ICD:Z93.2", value: "Z93.2" },
     { label: "ICD:J44.9", value: "J44.9" },
     { label: "ICD:E11.9", value: "E11.9" },
     { label: "ICD:I10", value: "I10" },
-]
+];
 
 const ICD_DATA = {
     "Z93.2": {
@@ -47,7 +47,7 @@ const ICD_DATA = {
         description:
             "Essential (primary) hypertension, a condition in which the force of the blood against artery walls is consistently too high.",
     },
-}
+};
 
 export interface UpdateIcdCodeModalProps {
     open: boolean
@@ -57,33 +57,34 @@ export interface UpdateIcdCodeModalProps {
 }
 
 export const UpdateIcdCodeModal: React.FC<UpdateIcdCodeModalProps> = ({ open, onClose, item, onUpdateIcdLoading }) => {
-    const [selectedIcd, setSelectedIcd] = useState<string>("")
-    const { success } = useToast()
+    const [selectedIcd, setSelectedIcd] = useState<string>("");
+    const { success } = useToast();
 
     const reset = () => {
-        setSelectedIcd("")
-        onClose()
-    }
+        setSelectedIcd("");
+        onClose();
+    };
 
     const handleUpdateIcd = async () => {
-        if (!selectedIcd) return
+        if (!selectedIcd) return;
 
         if (onUpdateIcdLoading && item?.id) {
-            onUpdateIcdLoading(item.id)
+            onUpdateIcdLoading(item.id);
         }
 
-        onClose()
+        onClose();
 
         const bodyData = {
             oldIcd: item?.icdCode,
             newIcd: selectedIcd,
             ...ICD_DATA[selectedIcd as keyof typeof ICD_DATA],
-        }
+        };
+        console.info("🚀 ~ handleUpdateIcd ~ bodyData:", bodyData);
 
-        await new Promise((resolve) => setTimeout(resolve, 3000))
-        success({ message: "ICD updated successfully!" })
-        reset()
-    }
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        success({ message: "ICD updated successfully!" });
+        reset();
+    };
 
     return (
         <AnimatePresence>
@@ -162,5 +163,5 @@ export const UpdateIcdCodeModal: React.FC<UpdateIcdCodeModalProps> = ({ open, on
                 </Dialog>
             )}
         </AnimatePresence>
-    )
-}
+    );
+};

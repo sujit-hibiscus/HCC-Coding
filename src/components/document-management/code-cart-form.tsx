@@ -1,22 +1,21 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { ConditionCommonCard } from "@/components/ui/condition-common-card"
-import { Option as ICDOption } from "@/components/ui/creatable-select"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useRedux } from "@/hooks/use-redux"
-import { cn } from "@/lib/utils"
-import { setCurrentCodeReviewTab, updateAnalystNotes, updateCodeReviewItemStatus } from "@/store/slices/documentManagementSlice"
-import { AnimatePresence, motion } from "framer-motion"
-import { Check, CheckCircle, FileText, Loader2, Search, X } from "lucide-react"
-import { useCallback, useMemo, useRef, useState, useTransition } from "react"
-import TabsComponent from "../common/CommonTab"
-import { IcdSuggestionIconSimple } from "../common/icd-suggestion-icon"
-import { UpdateIcdCodeModal } from "./UpdateIcdModal"
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ConditionCommonCard } from "@/components/ui/condition-common-card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useRedux } from "@/hooks/use-redux";
+import { cn } from "@/lib/utils";
+import { setCurrentCodeReviewTab, updateAnalystNotes, updateCodeReviewItemStatus } from "@/store/slices/documentManagementSlice";
+import { motion } from "framer-motion";
+import { Check, CheckCircle, FileText, Loader2, Search, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import TabsComponent from "../common/CommonTab";
+import { IcdSuggestionIconSimple } from "../common/icd-suggestion-icon";
+import { UpdateIcdCodeModal } from "./UpdateIcdModal";
 // Interfaces
 interface CodeReviewItem {
     id: string
@@ -65,19 +64,19 @@ export default function ImprovedCodeReviewForm({
     apiLoading = false,
     onComplete,
 }: CodeReviewFormProps) {
-    const { dispatch, selector } = useRedux()
-    const isCodeLoading = selector((state) => state.documentManagement.medicalConditionsLoading)
-    const currentTab = selector((state) => state.documentManagement.currentCodeReviewTab)
-    const [expandedCard, setExpandedCard] = useState<string | null>(null)
-    const [localSearchTerm, setLocalSearchTerm] = useState("")
-    const [isPending, startTransition] = useTransition()
-    const [updatingItemId, setUpdatingItemId] = useState<string | null>(null)
+    const { dispatch, selector } = useRedux();
+    const isCodeLoading = selector((state) => state.documentManagement.medicalConditionsLoading);
+    const currentTab = selector((state) => state.documentManagement.currentCodeReviewTab);
+    const [expandedCard, setExpandedCard] = useState<string | null>(null);
+    const [localSearchTerm, setLocalSearchTerm] = useState("");
+    const [isPending, startTransition] = useTransition();
+    const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
 
-    const [showHcc, setShowHcc] = useState(false)
-    const [showRxHcc, setShowRxHcc] = useState(false)
+    const [showHcc, setShowHcc] = useState(false);
+    const [showRxHcc, setShowRxHcc] = useState(false);
 
-    const [updateIcdModal, setUpdateIcdModal] = useState<{ open: boolean; item: CodeReviewItem | null }>({ open: false, item: null })
-    const [icdLoadingId, setIcdLoadingId] = useState<string | null>(null)
+    const [updateIcdModal, setUpdateIcdModal] = useState<{ open: boolean; item: CodeReviewItem | null }>({ open: false, item: null });
+    const [icdLoadingId, setIcdLoadingId] = useState<string | null>(null);
 
     const filteredBySearchAndHcc = useMemo(() => {
         let items = [...currentCodeReview.items];
@@ -98,6 +97,7 @@ export default function ImprovedCodeReviewForm({
                 "icdCode", "hccCode", "V24HCC", "hccV28Code", "evidence", "diagnosis", "description", "query", "icd10_desc", "code_status"
             ];
             items = items.filter((item) =>
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 keysToSearch.some((key) => ((item as any)[key] ?? "").toString().toLowerCase().includes(lowerSearchTerm))
             );
         }
@@ -110,49 +110,62 @@ export default function ImprovedCodeReviewForm({
     const filteredItems = useMemo(() => currentTab === "Documented" ? documentedItems : opportunitiesItems, [currentTab, documentedItems, opportunitiesItems]);
 
     const tabs = [
-        { value: "Documented", label: `Documented`, count: documentedItems.length },
-        { value: "Opportunities", label: `Opportunities`, count: opportunitiesItems.length },
+        { value: "Documented", label: "Documented", count: documentedItems.length },
+        { value: "Opportunities", label: "Opportunities", count: opportunitiesItems.length },
     ];
 
     const handleSearchChange = useCallback((value: string) => {
-        setLocalSearchTerm(value)
-    }, [])
+        setLocalSearchTerm(value);
+    }, []);
 
     const handleStatusUpdate = useCallback(
         async (itemId: string, status: "accepted" | "rejected") => {
             if (selectedDocumentId && !updatingItemId) {
-                setUpdatingItemId(itemId)
-                await new Promise((resolve) => setTimeout(resolve, 150))
+                setUpdatingItemId(itemId);
+                await new Promise((resolve) => setTimeout(resolve, 150));
 
                 startTransition(() => {
-                    dispatch(updateCodeReviewItemStatus({ documentId: selectedDocumentId, itemId, status }))
-                })
+                    dispatch(updateCodeReviewItemStatus({ documentId: selectedDocumentId, itemId, status }));
+                });
 
                 setTimeout(() => {
-                    setUpdatingItemId(null)
-                }, 300)
+                    setUpdatingItemId(null);
+                }, 300);
             }
         },
         [selectedDocumentId, dispatch, updatingItemId],
-    )
+    );
 
     const handleNotesUpdate = useCallback(
         (notes: string) => {
             if (selectedDocumentId) {
-                dispatch(updateAnalystNotes({ documentId: selectedDocumentId, notes }))
+                dispatch(updateAnalystNotes({ documentId: selectedDocumentId, notes }));
             }
         },
         [selectedDocumentId, dispatch],
-    )
+    );
 
     const codeCardScrollRef = useRef<HTMLDivElement>(null);
 
     const handleTabChange = (tabId: string) => {
         dispatch(setCurrentCodeReviewTab(tabId));
-        if (codeCardScrollRef.current) {
-            codeCardScrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
-        }
+        // Remove the immediate scroll reset to prevent flashing
+        // Scroll will be handled by the layout animation
     };
+
+    // Add a stable key for the content area to prevent re-mounting
+    const contentKey = useMemo(() => `${currentTab}-${filteredItems.length}`, [currentTab, filteredItems.length]);
+
+    // Handle smooth scroll after tab change animation completes
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (codeCardScrollRef.current) {
+                codeCardScrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
+            }
+        }, 100); // Wait for animation to complete
+
+        return () => clearTimeout(timer);
+    }, [currentTab]);
 
     return (
         <TooltipProvider>
@@ -167,7 +180,7 @@ export default function ImprovedCodeReviewForm({
                     damping: 30,
                 }}
             >
-                <div className="flex flex-col h-full px-2 pb-1 space-y-3 overflow-hidden">
+                <div className="flex flex-col h-full px-2 pb-1 space-y-3 max-h-[calc(100vh-2.9rem)] overflow-y-auto">
                     {/* Search and Filter Section */}
                     <div className="flex flex-col md:flex-row md:items-center gap-3">
                         {/* Search Input */}
@@ -214,11 +227,10 @@ export default function ImprovedCodeReviewForm({
                             currentTab={currentTab}
                             handleTabChange={handleTabChange}
                         />
-                        {/*  <span className="text-xs md:text-sm whitespace-nowrap font-semibold text-gray-500 mr-2">Total: {documentedItems.length + opportunitiesItems?.length}</span> */}
                     </div>
                     {/* Optimized Code Cards */}
                     <div className="flex-1 overflow-hidden">
-                        <div ref={codeCardScrollRef} className="h-full max-h-[calc(100vh-18rem)] space-y-2 pr-1 overflow-y-auto overflow-x-hidden">
+                        <div ref={codeCardScrollRef} className="h-full space-y-2 pr-1 overflow-y-auto overflow-x-hidden">
                             {apiLoading || isCodeLoading ? (
                                 <motion.div
                                     className="flex flex-col items-center justify-center py-12 text-center"
@@ -235,18 +247,21 @@ export default function ImprovedCodeReviewForm({
                                     </p>
                                 </motion.div>
                             ) : (
-                                <AnimatePresence mode="popLayout">
+                                <motion.div
+                                    key={contentKey}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="space-y-2"
+                                >
                                     {filteredItems.map((item, index) => (
                                         <motion.div
                                             key={item.id}
-                                            layout="position"
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            exit={{ opacity: 0 }}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
                                             transition={{
                                                 duration: 0.2,
-                                                delay: Math.min(index * 0.01, 0.05),
-                                                layout: { duration: 0.3, ease: "easeInOut" },
+                                                delay: Math.min(index * 0.02, 0.1),
                                             }}
                                         >
                                             <ConditionCommonCard
@@ -333,7 +348,7 @@ export default function ImprovedCodeReviewForm({
                                             />
                                         </motion.div>
                                     ))}
-                                </AnimatePresence>
+                                </motion.div>
                             )}
 
                             {/* Empty State - only show when not loading */}
@@ -402,5 +417,5 @@ export default function ImprovedCodeReviewForm({
                 }}
             />
         </TooltipProvider>
-    )
+    );
 }

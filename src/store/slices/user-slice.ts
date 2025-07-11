@@ -178,6 +178,7 @@ export const registerUser = createAsyncThunk<string, RegisterUserRequest>(
                 "prod_target": userData?.prodTarget, // Optional, required if the role_id is 3 (Analyst) or 4 (Auditor)
                 "bucket_threshold": userData?.maxAssign // Optional, required if the role_id is 3 (Analyst) or 4 (Auditor)
             });
+            console.info(apiResponse, "apiResponse");
             await new Promise((resolve) => setTimeout(resolve, 800));
 
             const state = getState() as { user: UserState };
@@ -296,13 +297,13 @@ interface ApiResponse {
 }
 export const fetchChartCounts = createAsyncThunk("user/fetchChartCounts", async (_, { rejectWithValue }) => {
     try {
-        const formattedStart = format(StartDateFilter, 'yyyy-MM-dd');
-        const formattedEnd = format(EndDateFilter, 'yyyy-MM-dd');
+        const formattedStart = format(StartDateFilter, "yyyy-MM-dd");
+        const formattedEnd = format(EndDateFilter, "yyyy-MM-dd");
 
         const bodyData = {
             "start_date": formattedStart,
             "end_date": formattedEnd
-        }
+        };
         const response = await postData("charts_count/", bodyData);
         const data = response.data as ApiResponse;
         if (data.status === "Success") {

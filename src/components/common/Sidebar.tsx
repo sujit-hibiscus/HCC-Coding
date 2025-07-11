@@ -22,9 +22,7 @@ import {
     useSidebar
 } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useRedux } from "@/hooks/use-redux";
-import useToast from "@/hooks/use-toast";
 import { targetTabs } from "@/lib/types/chartsTypes";
 import { cn } from "@/lib/utils";
 import { setPageLoading } from "@/store/slices/DashboardSlice";
@@ -67,11 +65,11 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
 
     const handleNavigation = (href: string, label: string) => {
         const id = href.split("/").pop() || href;
-        dispatch(setPageLoading(true))
+        dispatch(setPageLoading(true));
 
         setTimeout(() => {
             if (targetTabs.some(status => id.includes(status))) {
-                if (id !== 'document') {
+                if (id !== "document") {
                     getChartApi(id as "pending" | "assigned" | "audit" | "completed" | "document");
                 }
             }
@@ -83,8 +81,6 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
 
         router.push(href);
     };
-
-    const { showPromiseToast } = useToast();
 
     const handleLogout = async () => {
         await logoutAction();

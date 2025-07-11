@@ -44,6 +44,7 @@ export const TokenManager = {
     },
 
     setToken: (token: string): void => {
+        console.info("🚀 ~ token:", token);
         if (typeof window === "undefined") return;
         // localStorage.setItem("authToken", token);
     },
@@ -414,6 +415,7 @@ export const uploadFile = <T>(
     return fetchClient.uploadFile<T>(url, file, onProgress, options);
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const postDataNoTimeout = async <T>(url: string, data?: any, options: ExtendedRequestInit = {}): Promise<ApiResponse<T>> => {
     const baseURL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000/api";
     const fullUrl = url.startsWith("http") ? url : `${options.baseURL || baseURL}${url.startsWith("/") ? "" : ""}${url}`;
@@ -441,6 +443,7 @@ export const postDataNoTimeout = async <T>(url: string, data?: any, options: Ext
 
     const response = await fetch(fullUrl, fetchOptions);
     const responseType = options.responseType || "json";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let responseData: any;
     switch (responseType) {
         case "text":
